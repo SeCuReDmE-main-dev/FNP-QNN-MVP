@@ -1,102 +1,86 @@
-# ATTENTION EN DEVELOPEMENT PAS FUNCTIONELLE #
+# Cerebrum -> QNN Research Prototype
 
+This repository is a serious experimental workspace for a crossmodal cognitive
+adapter and a testable QNN nucleus. The goal is to turn heterogeneous perception
+events into deterministic features, then compare quantum and quantum-inspired
+models on the same compact input representation.
 
+It is not a clinical system.
 
+## Current state
 
-# FNP-QNN MVP - Disease Simulator & Cure Engine
+- `Cerebrum` is used as the architecture reference for event memory, temporal
+  relations, and multimodal sequencing.
+- `Qiskit Machine Learning` is the preferred QNN target when available.
+- A deterministic PyTorch surrogate keeps the project runnable when the Qiskit
+  stack is not installed locally.
+- The API exposes crossmodal encoding and QNN smoke endpoints.
+- The repo still keeps the legacy `phi` framework for compatibility, but the
+  new work is centered on `cerebrum` and `qnn`.
 
-**Fractal Neutrosophic Parallel Linear Fibonacci Quanvolutional Elliptic Tensor Swarm Derivative Neural Network**
+## Project layout
 
-## 🧠 Revolutionary Medical AI System
-
-This repository contains the **Minimum Viable Product** of the groundbreaking FNP-QNN system - a quantum-neural hybrid framework capable of:
-
-- **Precise neuronal deficit colocation** using advanced mathematical formulas
-- **φ-framework quantum computing** with golden ratio-based operations  
-- **Brain structure simulation** with real-time neural mapping
-- **Medical therapy algorithms** including breakthrough Parkinson's treatment
-- **Agent-based distributed computing** for complex calculations
-
-## 🔬 Core Innovation: The C³ Formula
-
-```
-C³ = Z.{x+y} / (primal_tension × elasticity × synapse_speed)
-```
-
-Where **reverse Z-value serves the EXACT colocation of neuronal deficit**
-
-## 🏗️ Architecture
-
-```
-├── core/           # φ-framework & cubic particle mathematics
-├── quantum/        # Quantum processing & colocation engines  
-├── neural/         # Brain mapping & neural analysis
-├── medical/        # Disease simulation & therapy algorithms
-├── agents/         # Distributed computing agents
-├── tests/          # Comprehensive testing framework
-└── examples/       # Working demonstrations
+```text
+core/
+  cerebrum_adapter.py   # crossmodal event -> feature bundle
+  qnn_nucleus.py        # QNN candidate matrix + surrogate benchmark
+  phi_framework.py      # legacy mathematical core kept for compatibility
+api/main.py             # FastAPI surface
+examples/cerebrum_qnn_demo.py
+tests/test_cerebrum_qnn.py
 ```
 
-## 🚀 Getting Started
+## How the pipeline works
+
+1. ingest `audio / video / text / stimuli` observations
+2. normalize them into ordered crossmodal events
+3. derive a fixed feature bundle with sequence and transition information
+4. feed that vector into a QNN candidate or the local PyTorch surrogate
+5. compare candidate readiness with the same smoke harness
+
+## Installation
 
 ```bash
-# Install dependencies
-pip install numpy matplotlib torch scipy
-
-# Run basic demonstration  
-python examples/simple_demo.py
-
-# Test Parkinson's cure algorithm
-python examples/parkinsons_demo.py
-
-# Full brain simulation
-python examples/brain_sim_demo.py
+pip install -r requirements.txt
 ```
 
-## 🧬 Key Features
+Optional for the real Qiskit path:
 
-- **Quantum-Neural Bridge**: Converts quantum states to neural network inputs
-- **Brain Region Mapping**: 17+ brain regions with individual quantum modeling
-- **Colocation Engine**: Precise targeting of neuronal deficits
-- **φ-Framework**: Golden ratio-based quantum mathematics
-- **Cubic Particles**: Novel quantum particle physics implementation
-- **EEG Analysis**: Real-time brain wave pattern analysis
-- **Neuroplasticity Modeling**: Dynamic brain adaptation simulation
+```bash
+pip install qiskit qiskit-machine-learning
+```
 
-## 📊 Medical Applications
+## Quick start
 
-- **Parkinson's Disease**: Targeted neuronal deficit repair
-- **Brain Injury Recovery**: Neuroplasticity enhancement
-- **Cognitive Enhancement**: Neural pathway optimization  
-- **Disease Prevention**: Early deficit detection
+Run the smoke demo:
 
-## 🤝 Collaboration
+```bash
+python examples/cerebrum_qnn_demo.py
+```
 
-This system leverages **Claude Code agents** for:
-- Complex mathematical computations
-- Research validation
-- Result verification
-- Performance optimization
+Run tests:
 
-## 📈 Development Status
+```bash
+python -m unittest discover -s tests
+```
 
-**MVP Phase**: Core functionality implementation
-- [x] Architecture design
-- [ ] φ-framework mathematics
-- [ ] Cubic particle system  
-- [ ] Colocation engine
-- [ ] Brain mapping
-- [ ] Agent integration
-- [ ] Testing framework
+Run the API:
 
-## 🌟 Vision
+```bash
+uvicorn api.main:app --reload --port 8000
+```
 
-**Changing the world one line of code at a time.**
+## API highlights
 
-*United we stand strong in the pursuit of revolutionary medical AI.*
+- `GET /cerebrum/status`
+- `POST /cerebrum/encode`
+- `GET /qnn/candidates`
+- `POST /qnn/smoke`
+- `GET /health`
 
----
+## Notes
 
-**Created by**: SeCuReDmE Innovation Lab  
-**Branch**: PaQBoT (Particle Quantum Brain optimized Therapy)  
-**License**: Breakthrough Medical Research License
+- The project deliberately avoids clinical claims.
+- `EbaAaZ` is treated as lineage only, not as a runtime dependency.
+- The Qiskit candidate matrix is explicit, but the local runtime falls back to
+  the PyTorch surrogate unless the optional packages are installed.
