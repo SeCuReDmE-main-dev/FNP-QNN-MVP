@@ -2,7 +2,7 @@
 
 <style>
 .readme-background {
-  background-image: url("asset/simulateur%20image%20repobackground.png");
+  background-image: url("https://kommodo.ai/i/rlzh6FPen2CoWAI2KKra");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
