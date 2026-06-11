@@ -1,3 +1,8 @@
+# ATTENTION EN DEVELOPEMENT PAS FUNCTIONELLE #
+
+
+
+
 # FNP-QNN MVP - Disease Simulator & Cure Engine
 
 **Fractal Neutrosophic Parallel Linear Fibonacci Quanvolutional Elliptic Tensor Swarm Derivative Neural Network**
