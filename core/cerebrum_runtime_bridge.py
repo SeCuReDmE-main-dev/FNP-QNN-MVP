@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+import json
 from importlib.util import find_spec
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
@@ -52,6 +53,22 @@ COLLECTION_MODALITIES = {
     "text": "text",
     "stimuli": "stimuli",
     "stimulus": "stimuli",
+}
+
+PAIR_DIRECTION_ALIASES = {
+    "H2V": ("audio", "video"),
+    "V2H": ("video", "audio"),
+    "H2L": ("audio", "text"),
+    "L2H": ("text", "audio"),
+    "V2L": ("video", "text"),
+    "L2V": ("text", "video"),
+}
+
+LEGACY_TABLE_MODALITIES = {
+    "hearing_timestamps": "audio",
+    "vision_timestamps": "video",
+    "language_timestamps": "text",
+    "stimuli_timestamps": "stimuli",
 }
 
 
@@ -184,10 +201,10 @@ class CerebrumRuntimeBridge:
 
     def ingest(self, payload: Mapping[str, Any] | Sequence[Any] | None) -> Tuple[List[CerebrumMemoryEvent], List[CrossModalPair], List[str]]:
         warnings: List[str] = []
-        records = self._extract_records(payload)
+        records = self._extract_records(payload, warnings)
         parsed = [self._parse_record(record, index, warnings) for index, record in enumerate(records)]
         events = self._normalize_event_times([event for event in parsed if event is not None])
-        pairs = self.build_pairs(events)
+        pairs = self._extract_pairs(payload, events, warnings)
         if not events:
             warnings.append("No runtime memory events were provided.")
         return events, pairs, warnings
@@ -241,8 +258,12 @@ class CerebrumRuntimeBridge:
             overlap_score=overlap_score,
         )
 
-    def _extract_records(self, payload: Mapping[str, Any] | Sequence[Any] | None) -> List[Mapping[str, Any]]:
+    def _extract_records(self, payload: Mapping[str, Any] | Sequence[Any] | None, warnings: List[str]) -> List[Mapping[str, Any]]:
         if payload is None:
+            if self.legacy_cerebrum_path is not None:
+                legacy_records = self._load_legacy_snapshot(self.legacy_cerebrum_path, warnings=warnings)
+                if legacy_records:
+                    return legacy_records
             return self.default_payload()["memories"]
         if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes, bytearray, Mapping)):
             return [record if isinstance(record, Mapping) else {"value": record} for record in payload]
@@ -255,6 +276,12 @@ class CerebrumRuntimeBridge:
             return [record if isinstance(record, Mapping) else {"value": record} for record in payload.get("events", [])]
         if "observations" in payload:
             return [record if isinstance(record, Mapping) else {"value": record} for record in payload.get("observations", [])]
+        if any(table_name in payload for table_name in LEGACY_TABLE_MODALITIES) or "crossmodal_mappings" in payload:
+            return self._legacy_table_payload_to_records(payload)
+        if "legacy_snapshot" in payload:
+            snapshot_records = self._load_legacy_snapshot(payload.get("legacy_snapshot"), warnings=warnings)
+            if snapshot_records:
+                return snapshot_records
 
         records: List[Mapping[str, Any]] = []
         for key, modality in COLLECTION_MODALITIES.items():
@@ -271,6 +298,22 @@ class CerebrumRuntimeBridge:
                     record = {"modality": modality, "value": item}
                 records.append(record)
         return records
+
+    def _extract_pairs(
+        self,
+        payload: Mapping[str, Any] | Sequence[Any] | None,
+        events: Sequence[CerebrumMemoryEvent],
+        warnings: List[str],
+    ) -> List[CrossModalPair]:
+        if isinstance(payload, Mapping) and "pairs" in payload:
+            pairs = self._normalize_pairs(payload.get("pairs"), warnings)
+            if pairs:
+                return pairs
+        if isinstance(payload, Mapping) and "crossmodal_mappings" in payload:
+            pairs = self._normalize_pairs(payload.get("crossmodal_mappings"), warnings)
+            if pairs:
+                return pairs
+        return self.build_pairs(events)
 
     def _parse_record(self, record: Mapping[str, Any], index: int, warnings: List[str]) -> Optional[CerebrumMemoryEvent]:
         modality_raw = str(record.get("modality") or record.get("channel") or record.get("type") or "stimuli").lower()
@@ -325,6 +368,31 @@ class CerebrumRuntimeBridge:
             for event in events
         ]
         return sorted(normalized, key=lambda event: (event.starting_time, event.modality))
+
+    def _normalize_pairs(self, payload: Any, warnings: List[str]) -> List[CrossModalPair]:
+        if payload is None:
+            return []
+        records = payload if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes, bytearray)) else [payload]
+        pairs: List[CrossModalPair] = []
+        for record in records:
+            if not isinstance(record, Mapping):
+                continue
+            direction = str(record.get("direction", "")).upper()
+            if direction not in PAIR_DIRECTION_ALIASES:
+                warnings.append(f"Unknown pair direction '{direction}' ignored.")
+                continue
+            source_modality, target_modality = PAIR_DIRECTION_ALIASES[direction]
+            pairs.append(
+                CrossModalPair(
+                    timestamp1=self._coerce_float(record.get("timestamp1", record.get("starting_time", 0.0)), 0.0),
+                    timestamp2=self._coerce_float(record.get("timestamp2", record.get("ending_time", 0.0)), 0.0),
+                    direction=direction,
+                    source_modality=source_modality,
+                    target_modality=target_modality,
+                    overlap_score=max(0.0, min(1.0, self._coerce_float(record.get("overlap_score", 1.0), 1.0))),
+                )
+            )
+        return sorted(pairs, key=lambda pair: (pair.timestamp1, pair.direction, pair.timestamp2))
 
     def _overlap_score(self, left: CerebrumMemoryEvent, right: CerebrumMemoryEvent) -> float:
         overlap = min(left.ending_time, right.ending_time) - max(left.starting_time, right.starting_time)
@@ -385,6 +453,75 @@ class CerebrumRuntimeBridge:
             return float(raw_value)
         except (TypeError, ValueError):
             return fallback
+
+    def _load_legacy_snapshot(self, snapshot: Any, warnings: Optional[List[str]] = None) -> List[Mapping[str, Any]]:
+        warnings = warnings if warnings is not None else []
+        if snapshot is None:
+            return []
+        path = Path(str(snapshot))
+        if not path.exists():
+            warnings.append(f"Legacy snapshot path '{path}' does not exist.")
+            return []
+
+        records: List[Mapping[str, Any]] = []
+        candidates = [path] if path.is_file() else sorted(
+            item for item in path.rglob("*") if item.is_file() and item.suffix.lower() in {".json", ".jsonl", ".ndjson"}
+        )
+        for candidate in candidates:
+            try:
+                if candidate.suffix.lower() == ".json":
+                    loaded = json.loads(candidate.read_text(encoding="utf-8"))
+                    records.extend(self._legacy_payload_to_records(loaded, candidate))
+                    continue
+                for line in candidate.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if not line:
+                        continue
+                    records.extend(self._legacy_payload_to_records(json.loads(line), candidate))
+            except Exception as exc:  # pragma: no cover - best-effort legacy path
+                warnings.append(f"Legacy snapshot file '{candidate}' could not be read: {exc}")
+        return records
+
+    def _legacy_payload_to_records(self, loaded: Any, source: Path) -> List[Mapping[str, Any]]:
+        if isinstance(loaded, Mapping):
+            if any(table_name in loaded for table_name in LEGACY_TABLE_MODALITIES):
+                return self._legacy_table_payload_to_records(loaded)
+            if "memories" in loaded:
+                return [record if isinstance(record, Mapping) else {"value": record} for record in loaded.get("memories", [])]
+            if "pairs" in loaded:
+                return [record if isinstance(record, Mapping) else {"value": record} for record in loaded.get("pairs", [])]
+            return [dict(loaded)]
+        if isinstance(loaded, Sequence) and not isinstance(loaded, (str, bytes, bytearray)):
+            records: List[Mapping[str, Any]] = []
+            for item in loaded:
+                if isinstance(item, Mapping):
+                    records.append(dict(item))
+                else:
+                    records.append({"value": item, "source": source.stem})
+            return records
+        return [{"value": loaded, "source": source.stem}]
+
+    def _legacy_table_payload_to_records(self, tables: Mapping[str, Any]) -> List[Mapping[str, Any]]:
+        records: List[Mapping[str, Any]] = []
+        for table_name, modality in LEGACY_TABLE_MODALITIES.items():
+            entries = tables.get(table_name, [])
+            if not isinstance(entries, Sequence) or isinstance(entries, (str, bytes, bytearray)):
+                entries = [entries]
+            for entry in entries:
+                if not isinstance(entry, Mapping):
+                    continue
+                records.append(
+                    {
+                        "modality": modality,
+                        "starting_time": entry.get("starting_time", entry.get("timestamp", 0.0)),
+                        "ending_time": entry.get("ending_time", entry.get("timestamp", entry.get("starting_time", 0.0))),
+                        "value": entry.get("value", entry.get("data", 0.0)),
+                        "label": entry.get("label", table_name),
+                        "source": entry.get("source", table_name),
+                        "payload_ref": entry.get("payload_ref", entry.get("memory_id", "")),
+                    }
+                )
+        return records
 
     def default_payload(self) -> Dict[str, List[Dict[str, Any]]]:
         return {

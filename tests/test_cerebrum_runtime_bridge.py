@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+import tempfile
 
 import numpy as np
 from fastapi.testclient import TestClient
@@ -53,6 +55,85 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
         self.assertIn("V2L", directions)
         self.assertIn("L2V", directions)
 
+    def test_legacy_pairs_are_accepted_when_provided(self):
+        events, pairs, warnings = self.bridge.ingest(
+            {
+                "memories": [
+                    {"modality": "hearing", "starting_time": 0.0, "ending_time": 1.0, "value": 0.3},
+                    {"modality": "vision", "starting_time": 0.2, "ending_time": 1.2, "value": 0.6},
+                ],
+                "pairs": [
+                    {"timestamp1": 0.0, "timestamp2": 0.2, "direction": "H2V", "overlap_score": 0.75},
+                ],
+            }
+        )
+        self.assertEqual(len(events), 2)
+        self.assertEqual(len(pairs), 1)
+        self.assertEqual(pairs[0].direction, "H2V")
+        self.assertEqual(warnings, [])
+
+    def test_legacy_snapshot_path_is_loaded(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            snapshot = Path(tmpdir) / "snapshot.json"
+            snapshot.write_text(
+                """
+                {
+                  "memories": [
+                    {"modality": "hearing", "starting_time": 0.0, "ending_time": 1.0, "value": 0.2},
+                    {"modality": "language", "starting_time": 0.3, "ending_time": 1.3, "value": 0.7}
+                  ]
+                }
+                """.strip(),
+                encoding="utf-8",
+            )
+            events, pairs, warnings = CerebrumRuntimeBridge(legacy_cerebrum_path=str(snapshot.parent)).ingest(
+                {"legacy_snapshot": str(snapshot)}
+            )
+        self.assertEqual(len(events), 2)
+        self.assertGreaterEqual(len(pairs), 2)
+        self.assertEqual(warnings, [])
+
+    def test_legacy_path_is_used_when_payload_is_missing(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            snapshot = Path(tmpdir) / "legacy.json"
+            snapshot.write_text(
+                """
+                {
+                  "hearing_timestamps": [
+                    {"starting_time": "0.0", "ending_time": "1.0", "data": 0.2, "label": "rhythm"}
+                  ],
+                  "vision_timestamps": [
+                    {"starting_time": "0.2", "ending_time": "1.2", "data": 0.6, "label": "motion"}
+                  ]
+                }
+                """.strip(),
+                encoding="utf-8",
+            )
+            bridge = CerebrumRuntimeBridge(legacy_cerebrum_path=tmpdir)
+            events, pairs, warnings = bridge.ingest(None)
+        self.assertEqual(len(events), 2)
+        self.assertGreaterEqual(len(pairs), 2)
+        self.assertEqual(warnings, [])
+
+    def test_legacy_table_payload_is_loaded(self):
+        events, pairs, warnings = self.bridge.ingest(
+            {
+                "hearing_timestamps": [
+                    {"starting_time": "0.0", "ending_time": "1.0", "data": 0.2, "label": "rhythm"},
+                ],
+                "vision_timestamps": [
+                    {"starting_time": "0.2", "ending_time": "1.2", "data": 0.6, "label": "motion"},
+                ],
+                "crossmodal_mappings": [
+                    {"timestamp1": 0.0, "timestamp2": 0.2, "direction": "H2V", "overlap_score": 0.8}
+                ],
+            }
+        )
+        self.assertEqual(len(events), 2)
+        self.assertEqual(len(pairs), 1)
+        self.assertEqual(pairs[0].direction, "H2V")
+        self.assertEqual(warnings, [])
+
     def test_empty_stream_returns_safe_runtime_state(self):
         state = self.bridge.build_state({"memories": []})
         self.assertEqual(state.events, [])
@@ -105,6 +186,17 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("qnn_result", runtime)
         self.assertIn("benchmark", runtime)
         self.assertGreater(runtime["feature_dimension"], 0)
+
+    def test_execute_command_runtime_routes(self):
+        response = self.client.post(
+            "/execute-command",
+            json={"command": "cerebrum-runtime-status"},
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["type"], "cerebrum-runtime")
+        self.assertEqual(payload["data"]["status"], "ok")
 
 
 if __name__ == "__main__":
