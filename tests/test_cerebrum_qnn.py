@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from core.cerebrum_adapter import CerebrumAdapter
-from core.qnn_nucleus import QNNNucleus
+from core.qnn_nucleus import QISKIT_AVAILABLE, QNNNucleus
 
 
 class CerebrumQNNTests(unittest.TestCase):
@@ -32,6 +32,15 @@ class CerebrumQNNTests(unittest.TestCase):
         self.assertTrue(0.0 <= result["predicted_probability"] <= 1.0)
         self.assertGreaterEqual(result["train_accuracy"], 0.0)
         self.assertLessEqual(result["train_accuracy"], 1.0)
+
+    def test_smoke_run_prefers_qiskit_or_fallback(self):
+        nucleus = QNNNucleus()
+        result = nucleus.smoke_run(nucleus.adapter.default_observations(), label=1.0, max_epochs=4, test_size=0.0)
+        self.assertIn("backend", result)
+        if QISKIT_AVAILABLE:
+            self.assertIn(result["backend"], {"qiskit_torchconnector", "torch_surrogate_fallback_after_qiskit_error"})
+        else:
+            self.assertEqual(result["backend"], "torch_surrogate")
 
     def test_benchmark_returns_entries_for_all_candidates(self):
         nucleus = QNNNucleus()

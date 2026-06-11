@@ -124,7 +124,12 @@ async def qnn_smoke(payload: Dict[str, Any]):
     labels = payload.get("labels")
     if not samples or not labels:
         samples, labels = build_demo_samples()
-    result = qnn_nucleus.fit_surrogate(samples, labels, max_epochs=int(payload.get("epochs", 24)), test_size=float(payload.get("test_size", 0.25)))
+    result = qnn_nucleus.smoke_run(
+        samples[0],
+        label=float(labels[0]) if labels else 1.0,
+        max_epochs=int(payload.get("epochs", 24)),
+        test_size=float(payload.get("test_size", 0.25)),
+    )
     benchmark = qnn_nucleus.benchmark(samples, labels)
     return {
         "status": "ok",
@@ -319,7 +324,12 @@ async def handle_qnn_command(command: str, command_data: Dict[str, Any]):
             }
 
         if command == "qnn-smoke":
-            result = qnn_nucleus.fit_surrogate(samples, labels, max_epochs=int(command_data.get("epochs", 24)), test_size=float(command_data.get("test_size", 0.25)))
+            result = qnn_nucleus.smoke_run(
+                samples[0],
+                label=float(labels[0]) if labels else 1.0,
+                max_epochs=int(command_data.get("epochs", 24)),
+                test_size=float(command_data.get("test_size", 0.25)),
+            )
             benchmark = qnn_nucleus.benchmark(samples, labels)
             return {
                 "success": True,
@@ -335,7 +345,28 @@ async def handle_qnn_command(command: str, command_data: Dict[str, Any]):
             }
 
         if command == "qnn-fit":
-            result = qnn_nucleus.fit_surrogate(samples, labels, max_epochs=int(command_data.get("epochs", 24)), test_size=float(command_data.get("test_size", 0.25)))
+            if qnn_nucleus.candidate_matrix()[0].available:
+                try:
+                    result = qnn_nucleus.fit_qiskit_hybrid(
+                        samples,
+                        labels,
+                        max_epochs=int(command_data.get("epochs", 24)),
+                        test_size=float(command_data.get("test_size", 0.25)),
+                    )
+                except Exception:
+                    result = qnn_nucleus.fit_surrogate(
+                        samples,
+                        labels,
+                        max_epochs=int(command_data.get("epochs", 24)),
+                        test_size=float(command_data.get("test_size", 0.25)),
+                    )
+            else:
+                result = qnn_nucleus.fit_surrogate(
+                    samples,
+                    labels,
+                    max_epochs=int(command_data.get("epochs", 24)),
+                    test_size=float(command_data.get("test_size", 0.25)),
+                )
             return {
                 "success": True,
                 "output": (
