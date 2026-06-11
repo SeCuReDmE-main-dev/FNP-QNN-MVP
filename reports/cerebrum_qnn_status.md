@@ -37,7 +37,7 @@ its current environment.
 ## Current Validation
 
 - Python compilation passed on the new modules.
-- Unit tests passed: `4 tests`.
+- Unit tests passed: `5 tests`.
 - The demo script executed successfully and produced:
   - a 31-dimensional Cerebrum feature vector
   - a candidate matrix with the explicit QNN shortlist
@@ -45,6 +45,7 @@ its current environment.
 - Local environment note:
   - `qiskit` and `qiskit-machine-learning` are not installed in this runtime.
   - The code therefore exercises the torch fallback locally.
+  - The Qiskit lane is wired in code and guarded by optional imports plus a deterministic fallback path.
 
 ## What This Means
 
@@ -54,6 +55,9 @@ its current environment.
   - `EbaAaZ` is not used as a runtime dependency.
 - The system is now set up for a later swap to real Qiskit execution once the
   optional packages are installed.
+- `POST /qnn/smoke` now routes through the primary smoke helper and selects the
+  Qiskit lane when available, otherwise falling back to the deterministic torch
+  surrogate.
 
 ## Remaining Gaps
 
