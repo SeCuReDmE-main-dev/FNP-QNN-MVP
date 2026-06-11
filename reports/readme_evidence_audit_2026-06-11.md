@@ -2,7 +2,7 @@
 
 Date: 2026-06-11
 
-Repository: `SeCuReDmE-main-dev/FNP-QNN-MVP-version-desise-simulator-`
+Repository: `SeCuReDmE-main-dev/FNP-QNN-MVP-version-disease-simulator-`
 
 Branch: `FNP_QNN`
 

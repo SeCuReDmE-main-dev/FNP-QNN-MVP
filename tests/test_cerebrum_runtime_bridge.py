@@ -187,6 +187,14 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("benchmark", runtime)
         self.assertGreater(runtime["feature_dimension"], 0)
 
+    def test_legacy_runtime_demo_endpoint(self):
+        response = self.client.get("/cerebrum/runtime/legacy-demo")
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        self.assertTrue(runtime["legacy_cerebrum_path_exists"])
+        self.assertGreaterEqual(len(runtime["events"]), 1)
+        self.assertGreaterEqual(len(runtime["pairs"]), 1)
+
     def test_execute_command_runtime_routes(self):
         response = self.client.post(
             "/execute-command",
@@ -197,6 +205,21 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertTrue(payload["success"])
         self.assertEqual(payload["type"], "cerebrum-runtime")
         self.assertEqual(payload["data"]["status"], "ok")
+
+    def test_execute_command_legacy_demo_route(self):
+        response = self.client.post(
+            "/execute-command",
+            json={"command": "cerebrum-runtime-legacy-demo"},
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["type"], "cerebrum-runtime")
+        self.assertTrue(payload["data"]["legacy_cerebrum_path_exists"])
+
+    def test_legacy_fixture_exists(self):
+        fixture = Path(__file__).resolve().parent.parent / "examples" / "legacy_cerebrum_snapshot.json"
+        self.assertTrue(fixture.exists())
 
 
 if __name__ == "__main__":

@@ -114,7 +114,7 @@ The full runtime run returns:
 
 Commands run from:
 
-`C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP-QNN-MVP-version-desise-simulator-`
+`C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP-QNN-MVP-version-disease-simulator-`
 
 Python unit/API tests:
 

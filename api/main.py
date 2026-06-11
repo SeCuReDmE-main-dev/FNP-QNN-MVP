@@ -117,6 +117,17 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
     return result
 
 
+def _legacy_runtime_result() -> Dict[str, Any]:
+    legacy_root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "examples")
+    bridge = CerebrumRuntimeBridge(adapter=cerebrum_adapter, legacy_cerebrum_path=legacy_root)
+    nucleus = QNNNucleus(adapter=bridge.adapter)
+    state = bridge.build_state(None, qnn_nucleus=nucleus, max_epochs=6)
+    result = state.to_dict()
+    result["legacy_cerebrum_path"] = legacy_root
+    result["legacy_cerebrum_path_exists"] = bridge.status(qnn_nucleus=nucleus)["legacy_cerebrum_path_exists"]
+    return result
+
+
 @app.get("/")
 async def root():
     return {
@@ -173,6 +184,11 @@ async def cerebrum_runtime_pairs(payload: Dict[str, Any]):
 @app.post("/cerebrum/runtime/run")
 async def cerebrum_runtime_run(payload: Dict[str, Any]):
     return {"status": "ok", "runtime": _runtime_result(payload, run_qnn=True)}
+
+
+@app.get("/cerebrum/runtime/legacy-demo")
+async def cerebrum_runtime_legacy_demo():
+    return {"status": "ok", "runtime": _legacy_runtime_result()}
 
 
 @app.get("/qnn/candidates")
@@ -424,6 +440,22 @@ async def handle_cerebrum_runtime_command(command: str, command_data: Dict[str, 
                 "success": True,
                 "output": (
                     "Cerebrum runtime run complete:\n"
+                    f"Events: {len(result['events'])}\n"
+                    f"Pairs: {len(result['pairs'])}\n"
+                    f"Feature dimension: {result['feature_dimension']}\n"
+                    f"QNN backend: {qnn_backend}"
+                ),
+                "type": "cerebrum-runtime",
+                "data": result,
+            }
+
+        if command == "cerebrum-runtime-legacy-demo":
+            result = _legacy_runtime_result()
+            qnn_backend = (result.get("qnn_result") or {}).get("backend", "not-run")
+            return {
+                "success": True,
+                "output": (
+                    "Cerebrum runtime legacy demo complete:\n"
                     f"Events: {len(result['events'])}\n"
                     f"Pairs: {len(result['pairs'])}\n"
                     f"Feature dimension: {result['feature_dimension']}\n"
