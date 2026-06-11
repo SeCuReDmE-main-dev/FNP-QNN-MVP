@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>README Evidence Audit</title>
+</head>
+<body>
+  <h1>README Evidence Audit</h1>
+  <p><strong>Date:</strong> 2026-06-11</p>
+  <p><strong>Repository:</strong> SeCuReDmE-main-dev/FNP-QNN-MVP-version-desise-simulator-</p>
+  <p><strong>Branch:</strong> FNP_QNN</p>
+  <p><strong>Audited commit before README update:</strong> 3d84ee00fb1efad951e8b30a4797fb4a6e2c102c</p>
+  <p><strong>README audit update commit:</strong> the commit containing this report and README update.</p>
+
+  <h2>Objective</h2>
+  <p>Audit the simulator repository after rapid development work, identify gaps between the README and the actual code/history, document lack-of-evidence items, and update the README so public claims stay aligned with evidence.</p>
+
+  <h2>Inputs inspected</h2>
+  <ul>
+    <li>README.md</li>
+    <li>api/main.py</li>
+    <li>core/cerebrum_runtime_bridge.py</li>
+    <li>core/qnn_nucleus.py</li>
+    <li>tests/test_cerebrum_runtime_bridge.py</li>
+    <li>reports/cerebrum_runtime_wiring_report.md</li>
+    <li>reports/qnn_lane_tdr.md</li>
+    <li>requirements.txt</li>
+    <li>git log --since="10 hours ago"</li>
+  </ul>
+
+  <h2>Git timeline summary</h2>
+  <ul>
+    <li>64da885 added an initial development notice.</li>
+    <li>29b5ba7 added the Cerebrum adapter, QNN nucleus, API expansion, demo, tests, requirements updates, and first status reports.</li>
+    <li>cd24ce7 clarified README and QNN nucleus behavior.</li>
+    <li>a0bdb58 improved smoke-run behavior, Qiskit integration handling, and QNN tests.</li>
+    <li>360ba2d added compiled Python cache files for the QNN/demo state.</li>
+    <li>8736d64 updated the Cerebrum/QNN status report and added the QNN lane TDR.</li>
+    <li>783237b implemented the runtime bridge, life-science port, runtime API, runtime demo, runtime report, and runtime tests.</li>
+    <li>3d5fa8d hardened runtime label handling for benchmark stability.</li>
+    <li>e26d0f8 added the production/instability warning to the README.</li>
+    <li>373cd98 updated compiled Python cache files for core modules.</li>
+    <li>3d84ee0 merged local and remote FNP_QNN branch state.</li>
+  </ul>
+
+  <h2>README gaps found</h2>
+  <ul>
+    <li>The repository status and contribution boundary created by the warning block needed to be explicit.</li>
+    <li>The runtime bridge contract and command-router surface were under-documented.</li>
+    <li>The README did not summarize the last 10-hour Git history.</li>
+    <li>Validated claims and scaffolded claims were not separated clearly enough.</li>
+    <li>Qiskit, FFED/R, optional dependency, and tracked cache-file evidence gaps needed to be named.</li>
+  </ul>
+
+  <h2>Validation evidence</h2>
+  <pre>python -m unittest discover -s tests -p "test_*.py"
+Ran 14 tests in 25.349s
+OK</pre>
+  <pre>python examples/cerebrum_runtime_demo.py
+events: 4
+pairs: 6
+feature_dimension: 31
+qnn_backend: torch_surrogate
+warnings: []</pre>
+  <pre>qiskit_available: False
+bridge: operational
+supported_modalities: audio, video, text, stimuli
+supported_pair_directions: H2V, V2H, H2L, L2H, V2L, L2V
+optional_dependency_available: rethinkdb=True, pyaudio=False, cv2=False, hpelm=False
+qnn_backend: torch</pre>
+  <pre>Rscript tests/test_lvfm_core.R
+Rscript is not recognized as a cmdlet, function, script file, or executable program.</pre>
+
+  <h2>Lack of evidence</h2>
+  <ul>
+    <li>Real Qiskit execution is not proven in the current local runtime.</li>
+    <li>TorchQuantum and quanvolution are candidate lanes, not validated local execution lanes.</li>
+    <li>FFED-RNASeq R tests are blocked in this shell because Rscript is missing.</li>
+    <li>The life-science port is an observation adapter only, not validation of a biological or clinical result.</li>
+    <li>The legacy Cerebrum runtime is intentionally not imported into FastAPI and is not proven to run inside the simulator process.</li>
+    <li>Optional Cerebrum-era dependencies are only partially available.</li>
+    <li>There is no clinical validation or safety validation.</li>
+  </ul>
+
+  <h2>README update applied</h2>
+  <p>The README now preserves the exact warning block, documents the current architecture and APIs, summarizes the rapid Git history, separates validation from lack of evidence, and records tracked cache files as debt rather than source capability.</p>
+
+  <h2>Recommended next steps</h2>
+  <ol>
+    <li>Keep the README warning block present until the project owner explicitly decides the repo is ready for broader public interaction.</li>
+    <li>Validate Qiskit in a controlled environment with qiskit and qiskit-machine-learning installed.</li>
+    <li>Validate FFED/R in an R-enabled environment.</li>
+    <li>Clean tracked __pycache__ files in a separate maintenance commit if repo hygiene becomes the priority.</li>
+    <li>Continue updating reports and README together after major runtime changes.</li>
+  </ol>
+</body>
+</html>
