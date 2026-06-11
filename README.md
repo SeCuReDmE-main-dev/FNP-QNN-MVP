@@ -1,3 +1,5 @@
+{{ attention ne pas effacer : le code est en production et je suis loin dun alpha respecter ce message si encore present pas pret pour tout le monde tres instable je naccept aucun push pull issue durant que je concoit et craft le code sil vous plait respecter mon processus de creation merci de votre patience }}
+
 # Cerebrum to QNN Research Prototype
 
 This repository is a local research prototype for a crossmodal cognitive
