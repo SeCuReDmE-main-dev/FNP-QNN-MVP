@@ -1,24 +1,7 @@
 {{ attention ne pas effacer : le code est en production et je suis loin dun alpha respecter ce message si encore present pas pret pour tout le monde tres instable je naccept aucun push pull issue durant que je concoit et craft le code sil vous plait respecter mon processus de creation merci de votre patience }}
 
-<style>
-.readme-background {
-  background-image: url("./assets/simulator-repository-background.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  padding: 1.2rem;
-  border-radius: 8px;
-}
+<img width="1055" height="1491" alt="simulator-repository-background" src="https://github.com/user-attachments/assets/47416585-b351-442e-bb20-09db14ee6ef2" />
 
-.readme-content-overlay {
-  background: rgba(255, 255, 255, 0.82);
-  padding: 0.75rem 1rem;
-  border-radius: 4px;
-}
-</style>
-
-<div class="readme-background">
-<div class="readme-content-overlay">
 
 # Cerebrum to QNN Research Prototype
 
