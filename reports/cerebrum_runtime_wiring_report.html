@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cerebrum Runtime Wiring Report</title>
+</head>
+<body>
+  <h1>Cerebrum Runtime Wiring Report</h1>
+  <p><strong>Date:</strong> 2026-06-11</p>
+  <h2>Objective</h2>
+  <p>Wire the simulator to a real Cerebrum-shaped runtime contract without importing the legacy Cerebrum runtime directly. The simulator now accepts interval memories, builds deterministic crossmodal pairs, converts those pairs into the existing feature bundle, and sends the result through the QNN nucleus or torch fallback.</p>
+  <h2>What Changed</h2>
+  <ul>
+    <li>Added <code>core/cerebrum_runtime_bridge.py</code> with <code>CerebrumMemoryEvent</code>, <code>CrossModalPair</code>, <code>CerebrumRuntimeState</code>, and <code>CerebrumRuntimeBridge</code>.</li>
+    <li>Updated <code>core/cerebrum_adapter.py</code> so flat observations and interval-shaped records both work.</li>
+    <li>Added <code>core/life_science_port.py</code> as a dormant, opt-in FFED/LVFM StateField-shaped observation port.</li>
+    <li>Added runtime API endpoints for status, ingest, pairs, and run.</li>
+    <li>Added command-handler support for <code>cerebrum-runtime-*</code> commands.</li>
+    <li>Added <code>examples/cerebrum_runtime_demo.py</code>.</li>
+    <li>Added runtime bridge and API tests.</li>
+  </ul>
+  <h2>Current Runtime Contract</h2>
+  <p>Inputs can use <code>memories</code>, <code>events</code>, <code>observations</code>, grouped modality collections, or an optional <code>statefield</code> payload.</p>
+  <p>Each runtime event includes modality, starting time, ending time, duration, value, source, label, payload reference, and provenance. Each crossmodal pair includes timestamp1, timestamp2, direction, source modality, target modality, and overlap score.</p>
+  <h2>Design Decisions</h2>
+  <ul>
+    <li>The old Cerebrum code is not imported into FastAPI.</li>
+    <li>The bridge implements the portable crossmodal interval-overlap contract.</li>
+    <li>The simulator remains runnable without Qiskit through the torch surrogate path.</li>
+    <li>FFED-RNASeq remains outside the simulator runtime and can later connect through the dormant StateField-shaped port.</li>
+    <li>Public wording stays research-oriented and makes no clinical claim.</li>
+  </ul>
+  <h2>Validation</h2>
+  <pre>python -m unittest discover -s tests -p "test_*.py"
+Ran 14 tests in 19.379s
+OK</pre>
+  <pre>python examples/cerebrum_runtime_demo.py
+events: 4
+pairs: 6
+feature_dimension: 31
+qnn_backend: torch_surrogate
+warnings: []</pre>
+  <p><strong>Known note:</strong> <code>Rscript</code> is not available in this shell, so FFED-RNASeq R tests were not rerun here. Qiskit packages are not active in this runtime; the verified path is the torch surrogate fallback.</p>
+  <h2>Result</h2>
+  <p>The simulator is no longer only referencing Cerebrum conceptually. It now has a real runtime wiring layer for Cerebrum-shaped memories and crossmodal mappings, with API, tests, command handling, and a local demo.</p>
+</body>
+</html>

@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core import CerebrumAdapter, PhiFramework, QNNNucleus
+from core import CerebrumAdapter, CerebrumRuntimeBridge, LifeScienceObservationPort, PhiFramework, QNNNucleus
 from core.cerebrum_adapter import MODALITIES
 
 app = FastAPI(
@@ -40,6 +40,8 @@ app.add_middleware(
 phi_engine = PhiFramework()
 cerebrum_adapter = CerebrumAdapter()
 qnn_nucleus = QNNNucleus(adapter=cerebrum_adapter)
+cerebrum_runtime_bridge = CerebrumRuntimeBridge(adapter=cerebrum_adapter)
+life_science_port = LifeScienceObservationPort()
 
 
 def build_demo_observations() -> List[Dict[str, Any]]:
@@ -75,6 +77,46 @@ def _encode_observations(observations: Sequence[Any]) -> Dict[str, Any]:
     }
 
 
+def _runtime_payload(payload: Dict[str, Any] | None) -> Dict[str, Any]:
+    if not payload:
+        return cerebrum_runtime_bridge.default_payload()
+    if "statefield" in payload:
+        observations = life_science_port.statefield_to_observations(payload["statefield"])
+        return {"memories": observations}
+    return payload
+
+
+def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Dict[str, Any]:
+    runtime_payload = _runtime_payload(payload)
+    state = cerebrum_runtime_bridge.build_state(
+        runtime_payload,
+        qnn_nucleus=qnn_nucleus if run_qnn else None,
+        label=float((payload or {}).get("label", 1.0)),
+        max_epochs=int((payload or {}).get("epochs", 12)),
+    )
+    result = state.to_dict()
+    if run_qnn:
+        samples, labels = build_demo_samples()
+        runtime_label = int((payload or {}).get("label", 1))
+        benchmark_samples = [state.observations, *samples, state.observations, *samples]
+        benchmark_labels = [runtime_label, 0, 1, 0, 1 - runtime_label, 1, 0, 1]
+        benchmark = qnn_nucleus.benchmark(benchmark_samples, benchmark_labels)
+        result["benchmark"] = [
+            {
+                "candidate": item.candidate,
+                "available": item.available,
+                "backend": item.backend,
+                "notes": item.notes,
+                "train_accuracy": item.train_accuracy,
+                "test_accuracy": item.test_accuracy,
+                "predicted_probability": item.predicted_probability,
+                "feature_dimension": item.feature_dimension,
+            }
+            for item in benchmark
+        ]
+    return result
+
+
 @app.get("/")
 async def root():
     return {
@@ -99,6 +141,38 @@ async def cerebrum_status():
 async def cerebrum_encode(payload: Dict[str, Any]):
     observations = payload.get("observations") or build_demo_observations()
     return {"status": "ok", "encoded": _encode_observations(observations)}
+
+
+@app.get("/cerebrum/runtime/status")
+async def cerebrum_runtime_status():
+    return cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus)
+
+
+@app.post("/cerebrum/runtime/ingest")
+async def cerebrum_runtime_ingest(payload: Dict[str, Any]):
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload))
+    return {
+        "status": "ok",
+        "events": [event.to_dict() for event in events],
+        "pairs": [pair.to_dict() for pair in pairs],
+        "warnings": warnings,
+    }
+
+
+@app.post("/cerebrum/runtime/pairs")
+async def cerebrum_runtime_pairs(payload: Dict[str, Any]):
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload))
+    return {
+        "status": "ok",
+        "event_count": len(events),
+        "pairs": [pair.to_dict() for pair in pairs],
+        "warnings": warnings,
+    }
+
+
+@app.post("/cerebrum/runtime/run")
+async def cerebrum_runtime_run(payload: Dict[str, Any]):
+    return {"status": "ok", "runtime": _runtime_result(payload, run_qnn=True)}
 
 
 @app.get("/qnn/candidates")
@@ -160,6 +234,8 @@ async def execute_command(command_data: dict):
     try:
         if command.startswith("phi-"):
             return await handle_phi_command(command)
+        if command.startswith("cerebrum-runtime-"):
+            return await handle_cerebrum_runtime_command(command, command_data)
         if command.startswith("cerebrum-"):
             return await handle_cerebrum_command(command, command_data)
         if command.startswith("qnn-"):
@@ -304,6 +380,68 @@ async def handle_cerebrum_command(command: str, command_data: Dict[str, Any]):
         return {
             "success": False,
             "error": f"Cerebrum command error: {str(exc)}",
+            "type": "error",
+        }
+
+
+async def handle_cerebrum_runtime_command(command: str, command_data: Dict[str, Any]):
+    try:
+        payload = command_data.get("payload") or command_data
+        if command == "cerebrum-runtime-status":
+            return {
+                "success": True,
+                "output": "Cerebrum runtime bridge operational.",
+                "type": "cerebrum-runtime",
+                "data": cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus),
+            }
+
+        if command == "cerebrum-runtime-ingest":
+            events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload))
+            return {
+                "success": True,
+                "output": f"Ingested {len(events)} runtime events and built {len(pairs)} crossmodal pairs.",
+                "type": "cerebrum-runtime",
+                "data": {
+                    "events": [event.to_dict() for event in events],
+                    "pairs": [pair.to_dict() for pair in pairs],
+                    "warnings": warnings,
+                },
+            }
+
+        if command == "cerebrum-runtime-pairs":
+            events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload))
+            return {
+                "success": True,
+                "output": f"Built {len(pairs)} crossmodal runtime pairs from {len(events)} events.",
+                "type": "cerebrum-runtime",
+                "data": {"pairs": [pair.to_dict() for pair in pairs], "warnings": warnings},
+            }
+
+        if command == "cerebrum-runtime-run":
+            result = _runtime_result(payload, run_qnn=True)
+            qnn_backend = (result.get("qnn_result") or {}).get("backend", "not-run")
+            return {
+                "success": True,
+                "output": (
+                    "Cerebrum runtime run complete:\n"
+                    f"Events: {len(result['events'])}\n"
+                    f"Pairs: {len(result['pairs'])}\n"
+                    f"Feature dimension: {result['feature_dimension']}\n"
+                    f"QNN backend: {qnn_backend}"
+                ),
+                "type": "cerebrum-runtime",
+                "data": result,
+            }
+
+        return {
+            "success": False,
+            "error": f"Unknown cerebrum runtime command: {command}",
+            "type": "error",
+        }
+    except Exception as exc:
+        return {
+            "success": False,
+            "error": f"Cerebrum runtime command error: {str(exc)}",
             "type": "error",
         }
 

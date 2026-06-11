@@ -8,6 +8,7 @@ feature bundles that can be consumed by a QNN or a classical surrogate.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Dict, Iterable, List, Mapping, Sequence
 
 import numpy as np
@@ -21,9 +22,11 @@ class CrossModalEvent:
     modality: str
     value: float
     timestamp: float
+    ending_time: float | None = None
     label: str = ""
     source: str = ""
     weight: float = 1.0
+    payload_ref: str = ""
 
 
 @dataclass
@@ -164,16 +167,54 @@ class CerebrumAdapter:
             if modality not in MODALITIES:
                 modality = "stimuli"
             value = self._coerce_value(item.get("value", item.get("intensity", item.get("payload", 0.0))), modality)
-            timestamp = float(item.get("timestamp", item.get("time", index)))
+            timestamp = self._coerce_time(item.get("timestamp", item.get("starting_time", item.get("time", index))), index)
+            ending_time_raw = item.get("ending_time", item.get("end_time"))
+            ending_time = self._coerce_time(ending_time_raw, index) if ending_time_raw is not None else None
             label = str(item.get("label", item.get("stimulus", "")))
             source = str(item.get("source", item.get("origin", "")))
             weight = float(item.get("weight", 1.0))
-            return CrossModalEvent(modality=modality, value=value, timestamp=timestamp, label=label, source=source, weight=weight)
+            payload_ref = str(item.get("payload_ref", item.get("memory_id", "")))
+            return CrossModalEvent(
+                modality=modality,
+                value=value,
+                timestamp=timestamp,
+                ending_time=ending_time,
+                label=label,
+                source=source,
+                weight=weight,
+                payload_ref=payload_ref,
+            )
 
         if isinstance(item, (int, float, np.floating, np.integer)):
             return CrossModalEvent(modality="stimuli", value=float(item), timestamp=float(index))
 
         return CrossModalEvent(modality="text", value=self._coerce_value(item, "text"), timestamp=float(index))
+
+    def _coerce_time(self, raw_value: Any, fallback: int) -> float:
+        if raw_value is None:
+            return float(fallback)
+        if isinstance(raw_value, (int, float, np.floating, np.integer)):
+            return float(raw_value)
+        if isinstance(raw_value, datetime):
+            return raw_value.timestamp()
+        if isinstance(raw_value, str):
+            stripped = raw_value.strip()
+            if not stripped:
+                return float(fallback)
+            try:
+                return float(stripped)
+            except ValueError:
+                pass
+            for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
+                try:
+                    return datetime.strptime(stripped, fmt).timestamp()
+                except ValueError:
+                    pass
+            try:
+                return datetime.fromisoformat(stripped.replace("Z", "+00:00")).timestamp()
+            except ValueError:
+                return float(fallback)
+        return float(fallback)
 
     def _coerce_value(self, raw_value: Any, modality: str) -> float:
         if raw_value is None:

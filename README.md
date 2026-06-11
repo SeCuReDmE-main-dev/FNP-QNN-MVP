@@ -1,7 +1,8 @@
 # Cerebrum to QNN Research Prototype
 
-This repository is a local research prototype for a crossmodal cognitive
-adapter and a testable quantum-neural-network nucleus.
+This repository is a local research prototype for a Cerebrum-shaped runtime
+bridge, a crossmodal cognitive adapter, and a testable quantum-neural-network
+nucleus.
 
 It is not a clinical system. It does not claim therapeutic efficacy.
 
@@ -9,6 +10,10 @@ It is not a clinical system. It does not claim therapeutic efficacy.
 
 - Ingests heterogeneous observations such as `audio`, `video`, `text`, and
   `stimuli`.
+- Ingests Cerebrum-style interval memories for hearing, vision, language, and
+  stimuli without importing the legacy Python 2 runtime.
+- Builds deterministic crossmodal overlap pairs such as `H2V`, `V2H`, `H2L`,
+  `L2H`, `V2L`, and `L2V`.
 - Normalizes them into ordered crossmodal events.
 - Builds a fixed feature bundle with modality counts, means, standard
   deviations, transition structure, recency weighting, and temporal span.
@@ -21,18 +26,27 @@ It is not a clinical system. It does not claim therapeutic efficacy.
 ```text
 core/
   cerebrum_adapter.py   # crossmodal event normalization and feature bundle
+  cerebrum_runtime_bridge.py # Cerebrum-shaped interval runtime bridge
+  life_science_port.py  # dormant FFED/LVFM-shaped observation port
   qnn_nucleus.py        # QNN candidate matrix, qiskit lane, torch fallback
   phi_framework.py      # legacy compatibility layer
 api/main.py             # FastAPI surface
 examples/cerebrum_qnn_demo.py
+examples/cerebrum_runtime_demo.py
 tests/test_cerebrum_qnn.py
+tests/test_cerebrum_runtime_bridge.py
 reports/cerebrum_qnn_status.md
+reports/cerebrum_runtime_wiring_report.md
 ```
 
 ## Public contract
 
 - `GET /cerebrum/status`
 - `POST /cerebrum/encode`
+- `GET /cerebrum/runtime/status`
+- `POST /cerebrum/runtime/ingest`
+- `POST /cerebrum/runtime/pairs`
+- `POST /cerebrum/runtime/run`
 - `GET /qnn/candidates`
 - `POST /qnn/smoke`
 - `GET /health`
@@ -65,6 +79,7 @@ Smoke demo:
 
 ```bash
 python examples/cerebrum_qnn_demo.py
+python examples/cerebrum_runtime_demo.py
 ```
 
 Unit tests:
@@ -83,15 +98,21 @@ uvicorn api.main:app --reload --port 8000
 
 - Python compilation passes on the new modules.
 - Unit tests pass locally.
-- The smoke demo runs locally and exercises the torch fallback.
+- The adapter and runtime smoke demos run locally and exercise the torch
+  fallback.
 - The local environment currently does not have `qiskit` or
   `qiskit-machine-learning` installed, so the real Qiskit lane is scaffolded but
   not executed in this runtime yet.
+- `Rscript` is not available in this shell, so FFED-RNASeq R tests must be run
+  in an R-enabled environment.
 
 ## Notes
 
-- `Cerebrum` is treated as the cognitive-architecture reference, not as a
-  runtime dependency.
+- `Cerebrum` is treated as the upstream cognitive contract. The simulator now
+  wires its memory and crossmodal-pair shape through a pure Python 3 runtime
+  bridge instead of importing the legacy runtime directly.
+- The life-science port is intentionally dormant and opt-in; FFED-RNASeq is not
+  a simulator runtime dependency.
 - `EbaAaZ` is lineage only and is not part of the runtime contract.
 - The report source for the current implementation lives in
   `reports/cerebrum_qnn_status.md`.
