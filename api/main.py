@@ -97,7 +97,7 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
     result = state.to_dict()
     if run_qnn:
         samples, labels = build_demo_samples()
-        runtime_label = int((payload or {}).get("label", 1))
+        runtime_label = 1 if float((payload or {}).get("label", 1)) >= 0.5 else 0
         benchmark_samples = [state.observations, *samples, state.observations, *samples]
         benchmark_labels = [runtime_label, 0, 1, 0, 1 - runtime_label, 1, 0, 1]
         benchmark = qnn_nucleus.benchmark(benchmark_samples, benchmark_labels)
