@@ -50,10 +50,18 @@ QNN nucleus or torch fallback.
   - Runs the full bridge without starting FastAPI.
   - Demonstrates hearing, vision, language, and stimuli interval memories.
 
+- Added `examples/cerebrum_runtime_legacy_demo.py` and the versioned
+  `examples/legacy_cerebrum_snapshot.json` fixture.
+  - Exercises the legacy Cerebrum-compatible path without a live RethinkDB
+    export.
+  - Shows that the simulator can replay a snapshot-shaped legacy payload
+    through the bridge and QNN path.
+
 - Added `tests/test_cerebrum_runtime_bridge.py`.
   - Covers interval normalization, invalid modality fallback, H/V/L pair
     generation, empty runtime state safety, full QNN runtime execution,
-    dormant life-science conversion, and runtime API endpoints.
+    dormant life-science conversion, runtime API endpoints, the legacy demo
+    endpoint, and the versioned legacy fixture.
 
 ## Current Runtime Contract
 
@@ -120,7 +128,7 @@ Python unit/API tests:
 
 ```text
 python -m unittest discover -s tests -p "test_*.py"
-Ran 14 tests in 19.379s
+Ran 20 tests in 7.951s
 OK
 ```
 
@@ -135,12 +143,25 @@ qnn_backend: torch_surrogate
 warnings: []
 ```
 
+Legacy runtime demo:
+
+```text
+python examples/cerebrum_runtime_legacy_demo.py
+events: 3
+pairs: 6
+feature_dimension: 31
+qnn_backend: torch_surrogate
+warnings: []
+```
+
 Known validation note:
 
 - `Rscript` is not available in this shell, so FFED-RNASeq R tests were not
   rerun here.
 - Qiskit packages are not active in this runtime; the verified path is the
   torch surrogate fallback.
+- The legacy Cerebrum bridge is proven against a versioned snapshot fixture in
+  `examples/`, not against a live historical Cerebrum database export.
 
 ## Result
 

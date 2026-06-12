@@ -33,6 +33,17 @@ class CerebrumQNNTests(unittest.TestCase):
         self.assertGreaterEqual(result["train_accuracy"], 0.0)
         self.assertLessEqual(result["train_accuracy"], 1.0)
 
+    def test_surrogate_smoke_run_is_reproducible(self):
+        nucleus_a = QNNNucleus()
+        nucleus_b = QNNNucleus()
+        samples = [nucleus_a.adapter.default_observations(), nucleus_a.adapter.default_observations()]
+        labels = [0, 1]
+        result_a = nucleus_a.fit_surrogate(samples, labels, max_epochs=8, test_size=0.0)
+        result_b = nucleus_b.fit_surrogate(samples, labels, max_epochs=8, test_size=0.0)
+        self.assertEqual(result_a["backend"], result_b["backend"])
+        self.assertEqual(result_a["feature_dimension"], result_b["feature_dimension"])
+        self.assertAlmostEqual(result_a["predicted_probability"], result_b["predicted_probability"], places=6)
+
     def test_smoke_run_prefers_qiskit_or_fallback(self):
         nucleus = QNNNucleus()
         result = nucleus.smoke_run(nucleus.adapter.default_observations(), label=1.0, max_epochs=4, test_size=0.0)

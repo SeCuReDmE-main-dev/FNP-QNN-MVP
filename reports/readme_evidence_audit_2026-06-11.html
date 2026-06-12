@@ -54,7 +54,7 @@
 
   <h2>Validation evidence</h2>
   <pre>python -m unittest discover -s tests -p "test_*.py"
-Ran 14 tests in 25.349s
+Ran 20 tests in 7.951s
 OK</pre>
   <pre>python examples/cerebrum_runtime_demo.py
 events: 4
@@ -77,7 +77,8 @@ Rscript is not recognized as a cmdlet, function, script file, or executable prog
     <li>TorchQuantum and quanvolution are candidate lanes, not validated local execution lanes.</li>
     <li>FFED-RNASeq R tests are blocked in this shell because Rscript is missing.</li>
     <li>The life-science port is an observation adapter only, not validation of a biological or clinical result.</li>
-    <li>The legacy Cerebrum runtime is intentionally not imported into FastAPI and is not proven to run inside the simulator process.</li>
+    <li>The legacy Cerebrum runtime is intentionally not imported into FastAPI and is not proven to run inside the simulator process; the current proof is a versioned legacy snapshot fixture in <code>examples/</code>.</li>
+    <li>The legacy demo is fixture-backed, not replayed from a live historical Cerebrum database export.</li>
     <li>Optional Cerebrum-era dependencies are only partially available.</li>
     <li>There is no clinical validation or safety validation.</li>
   </ul>

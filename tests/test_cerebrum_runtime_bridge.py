@@ -134,6 +134,17 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
         self.assertEqual(pairs[0].direction, "H2V")
         self.assertEqual(warnings, [])
 
+    def test_invalid_legacy_snapshot_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            snapshot = Path(tmpdir) / "broken.json"
+            snapshot.write_text("{not-json", encoding="utf-8")
+            events, pairs, warnings = CerebrumRuntimeBridge(legacy_cerebrum_path=tmpdir).ingest(
+                {"legacy_snapshot": str(snapshot)}
+            )
+        self.assertEqual(events, [])
+        self.assertEqual(pairs, [])
+        self.assertTrue(any("could not be read" in warning for warning in warnings))
+
     def test_empty_stream_returns_safe_runtime_state(self):
         state = self.bridge.build_state({"memories": []})
         self.assertEqual(state.events, [])
@@ -216,6 +227,31 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertTrue(payload["success"])
         self.assertEqual(payload["type"], "cerebrum-runtime")
         self.assertTrue(payload["data"]["legacy_cerebrum_path_exists"])
+
+    def test_execute_command_rejects_shell_commands(self):
+        response = self.client.post(
+            "/execute-command",
+            json={"command": "python --version"},
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertFalse(payload["success"])
+        self.assertEqual(payload["type"], "error")
+
+    def test_runtime_rejects_non_finite_payload(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            content='{"memories": [{"modality": "audio", "starting_time": "NaN", "ending_time": 1.0, "value": 0.2}]}',
+            headers={"content-type": "application/json"},
+        )
+        self.assertEqual(response.status_code, 422)
+
+    def test_runtime_rejects_inverted_time_payload(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            json={"memories": [{"modality": "audio", "starting_time": 2.0, "ending_time": 1.0, "value": 0.2}]},
+        )
+        self.assertEqual(response.status_code, 422)
 
     def test_legacy_fixture_exists(self):
         fixture = Path(__file__).resolve().parent.parent / "examples" / "legacy_cerebrum_snapshot.json"

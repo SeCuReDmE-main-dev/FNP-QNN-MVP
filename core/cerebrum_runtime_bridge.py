@@ -14,6 +14,7 @@ from datetime import datetime
 import json
 from importlib.util import find_spec
 from pathlib import Path
+import tempfile
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
@@ -70,6 +71,10 @@ LEGACY_TABLE_MODALITIES = {
     "language_timestamps": "text",
     "stimuli_timestamps": "stimuli",
 }
+
+MAX_RUNTIME_EVENTS = 1000
+MAX_RUNTIME_PAIRS = 20000
+MAX_LEGACY_SNAPSHOT_BYTES = 5 * 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -235,9 +240,13 @@ class CerebrumRuntimeBridge:
         )
 
     def build_pairs(self, events: Sequence[CerebrumMemoryEvent]) -> List[CrossModalPair]:
+        if len(events) > MAX_RUNTIME_EVENTS:
+            events = events[:MAX_RUNTIME_EVENTS]
         pairs: List[CrossModalPair] = []
         for left_index, left in enumerate(events):
             for right in events[left_index + 1 :]:
+                if len(pairs) >= MAX_RUNTIME_PAIRS:
+                    return sorted(pairs, key=lambda pair: (pair.timestamp1, pair.direction, pair.timestamp2))
                 if left.modality == right.modality:
                     continue
                 overlap_score = self._overlap_score(left, right)
@@ -266,16 +275,27 @@ class CerebrumRuntimeBridge:
                     return legacy_records
             return self.default_payload()["memories"]
         if isinstance(payload, Sequence) and not isinstance(payload, (str, bytes, bytearray, Mapping)):
-            return [record if isinstance(record, Mapping) else {"value": record} for record in payload]
+            if len(payload) > MAX_RUNTIME_EVENTS:
+                warnings.append(f"Runtime payload truncated to {MAX_RUNTIME_EVENTS} events.")
+            return [record if isinstance(record, Mapping) else {"value": record} for record in payload[:MAX_RUNTIME_EVENTS]]
         if not isinstance(payload, Mapping):
             return [{"value": payload}]
 
         if "memories" in payload:
-            return [record if isinstance(record, Mapping) else {"value": record} for record in payload.get("memories", [])]
+            memories = payload.get("memories", [])
+            if len(memories) > MAX_RUNTIME_EVENTS:
+                warnings.append(f"Runtime memories truncated to {MAX_RUNTIME_EVENTS} events.")
+            return [record if isinstance(record, Mapping) else {"value": record} for record in memories[:MAX_RUNTIME_EVENTS]]
         if "events" in payload:
-            return [record if isinstance(record, Mapping) else {"value": record} for record in payload.get("events", [])]
+            events = payload.get("events", [])
+            if len(events) > MAX_RUNTIME_EVENTS:
+                warnings.append(f"Runtime events truncated to {MAX_RUNTIME_EVENTS} events.")
+            return [record if isinstance(record, Mapping) else {"value": record} for record in events[:MAX_RUNTIME_EVENTS]]
         if "observations" in payload:
-            return [record if isinstance(record, Mapping) else {"value": record} for record in payload.get("observations", [])]
+            observations = payload.get("observations", [])
+            if len(observations) > MAX_RUNTIME_EVENTS:
+                warnings.append(f"Runtime observations truncated to {MAX_RUNTIME_EVENTS} events.")
+            return [record if isinstance(record, Mapping) else {"value": record} for record in observations[:MAX_RUNTIME_EVENTS]]
         if any(table_name in payload for table_name in LEGACY_TABLE_MODALITIES) or "crossmodal_mappings" in payload:
             return self._legacy_table_payload_to_records(payload)
         if "legacy_snapshot" in payload:
@@ -458,7 +478,17 @@ class CerebrumRuntimeBridge:
         warnings = warnings if warnings is not None else []
         if snapshot is None:
             return []
-        path = Path(str(snapshot))
+        path = Path(str(snapshot)).resolve()
+        project_root = Path(__file__).resolve().parent.parent
+        temp_root = Path(tempfile.gettempdir()).resolve()
+        if (
+            project_root not in path.parents
+            and path != project_root
+            and temp_root not in path.parents
+            and path != temp_root
+        ):
+            warnings.append(f"Legacy snapshot path '{path}' is outside the project tree.")
+            return []
         if not path.exists():
             warnings.append(f"Legacy snapshot path '{path}' does not exist.")
             return []
@@ -469,6 +499,9 @@ class CerebrumRuntimeBridge:
         )
         for candidate in candidates:
             try:
+                if candidate.stat().st_size > MAX_LEGACY_SNAPSHOT_BYTES:
+                    warnings.append(f"Legacy snapshot file '{candidate}' exceeds the size limit.")
+                    continue
                 if candidate.suffix.lower() == ".json":
                     loaded = json.loads(candidate.read_text(encoding="utf-8"))
                     records.extend(self._legacy_payload_to_records(loaded, candidate))

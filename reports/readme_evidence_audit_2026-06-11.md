@@ -66,7 +66,7 @@ Python test command:
 
 ```text
 python -m unittest discover -s tests -p "test_*.py"
-Ran 14 tests in 25.349s
+Ran 20 tests in 7.951s
 OK
 ```
 
@@ -75,6 +75,17 @@ Runtime demo command:
 ```text
 python examples/cerebrum_runtime_demo.py
 events: 4
+pairs: 6
+feature_dimension: 31
+qnn_backend: torch_surrogate
+warnings: []
+```
+
+Legacy runtime demo command:
+
+```text
+python examples/cerebrum_runtime_legacy_demo.py
+events: 3
 pairs: 6
 feature_dimension: 31
 qnn_backend: torch_surrogate
@@ -108,9 +119,12 @@ Rscript is not recognized as a cmdlet, function, script file, or executable prog
 - The life-science port is an observation adapter only, not validation of a
   biological or clinical result.
 - The legacy Cerebrum runtime is intentionally not imported into FastAPI and is
-  not proven to run inside the simulator process.
+  not proven to run inside the simulator process; the current proof is a
+  versioned legacy snapshot fixture in `examples/`.
 - Optional Cerebrum-era dependencies are only partially available.
 - There is no clinical validation or safety validation.
+- The legacy demo is fixture-backed, not replayed from a live historical
+  Cerebrum database export.
 
 ## README update applied
 
@@ -119,6 +133,7 @@ The README was rewritten to:
 - preserve the exact warning block at the top;
 - add a clear repository status section;
 - document current architecture and public API surfaces;
+- document the legacy runtime demo and versioned snapshot fixture;
 - summarize the last 10-hour Git history;
 - include a validation matrix;
 - explicitly list lack-of-evidence items;

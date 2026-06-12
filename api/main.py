@@ -1,32 +1,26 @@
-"""
-FNP-QNN API server.
-
-This surface now exposes:
-- legacy phi commands for compatibility
-- Cerebrum crossmodal encoding
-- QNN candidate inspection and smoke benchmarking
-"""
+"""FastAPI surface for the local FNP-QNN research simulator."""
 
 from __future__ import annotations
 
 import json
 import os
-import subprocess
 import sys
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from api.schemas import CommandRequest, CommandResponse, EncodeRequest, QNNSmokeRequest, RuntimeRunRequest
 from core import CerebrumAdapter, CerebrumRuntimeBridge, LifeScienceObservationPort, PhiFramework, QNNNucleus
 from core.cerebrum_adapter import MODALITIES
 
 app = FastAPI(
-    title="FNP-QNN API",
-    description="Crossmodal Cerebrum adapter plus testable QNN nucleus",
+    title="FNP-QNN Local Research Simulator API",
+    description="Typed, non-clinical local research surface for Cerebrum-style runtime events and QNN candidates.",
+    version="1.3.0-alpha-local",
 )
 
 app.add_middleware(
@@ -80,10 +74,29 @@ def _encode_observations(observations: Sequence[Any]) -> Dict[str, Any]:
 def _runtime_payload(payload: Dict[str, Any] | None) -> Dict[str, Any]:
     if not payload:
         return cerebrum_runtime_bridge.default_payload()
+    runtime_keys = {"memories", "events", "observations", "statefield"}
+    if not any(key in payload for key in runtime_keys):
+        return cerebrum_runtime_bridge.default_payload()
     if "statefield" in payload:
         observations = life_science_port.statefield_to_observations(payload["statefield"])
         return {"memories": observations}
     return payload
+
+
+def _serialize_benchmark(benchmark: Sequence[Any]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "candidate": item.candidate,
+            "available": item.available,
+            "backend": item.backend,
+            "notes": item.notes,
+            "train_accuracy": item.train_accuracy,
+            "test_accuracy": item.test_accuracy,
+            "predicted_probability": item.predicted_probability,
+            "feature_dimension": item.feature_dimension,
+        }
+        for item in benchmark
+    ]
 
 
 def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Dict[str, Any]:
@@ -100,20 +113,7 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         runtime_label = 1 if float((payload or {}).get("label", 1)) >= 0.5 else 0
         benchmark_samples = [state.observations, *samples, state.observations, *samples]
         benchmark_labels = [runtime_label, 0, 1, 0, 1 - runtime_label, 1, 0, 1]
-        benchmark = qnn_nucleus.benchmark(benchmark_samples, benchmark_labels)
-        result["benchmark"] = [
-            {
-                "candidate": item.candidate,
-                "available": item.available,
-                "backend": item.backend,
-                "notes": item.notes,
-                "train_accuracy": item.train_accuracy,
-                "test_accuracy": item.test_accuracy,
-                "predicted_probability": item.predicted_probability,
-                "feature_dimension": item.feature_dimension,
-            }
-            for item in benchmark
-        ]
+        result["benchmark"] = _serialize_benchmark(qnn_nucleus.benchmark(benchmark_samples, benchmark_labels))
     return result
 
 
@@ -129,17 +129,32 @@ def _legacy_runtime_result() -> Dict[str, Any]:
 
 
 @app.get("/")
-async def root():
+async def root() -> Dict[str, Any]:
     return {
-        "message": "FNP-QNN API Active",
-        "mode": "cerebrum-plus-qnn-research",
+        "message": "FNP-QNN local research simulator API active",
+        "mode": "alpha-local-non-clinical",
         "phi": phi_engine.phi,
         "qnn_candidates": [candidate.name for candidate in qnn_nucleus.candidate_matrix()],
     }
 
 
+@app.get("/health")
+async def health_check() -> Dict[str, Any]:
+    backend = cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus)["qnn_backend"]
+    return {
+        "status": "healthy",
+        "mode": "alpha-local-research",
+        "clinical_use": False,
+        "phi_framework": "synthetic-research",
+        "cerebrum_adapter": "operational",
+        "qnn_backend": backend,
+        "golden_ratio": phi_engine.phi,
+        "quantum_particles": len(phi_engine.quantum_states),
+    }
+
+
 @app.get("/cerebrum/status")
-async def cerebrum_status():
+async def cerebrum_status() -> Dict[str, Any]:
     observations = build_demo_observations()
     return {
         "status": "ok",
@@ -149,19 +164,19 @@ async def cerebrum_status():
 
 
 @app.post("/cerebrum/encode")
-async def cerebrum_encode(payload: Dict[str, Any]):
-    observations = payload.get("observations") or build_demo_observations()
+async def cerebrum_encode(payload: EncodeRequest) -> Dict[str, Any]:
+    observations = [item.model_dump(exclude_none=True) for item in payload.observations] or build_demo_observations()
     return {"status": "ok", "encoded": _encode_observations(observations)}
 
 
 @app.get("/cerebrum/runtime/status")
-async def cerebrum_runtime_status():
+async def cerebrum_runtime_status() -> Dict[str, Any]:
     return cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus)
 
 
 @app.post("/cerebrum/runtime/ingest")
-async def cerebrum_runtime_ingest(payload: Dict[str, Any]):
-    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload))
+async def cerebrum_runtime_ingest(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
     return {
         "status": "ok",
         "events": [event.to_dict() for event in events],
@@ -171,8 +186,8 @@ async def cerebrum_runtime_ingest(payload: Dict[str, Any]):
 
 
 @app.post("/cerebrum/runtime/pairs")
-async def cerebrum_runtime_pairs(payload: Dict[str, Any]):
-    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload))
+async def cerebrum_runtime_pairs(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
     return {
         "status": "ok",
         "event_count": len(events),
@@ -182,17 +197,17 @@ async def cerebrum_runtime_pairs(payload: Dict[str, Any]):
 
 
 @app.post("/cerebrum/runtime/run")
-async def cerebrum_runtime_run(payload: Dict[str, Any]):
-    return {"status": "ok", "runtime": _runtime_result(payload, run_qnn=True)}
+async def cerebrum_runtime_run(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    return {"status": "ok", "runtime": _runtime_result(payload.to_runtime_payload(), run_qnn=payload.run_qnn)}
 
 
 @app.get("/cerebrum/runtime/legacy-demo")
-async def cerebrum_runtime_legacy_demo():
+async def cerebrum_runtime_legacy_demo() -> Dict[str, Any]:
     return {"status": "ok", "runtime": _legacy_runtime_result()}
 
 
 @app.get("/qnn/candidates")
-async def qnn_candidates():
+async def qnn_candidates() -> Dict[str, Any]:
     return {
         "status": "ok",
         "candidates": [
@@ -209,487 +224,127 @@ async def qnn_candidates():
 
 
 @app.post("/qnn/smoke")
-async def qnn_smoke(payload: Dict[str, Any]):
-    samples = payload.get("samples")
-    labels = payload.get("labels")
+async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
+    samples = payload.dump_samples()
+    labels = payload.labels
     if not samples or not labels:
         samples, labels = build_demo_samples()
     result = qnn_nucleus.smoke_run(
         samples[0],
         label=float(labels[0]) if labels else 1.0,
-        max_epochs=int(payload.get("epochs", 24)),
-        test_size=float(payload.get("test_size", 0.25)),
+        max_epochs=payload.epochs,
+        test_size=payload.test_size,
     )
-    benchmark = qnn_nucleus.benchmark(samples, labels)
     return {
         "status": "ok",
         "result": result,
-        "benchmark": [
-            {
-                "candidate": item.candidate,
-                "available": item.available,
-                "backend": item.backend,
-                "notes": item.notes,
-                "train_accuracy": item.train_accuracy,
-                "test_accuracy": item.test_accuracy,
-                "predicted_probability": item.predicted_probability,
-                "feature_dimension": item.feature_dimension,
-            }
-            for item in benchmark
-        ],
+        "benchmark": _serialize_benchmark(qnn_nucleus.benchmark(samples, labels)),
     }
 
 
-@app.post("/execute-command")
-async def execute_command(command_data: dict):
-    command = command_data.get("command", "")
-
-    if not command:
-        raise HTTPException(status_code=400, detail="No command provided")
-
-    try:
-        if command.startswith("phi-"):
-            return await handle_phi_command(command)
-        if command.startswith("cerebrum-runtime-"):
-            return await handle_cerebrum_runtime_command(command, command_data)
-        if command.startswith("cerebrum-"):
-            return await handle_cerebrum_command(command, command_data)
-        if command.startswith("qnn-"):
-            return await handle_qnn_command(command, command_data)
-        if command.startswith("quantum-"):
-            return await handle_quantum_command(command)
-        if command.startswith("neural-"):
-            return await handle_neural_command(command)
-
-        safe_commands = ["ls", "pwd", "whoami", "date", "echo", "ps", "node -v", "python --version"]
-        if any(command.startswith(safe) for safe in safe_commands):
-            result = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            return {
-                "success": True,
-                "output": result.stdout if result.stdout else result.stderr,
-                "type": "system",
-            }
-
-        return {
-            "success": False,
-            "error": f"Command '{command}' not allowed",
-            "type": "error",
-        }
-
-    except subprocess.TimeoutExpired:
-        return {
-            "success": False,
-            "error": "Command timed out",
-            "type": "error",
-        }
-    except Exception as exc:
-        return {
-            "success": False,
-            "error": str(exc),
-            "type": "error",
-        }
-
-
-async def handle_phi_command(command: str):
-    try:
-        if command == "phi-status":
-            particles = phi_engine.generate_quantum_particles(100)
-            return {
-                "success": True,
-                "output": (
-                    f"φ-Framework Status:\n"
-                    f"Golden Ratio: {phi_engine.phi}\n"
-                    f"Quantum Particles: {len(particles)} generated\n"
-                    f"Resonance: {phi_engine.phi * 40:.2f} Hz"
-                ),
-                "type": "phi-system",
-                "data": {"phi": phi_engine.phi, "particles": len(particles)},
-            }
-
-        if command == "phi-calc":
-            c3_result = phi_engine.calculate_c3_formula(2.5, 1.2, 0.8, 1.5)
-            return {
-                "success": True,
-                "output": (
-                    f"C³ Formula Result: {c3_result:.6f}\n"
-                    f"φ = {phi_engine.phi}\n"
-                    f"Quantum Field Strength: {c3_result * phi_engine.phi:.6f}"
-                ),
-                "type": "phi-system",
-                "data": {"c3": c3_result, "phi": phi_engine.phi},
-            }
-
-        if command == "phi-map":
-            hippocampus = phi_engine.map_brain_region("hippocampus", (20, 15, 10))
-            return {
-                "success": True,
-                "output": (
-                    f"Brain Region Mapped:\n"
-                    f"Hippocampus: {hippocampus.shape}\n"
-                    f"Complex quantum field generated\n"
-                    f"Mean field strength: {np.mean(np.abs(hippocampus)):.6f}"
-                ),
-                "type": "phi-system",
-                "data": {"region": "hippocampus", "shape": hippocampus.shape},
-            }
-
-        return {
-            "success": False,
-            "error": f"Unknown phi command: {command}",
-            "type": "error",
-        }
-
-    except Exception as exc:
-        return {
-            "success": False,
-            "error": f"Phi command error: {str(exc)}",
-            "type": "error",
-        }
-
-
-async def handle_cerebrum_command(command: str, command_data: Dict[str, Any]):
-    try:
-        if command == "cerebrum-status":
-            observations = build_demo_observations()
-            payload = _encode_observations(observations)
-            return {
-                "success": True,
-                "output": (
-                    "Cerebrum crossmodal status:\n"
-                    f"Sequence length: {payload['sequence_length']}\n"
-                    f"Feature dimension: {payload['feature_dimension']}\n"
-                    f"Diversity: {payload['summary']['diversity']:.3f}\n"
-                    f"Stability: {payload['summary']['stability']:.3f}"
-                ),
-                "type": "cerebrum-system",
-                "data": payload,
-            }
-
-        if command == "cerebrum-encode":
-            observations = command_data.get("observations") or build_demo_observations()
-            payload = _encode_observations(observations)
-            return {
-                "success": True,
-                "output": (
-                    "Cerebrum encoding complete:\n"
-                    f"Sequence length: {payload['sequence_length']}\n"
-                    f"Feature dimension: {payload['feature_dimension']}\n"
-                    f"Recency-weighted intensity: {payload['summary']['recency_weighted_intensity']:.4f}"
-                ),
-                "type": "cerebrum-system",
-                "data": payload,
-            }
-
-        return {
-            "success": False,
-            "error": f"Unknown cerebrum command: {command}",
-            "type": "error",
-        }
-
-    except Exception as exc:
-        return {
-            "success": False,
-            "error": f"Cerebrum command error: {str(exc)}",
-            "type": "error",
-        }
-
-
-async def handle_cerebrum_runtime_command(command: str, command_data: Dict[str, Any]):
-    try:
-        payload = command_data.get("payload") or command_data
-        if command == "cerebrum-runtime-status":
-            return {
-                "success": True,
-                "output": "Cerebrum runtime bridge operational.",
-                "type": "cerebrum-runtime",
-                "data": cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus),
-            }
-
-        if command == "cerebrum-runtime-ingest":
-            events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload))
-            return {
-                "success": True,
-                "output": f"Ingested {len(events)} runtime events and built {len(pairs)} crossmodal pairs.",
-                "type": "cerebrum-runtime",
-                "data": {
-                    "events": [event.to_dict() for event in events],
-                    "pairs": [pair.to_dict() for pair in pairs],
-                    "warnings": warnings,
-                },
-            }
-
-        if command == "cerebrum-runtime-pairs":
-            events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload))
-            return {
-                "success": True,
-                "output": f"Built {len(pairs)} crossmodal runtime pairs from {len(events)} events.",
-                "type": "cerebrum-runtime",
-                "data": {"pairs": [pair.to_dict() for pair in pairs], "warnings": warnings},
-            }
-
-        if command == "cerebrum-runtime-run":
-            result = _runtime_result(payload, run_qnn=True)
-            qnn_backend = (result.get("qnn_result") or {}).get("backend", "not-run")
-            return {
-                "success": True,
-                "output": (
-                    "Cerebrum runtime run complete:\n"
-                    f"Events: {len(result['events'])}\n"
-                    f"Pairs: {len(result['pairs'])}\n"
-                    f"Feature dimension: {result['feature_dimension']}\n"
-                    f"QNN backend: {qnn_backend}"
-                ),
-                "type": "cerebrum-runtime",
-                "data": result,
-            }
-
-        if command == "cerebrum-runtime-legacy-demo":
-            result = _legacy_runtime_result()
-            qnn_backend = (result.get("qnn_result") or {}).get("backend", "not-run")
-            return {
-                "success": True,
-                "output": (
-                    "Cerebrum runtime legacy demo complete:\n"
-                    f"Events: {len(result['events'])}\n"
-                    f"Pairs: {len(result['pairs'])}\n"
-                    f"Feature dimension: {result['feature_dimension']}\n"
-                    f"QNN backend: {qnn_backend}"
-                ),
-                "type": "cerebrum-runtime",
-                "data": result,
-            }
-
-        return {
-            "success": False,
-            "error": f"Unknown cerebrum runtime command: {command}",
-            "type": "error",
-        }
-    except Exception as exc:
-        return {
-            "success": False,
-            "error": f"Cerebrum runtime command error: {str(exc)}",
-            "type": "error",
-        }
-
-
-async def handle_qnn_command(command: str, command_data: Dict[str, Any]):
-    try:
-        samples = command_data.get("samples")
-        labels = command_data.get("labels")
+def _command_response(command_name: str, request: Optional[CommandRequest] = None) -> CommandResponse:
+    request = request or CommandRequest()
+    if command_name == "phi-status":
+        particles = phi_engine.generate_quantum_particles(100)
+        return CommandResponse(
+            success=True,
+            output=f"Phi research status: golden_ratio={phi_engine.phi:.12f}; synthetic_particles={len(particles)}",
+            type="phi-system",
+            data={"phi": phi_engine.phi, "particles": len(particles)},
+        )
+    if command_name == "cerebrum-runtime-status":
+        return CommandResponse(
+            success=True,
+            output="Cerebrum runtime bridge operational.",
+            type="cerebrum-runtime",
+            data=cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus),
+        )
+    if command_name == "cerebrum-runtime-run":
+        payload = request.payload.to_runtime_payload() if request.payload is not None else {}
+        result = _runtime_result(payload, run_qnn=True)
+        qnn_backend = (result.get("qnn_result") or {}).get("backend", "not-run")
+        return CommandResponse(
+            success=True,
+            output=(
+                "Cerebrum runtime run complete:\n"
+                f"Events: {len(result['events'])}\n"
+                f"Pairs: {len(result['pairs'])}\n"
+                f"Feature dimension: {result['feature_dimension']}\n"
+                f"QNN backend: {qnn_backend}"
+            ),
+            type="cerebrum-runtime",
+            data=result,
+        )
+    if command_name == "cerebrum-runtime-legacy-demo":
+        result = _legacy_runtime_result()
+        return CommandResponse(
+            success=True,
+            output=f"Legacy fixture replay complete: events={len(result['events'])}; pairs={len(result['pairs'])}",
+            type="cerebrum-runtime",
+            data=result,
+        )
+    if command_name == "qnn-smoke":
+        qnn_request = QNNSmokeRequest(
+            samples=request.samples,
+            labels=request.labels,
+            epochs=request.epochs,
+            test_size=request.test_size,
+        )
+        samples = qnn_request.dump_samples()
+        labels = qnn_request.labels
         if not samples or not labels:
             samples, labels = build_demo_samples()
-
-        if command == "qnn-candidates":
-            return {
-                "success": True,
-                "output": "QNN candidate matrix ready.",
-                "type": "qnn-system",
-                "data": qnn_nucleus.candidate_matrix(),
-            }
-
-        if command == "qnn-smoke":
-            result = qnn_nucleus.smoke_run(
-                samples[0],
-                label=float(labels[0]) if labels else 1.0,
-                max_epochs=int(command_data.get("epochs", 24)),
-                test_size=float(command_data.get("test_size", 0.25)),
-            )
-            benchmark = qnn_nucleus.benchmark(samples, labels)
-            return {
-                "success": True,
-                "output": (
-                    "QNN smoke completed:\n"
-                    f"Backend: {result['backend']}\n"
-                    f"Train accuracy: {result['train_accuracy']:.3f}\n"
-                    f"Test accuracy: {result['test_accuracy']:.3f}\n"
-                    f"Predicted probability: {result['predicted_probability']:.3f}"
-                ),
-                "type": "qnn-system",
-                "data": {"result": result, "benchmark": [item.__dict__ for item in benchmark]},
-            }
-
-        if command == "qnn-fit":
-            if qnn_nucleus.candidate_matrix()[0].available:
-                try:
-                    result = qnn_nucleus.fit_qiskit_hybrid(
-                        samples,
-                        labels,
-                        max_epochs=int(command_data.get("epochs", 24)),
-                        test_size=float(command_data.get("test_size", 0.25)),
-                    )
-                except Exception:
-                    result = qnn_nucleus.fit_surrogate(
-                        samples,
-                        labels,
-                        max_epochs=int(command_data.get("epochs", 24)),
-                        test_size=float(command_data.get("test_size", 0.25)),
-                    )
-            else:
-                result = qnn_nucleus.fit_surrogate(
-                    samples,
-                    labels,
-                    max_epochs=int(command_data.get("epochs", 24)),
-                    test_size=float(command_data.get("test_size", 0.25)),
-                )
-            return {
-                "success": True,
-                "output": (
-                    "QNN fit completed:\n"
-                    f"Backend: {result['backend']}\n"
-                    f"Train accuracy: {result['train_accuracy']:.3f}\n"
-                    f"Test accuracy: {result['test_accuracy']:.3f}"
-                ),
-                "type": "qnn-system",
-                "data": result,
-            }
-
-        return {
-            "success": False,
-            "error": f"Unknown qnn command: {command}",
-            "type": "error",
-        }
-
-    except Exception as exc:
-        return {
-            "success": False,
-            "error": f"QNN command error: {str(exc)}",
-            "type": "error",
-        }
+        result = qnn_nucleus.smoke_run(samples[0], label=float(labels[0]), max_epochs=qnn_request.epochs, test_size=qnn_request.test_size)
+        return CommandResponse(
+            success=True,
+            output=(
+                "QNN smoke completed:\n"
+                f"Backend: {result['backend']}\n"
+                f"Feature dimension: {result['feature_dimension']}\n"
+                f"Predicted probability: {result['predicted_probability']:.3f}"
+            ),
+            type="qnn-system",
+            data={"result": result, "benchmark": _serialize_benchmark(qnn_nucleus.benchmark(samples, labels))},
+        )
+    raise HTTPException(status_code=404, detail=f"Command '{command_name}' is not available in alpha-local mode")
 
 
-async def handle_quantum_command(command: str):
+@app.post("/commands/{command_name}", response_model=CommandResponse)
+async def run_command(command_name: str, request: CommandRequest | None = None) -> CommandResponse:
+    return _command_response(command_name, request)
+
+
+@app.post("/execute-command")
+async def execute_command(command_data: Dict[str, Any]) -> Dict[str, Any]:
+    command = str(command_data.get("command", "")).strip()
+    if not command:
+        raise HTTPException(status_code=400, detail="No command provided")
     try:
-        if command == "quantum-test":
-            particles = phi_engine.generate_quantum_particles(50)
-            coherence = np.mean([abs(p.amplitude) for p in particles])
-            return {
-                "success": True,
-                "output": (
-                    f"Quantum Test Results:\n"
-                    f"Particles: {len(particles)}\n"
-                    f"Coherence: {coherence:.4f}\n"
-                    f"Entanglement: Active\n"
-                    f"Phase Correlation: {np.mean([p.phase for p in particles]):.4f}"
-                ),
-                "type": "quantum-system",
-                "data": {"particles": len(particles), "coherence": coherence},
-            }
-
-        if command == "quantum-state":
-            state = phi_engine.quantum_states[0] if phi_engine.quantum_states else None
-            if not state:
-                particles = phi_engine.generate_quantum_particles(1)
-                state = particles[0]
-            return {
-                "success": True,
-                "output": (
-                    f"Quantum State:\n|ψ⟩ = {state.amplitude}\n"
-                    f"Phase: {state.phase:.4f}\n"
-                    f"Frequency: {state.frequency:.4f} Hz\n"
-                    f"Resonance: {state.quantum_resonance:.4f}"
-                ),
-                "type": "quantum-system",
-                "data": {"amplitude": str(state.amplitude), "phase": state.phase},
-            }
-
+        request = CommandRequest(**{key: value for key, value in command_data.items() if key != "command"})
+        return _command_response(command, request).model_dump()
+    except HTTPException:
         return {
             "success": False,
-            "error": f"Unknown quantum command: {command}",
-            "type": "error",
-        }
-
-    except Exception as exc:
-        return {
-            "success": False,
-            "error": f"Quantum command error: {str(exc)}",
-            "type": "error",
-        }
-
-
-async def handle_neural_command(command: str):
-    try:
-        if command == "neural-map":
-            regions = ["hippocampus", "frontal_cortex", "cerebellum"]
-            mapped_regions = {}
-            for region in regions:
-                mapping = phi_engine.map_brain_region(region, (10, 10, 8))
-                mapped_regions[region] = {
-                    "shape": mapping.shape,
-                    "mean_strength": float(np.mean(np.abs(mapping))),
-                }
-
-            output = "Neural Mapping Complete:\n"
-            for region, data in mapped_regions.items():
-                output += f"{region}: {data['shape']}, strength: {data['mean_strength']:.4f}\n"
-
-            return {
-                "success": True,
-                "output": output,
-                "type": "neural-system",
-                "data": mapped_regions,
-            }
-
-        if command == "neural-cure":
-            deficit_pos = (10, 8, 5)
-            cure_algo = phi_engine.generate_cure_algorithm(deficit_pos, "test_deficit")
-            return {
-                "success": True,
-                "output": (
-                    "Cure Algorithm Generated:\n"
-                    f"Frequency: {cure_algo['therapeutic_frequency']:.2f} Hz\n"
-                    f"Recovery Time: {cure_algo['estimated_recovery_time']:.1f}\n"
-                    f"Plasticity Factor: {cure_algo['neural_plasticity_factor']:.4f}"
-                ),
-                "type": "neural-system",
-                "data": cure_algo,
-            }
-
-        return {
-            "success": False,
-            "error": f"Unknown neural command: {command}",
-            "type": "error",
-        }
-
-    except Exception as exc:
-        return {
-            "success": False,
-            "error": f"Neural command error: {str(exc)}",
+            "error": f"Command '{command}' not allowed in alpha-local mode",
             "type": "error",
         }
 
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
-
     try:
         while True:
             data = await websocket.receive_text()
             command_data = json.loads(data)
             result = await execute_command(command_data)
             await websocket.send_text(json.dumps(result))
+    except WebSocketDisconnect:
+        return
     except Exception as exc:
-        print(f"WebSocket error: {exc}")
+        await websocket.send_text(json.dumps({"success": False, "error": str(exc), "type": "error"}))
     finally:
         await websocket.close()
-
-
-@app.get("/health")
-async def health_check():
-    return {
-        "status": "healthy",
-        "phi_framework": "operational",
-        "cerebrum_adapter": "operational",
-        "qnn_backend": "torch_surrogate" if "torch_surrogate" in [candidate.name for candidate in qnn_nucleus.candidate_matrix()] else "unknown",
-        "golden_ratio": phi_engine.phi,
-        "quantum_particles": len(phi_engine.quantum_states),
-    }
 
 
 if __name__ == "__main__":

@@ -73,6 +73,7 @@ class QNNNucleus:
     """Bridge the Cerebrum feature bundle to quantum/classical candidates."""
 
     QISKIT_QUBITS = 4
+    DEFAULT_SEED = 42
 
     def __init__(self, adapter: Optional[CerebrumAdapter] = None):
         self.adapter = adapter or CerebrumAdapter()
@@ -232,6 +233,10 @@ class QNNNucleus:
         test_size: float = 0.25,
         return_bundle: bool = False,
     ) -> Dict[str, Any]:
+        np.random.seed(self.DEFAULT_SEED)
+        torch.manual_seed(self.DEFAULT_SEED)
+        if torch.cuda.is_available():  # pragma: no cover - local CPU path is expected
+            torch.cuda.manual_seed_all(self.DEFAULT_SEED)
         vectors = self._vectorize_samples(samples)
         y = np.asarray(labels, dtype=np.float32)
 

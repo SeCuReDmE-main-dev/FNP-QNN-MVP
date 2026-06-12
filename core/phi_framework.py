@@ -1,8 +1,8 @@
 """
-φ-Framework Core Module
-Fractal Neutrosophic Parallel Linear Fibonacci Quanvolutional Elliptic Tensor Swarm Derivative Neural Network
+Phi-framework synthetic research module.
 
-Revolutionary quantum-neural mathematics for medical AI
+The calculations in this file are local simulation primitives. They are not
+clinical, diagnostic, therapeutic, or safety-validated methods.
 """
 
 import numpy as np
@@ -35,20 +35,17 @@ class PhiFramework:
     def calculate_c3_formula(self, z_value: float, primal_tension: float, 
                            elasticity: float, synapse_speed: float) -> float:
         """
-        Calculate the revolutionary C³ formula for neuronal deficit colocation
+        Calculate a synthetic C3 score for research simulations.
         
-        C³ = Z.{x+y} / (primal_tension × elasticity × synapse_speed)
-        Where reverse Z-value serves the EXACT colocation of neuronal deficit
+        C3 = reverse_z / (primal_tension * elasticity * synapse_speed)
         """
         if primal_tension == 0 or elasticity == 0 or synapse_speed == 0:
             raise ValueError("Denominators cannot be zero in C³ calculation")
             
-        # Reverse Z-value for exact colocation
         reverse_z = 1 / z_value if z_value != 0 else 0
         
-        # Calculate C³ with φ-framework enhancement
         c3_base = reverse_z / (primal_tension * elasticity * synapse_speed)
-        c3_enhanced = c3_base * self.phi  # Golden ratio enhancement
+        c3_enhanced = c3_base * self.phi
         
         return c3_enhanced
     
@@ -102,8 +99,7 @@ class PhiFramework:
     def calculate_neuronal_deficit_colocation(self, brain_scan: np.ndarray, 
                                             target_deficit: str) -> Tuple[int, int, int]:
         """
-        Use φ-framework to precisely locate neuronal deficits
-        Returns (x, y, z) coordinates of deficit
+        Rank the strongest synthetic coordinate in a mapped research volume.
         """
         if target_deficit not in self.neural_mappings:
             raise ValueError(f"Brain region {target_deficit} not mapped")
@@ -125,43 +121,40 @@ class PhiFramework:
                             quantum_field * scan_intensity * self.phi
                         )
         
-        # Find maximum correlation point (deficit location)
         max_pos = np.unravel_index(np.argmax(correlation), correlation.shape)
         return max_pos
     
-    def generate_cure_algorithm(self, deficit_location: Tuple[int, int, int],
-                              deficit_type: str) -> Dict[str, any]:
+    def generate_response_profile(self, target_location: Tuple[int, int, int],
+                              scenario_label: str) -> Dict[str, any]:
         """
-        Generate φ-framework based cure algorithm for specific deficit
+        Generate a synthetic response profile for non-clinical research demos.
         """
-        x, y, z = deficit_location
+        x, y, z = target_location
         
-        # φ-enhanced therapeutic parameters
-        therapeutic_frequency = self.phi * 40  # 40Hz base frequency enhanced
+        synthetic_frequency = self.phi * 40
         quantum_amplitude = math.cos(self.phi) * 0.8
-        neural_plasticity_factor = self.phi ** 2
+        response_factor = self.phi ** 2
         
-        # Fibonacci-based treatment sequence
         fib_sequence = self.generate_fibonacci_sequence(10)
-        treatment_intervals = [f * self.phi for f in fib_sequence]
+        simulation_intervals = [f * self.phi for f in fib_sequence]
         
-        cure_algorithm = {
-            "deficit_type": deficit_type,
-            "target_coordinates": deficit_location,
-            "therapeutic_frequency": therapeutic_frequency,
+        response_profile = {
+            "scenario_label": scenario_label,
+            "target_coordinates": target_location,
+            "synthetic_frequency": synthetic_frequency,
             "quantum_amplitude": quantum_amplitude,
-            "neural_plasticity_factor": neural_plasticity_factor,
-            "treatment_intervals": treatment_intervals,
+            "response_factor": response_factor,
+            "simulation_intervals": simulation_intervals,
             "phi_resonance": self.phi,
-            "estimated_recovery_time": sum(treatment_intervals),
+            "estimated_simulation_span": sum(simulation_intervals),
             "quantum_field_strength": quantum_amplitude * self.phi,
-            "neuroplasticity_enhancement": neural_plasticity_factor * 1.618
+            "response_envelope": response_factor * 1.618
         }
         
-        return cure_algorithm
+        return response_profile
     
     def generate_fibonacci_sequence(self, n: int) -> List[int]:
-        """Generate Fibonacci sequence for treatment timing"""
+        """Generate Fibonacci sequence for simulation timing."""
         if n <= 0:
             return []
         elif n == 1:
@@ -175,18 +168,16 @@ class PhiFramework:
         
         return fib
     
-    def simulate_neural_repair(self, cure_algorithm: Dict[str, any],
+    def simulate_response_progression(self, response_profile: Dict[str, any],
                              time_steps: int = 100) -> List[float]:
         """
-        Simulate neural repair process using φ-framework
-        Returns healing progression over time
+        Simulate bounded synthetic response progression over time.
         """
         progression = []
-        phi_factor = cure_algorithm["neural_plasticity_factor"]
+        phi_factor = response_profile["response_factor"]
         
         for t in range(time_steps):
-            # φ-enhanced healing curve
-            healing_rate = (
+            response_rate = (
                 math.exp(-t / (phi_factor * 10)) * 
                 math.cos(t * self.phi / 10) * 
                 self.phi
@@ -196,15 +187,15 @@ class PhiFramework:
             if t == 0:
                 progression.append(0.0)
             else:
-                new_healing = progression[-1] + max(0, healing_rate * 0.01)
-                progression.append(min(1.0, new_healing))  # Cap at 100% healing
+                next_value = progression[-1] + max(0, response_rate * 0.01)
+                progression.append(min(1.0, next_value))
         
         return progression
 
 # Example usage and demonstration
 def demo_phi_framework():
     """Demonstrate φ-framework capabilities"""
-    print("🧠 φ-Framework Quantum Neural Network Demo")
+    print("Phi-framework synthetic research demo")
     print("=" * 50)
     
     # Initialize framework
@@ -231,23 +222,20 @@ def demo_phi_framework():
     )
     print(f"C³ Formula Result: {c3_result}")
     
-    # Find deficit location
-    deficit_pos = phi_engine.calculate_neuronal_deficit_colocation(
+    # Find strongest synthetic coordinate
+    target_pos = phi_engine.calculate_neuronal_deficit_colocation(
         brain_scan, "hippocampus"
     )
-    print(f"Deficit located at: {deficit_pos}")
+    print(f"Synthetic target coordinate: {target_pos}")
     
-    # Generate cure algorithm
-    cure = phi_engine.generate_cure_algorithm(deficit_pos, "memory_loss")
-    print(f"Cure algorithm generated for {cure['deficit_type']}")
-    print(f"Estimated recovery time: {cure['estimated_recovery_time']:.2f} units")
+    profile = phi_engine.generate_response_profile(target_pos, "memory-pattern-simulation")
+    print(f"Response profile generated for {profile['scenario_label']}")
+    print(f"Estimated simulation span: {profile['estimated_simulation_span']:.2f} units")
     
-    # Simulate healing
-    healing_progression = phi_engine.simulate_neural_repair(cure, 50)
-    print(f"Healing simulation complete: {healing_progression[-1]*100:.1f}% recovery")
+    progression = phi_engine.simulate_response_progression(profile, 50)
+    print(f"Synthetic progression complete: {progression[-1]*100:.1f}% bounded response")
     
-    print("\n🎯 φ-Framework Demo Complete!")
-    print("Revolutionary medical AI system operational!")
+    print("\nPhi-framework demo complete.")
 
 if __name__ == "__main__":
     demo_phi_framework()
