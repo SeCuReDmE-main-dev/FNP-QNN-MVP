@@ -23,14 +23,15 @@ class LifeScienceObservationPort:
         source: str = "life-science-port",
     ) -> List[Dict[str, Any]]:
         mu = self._as_vector(state.get("mu", []))
-        nu = self._as_vector(state.get("nu", np.zeros_like(mu)))
-        pi = self._as_vector(state.get("pi", np.maximum(0.0, 1.0 - mu - nu)))
-        n = max(len(mu), len(nu), len(pi))
+        nu = self._as_vector(state.get("nu", []))
+        pi_provided = state.get("pi")
+        pi = self._as_vector(pi_provided) if pi_provided is not None else None
+        n = max(len(mu), len(nu), len(pi) if pi is not None else 0)
         if n == 0:
             return []
         mu = self._resize(mu, n)
         nu = self._resize(nu, n)
-        pi = self._resize(pi, n)
+        pi = self._resize(pi, n) if pi is not None else np.maximum(0.0, 1.0 - mu - nu)
 
         observations: List[Dict[str, Any]] = []
         for index in range(n):
@@ -52,6 +53,8 @@ class LifeScienceObservationPort:
     def _as_vector(self, value: Any) -> np.ndarray:
         if value is None:
             return np.asarray([], dtype=float)
+        if isinstance(value, np.ndarray):
+            return value.astype(float).reshape(-1)
         if isinstance(value, (int, float, np.floating, np.integer)):
             return np.asarray([float(value)], dtype=float)
         if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
