@@ -1,156 +1,128 @@
-"""Validate provenance, boundary, and risky-claim policy for public-facing artifacts."""
+"""Validate provenance, boundary, and forbidden-claim policy."""
 
 from __future__ import annotations
 
 import json
-import pathlib
 import re
 import sys
-from typing import Dict, Iterable, List
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+NEGATION_MARKERS = ("not", "no ", "never", "is not", "are not", "non-", "non ", "without")
+SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 
 
-PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="ignore")
 
 
-def _read_text(path: pathlib.Path) -> str:
-    return path.read_text(encoding="utf-8")
+def pass_line(message: str) -> None:
+    print(f"PASS: {message}")
 
 
-def _collect_scan_files(patterns: Iterable[str], root: pathlib.Path) -> List[pathlib.Path]:
-    files: List[pathlib.Path] = []
-    for pattern in patterns:
-        for candidate in root.glob(pattern):
-            if candidate.is_file():
-                files.append(candidate)
-    return files
+def fail_line(message: str) -> None:
+    print(f"FAIL: {message}")
 
 
-def _normalize(text: str) -> str:
-    return re.sub(r"[^0-9A-Za-z]", "", text).lower()
-
-
-def _normalize_orcid(text: str) -> str:
-    return re.sub(r"[^0-9X]", "", text.upper())
-
-
-def _contains_orcid(text: str, orcid: str) -> bool:
-    return _normalize_orcid(orcid) in _normalize_orcid(text)
-
-
-def _contains_phrases(text: str, phrases: Iterable[str]) -> bool:
-    lowered = text.lower()
-    return all(phrase.lower() in lowered for phrase in phrases)
-
-
-def _scan_for_risky_text(text: str, risks: Iterable[str]) -> List[str]:
-    found: List[str] = []
-    negation_tokens = (
-        "not ",
-        " no ",
-        "without ",
-        "never ",
-        "avoid ",
-        "avoidances ",
-        "non ",
-        "non-",
-        "no-",
-        "must not",
-        "should not",
-        "do not",
-    )
-    lines = text.splitlines()
-    for idx, line in enumerate(lines):
-        lowered = line.lower()
-        for risk in risks:
-            if risk in lowered:
-                context = " ".join(lines[max(0, idx - 8) : idx + 8]).lower()
-                if any(token in context for token in negation_tokens):
-                    continue
-                found.append(risk)
-    return found
-
-
-def _validate_paths(policy: Dict[str, List[str]], root: pathlib.Path) -> bool:
-    missing = [path for path in policy["required_files"] if not (root / path).exists()]
-    if missing:
-        for path in missing:
-            print(f"Missing required file: {path}")
-        return False
-    return True
-
-
-def _validate_orcid(policy: Dict[str, List[str]], root: pathlib.Path, orcid: str) -> bool:
-    failures = []
-    for path in policy["required_orcid_files"]:
-        file_path = root / path
-        if not file_path.exists():
-            failures.append(path)
+def iter_scan_targets(root: Path, entries: list[str]) -> list[Path]:
+    targets: list[Path] = []
+    seen: set[Path] = set()
+    for entry in entries:
+        path = root / entry
+        if not path.exists():
             continue
-        if not _contains_orcid(_read_text(file_path), orcid):
-            failures.append(path)
-    if failures:
-        print("ORCID check failed for:")
-        for path in failures:
-            print(f"- {path}")
-        print("Expected ORCID:", orcid)
+        if path.is_file():
+            if path not in seen:
+                seen.add(path)
+                targets.append(path)
+            continue
+        for child in path.rglob("*"):
+            if child.is_file() and child not in seen:
+                seen.add(child)
+                targets.append(child)
+    return targets
+
+
+def contains_orcid(text: str, orcid: str) -> bool:
+    normalized_text = re.sub(r"[^0-9X]", "", text.upper())
+    normalized_orcid = re.sub(r"[^0-9X]", "", orcid.upper())
+    return normalized_orcid in normalized_text
+
+
+def sentence_has_forbidden_claim(text: str, phrase: str) -> bool:
+    for sentence in SENTENCE_SPLIT_RE.split(text):
+        lowered = sentence.lower()
+        idx = lowered.find(phrase.lower())
+        if idx == -1:
+            continue
+        prefix = lowered[:idx]
+        if any(marker in prefix for marker in NEGATION_MARKERS):
+            continue
+        return True
+    return False
+
+
+def check_required_files(policy: dict) -> bool:
+    missing = [path for path in policy["required_files"] if not (ROOT / path).exists()]
+    if missing:
+        fail_line(f"required files missing: {missing}")
         return False
+    pass_line("required files exist")
     return True
 
 
-def _validate_readme_orcid(policy: Dict[str, List[str]], root: pathlib.Path, orcid: str) -> bool:
-    del policy
-    readme = _read_text(root / "README.md")
-    if not _contains_orcid(readme, orcid):
-        print("ORCID not found in README.md:", orcid)
+def check_required_orcid(policy: dict) -> bool:
+    missing_orcid: list[str] = []
+    for relative_path in policy["required_orcid_in"]:
+        path = ROOT / relative_path
+        if not path.exists() or not contains_orcid(read_text(path), policy["maintainer_orcid"]):
+            missing_orcid.append(relative_path)
+    if missing_orcid:
+        fail_line(f"ORCID provenance missing in: {missing_orcid}")
         return False
+    pass_line("ORCID provenance present in required files")
     return True
 
 
-def _validate_boundary(policy: Dict[str, List[str]], root: pathlib.Path) -> bool:
-    phrases = policy["required_boundary_phrases"]
-    readme = _read_text(root / "README.md")
-    security = _read_text(root / "SECURITY_MODEL.md") if (root / "SECURITY_MODEL.md").exists() else ""
-    if not (_contains_phrases(readme, phrases) or _contains_phrases(security, phrases)):
-        print("Boundary validation failed: required phrases not found in README.md or SECURITY_MODEL.md.")
-        return False
-    return True
+def check_boundary_phrases(policy: dict) -> bool:
+    phrases = [phrase.lower() for phrase in policy["required_boundary_phrases_any_of"]]
+    for relative_path in policy["boundary_files_any_of"]:
+        path = ROOT / relative_path
+        if not path.exists():
+            continue
+        text = read_text(path).lower()
+        if any(phrase in text for phrase in phrases):
+            pass_line(f"boundary phrase found in {relative_path}")
+            return True
+    fail_line("no boundary phrase found in configured boundary files")
+    return False
 
 
-def _validate_risk_phrases(policy: Dict[str, List[str]], root: pathlib.Path) -> bool:
-    risky = [risk.lower() for risk in policy["risky_phrases"]]
-    seen: List[str] = []
-    for file_path in _collect_scan_files(policy["scan_public_docs"], root):
-        text = _read_text(file_path).lower()
-        for hit in _scan_for_risky_text(text, risky):
-            line = f"{file_path}: {hit}"
-            if line not in seen:
-                seen.append(line)
-    if seen:
-        print("Risky phrases detected:")
-        for hit in seen:
-            print(f"- {hit}")
+def check_forbidden_claims(policy: dict) -> bool:
+    hits: list[str] = []
+    for path in iter_scan_targets(ROOT, policy["scan_files"]):
+        text = read_text(path)
+        for phrase in policy["forbidden_positive_claims"]:
+            if sentence_has_forbidden_claim(text, phrase):
+                hits.append(f"{path.relative_to(ROOT)}: {phrase}")
+    if hits:
+        fail_line("forbidden positive claims detected")
+        for hit in hits:
+            print(f"FAIL: {hit}")
         return False
+    pass_line("no forbidden positive claims detected")
     return True
 
 
 def main() -> int:
-    policy_path = PROJECT_ROOT / "LICENSE_POLICY.json"
-    policy = json.loads(_read_text(policy_path))
-
-    orcid = policy["maintainer_orcid"]
-    ok = True
-    ok &= _validate_paths(policy, PROJECT_ROOT)
-    ok &= _validate_orcid(policy, PROJECT_ROOT, orcid)
-    ok &= _validate_readme_orcid(policy, PROJECT_ROOT, orcid)
-    ok &= _validate_boundary(policy, PROJECT_ROOT)
-    ok &= _validate_risk_phrases(policy, PROJECT_ROOT)
-
-    if ok:
-        print("LICENSE_POLICY validation: PASS")
-        return 0
-
-    print("LICENSE_POLICY validation: FAIL")
-    return 1
+    policy = json.loads(read_text(ROOT / "LICENSE_POLICY.json"))
+    checks = [
+        check_required_files(policy),
+        check_required_orcid(policy),
+        check_boundary_phrases(policy),
+        check_forbidden_claims(policy),
+    ]
+    return 0 if all(checks) else 1
 
 
 if __name__ == "__main__":

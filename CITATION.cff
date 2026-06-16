@@ -1,13 +1,9 @@
-cff-version: "1.2.0"
-title: FNP-QNN Local Research Simulator
-message: >
-  Please cite this project as a local educational/research simulator for
-  reproducible neuro-inspired simulation prototypes. It is not a clinical,
-  diagnostic, therapeutic, safety-critical, emergency, or production healthcare
-  system.
-type: software
+cff-version: 1.2.0
+message: "If you use this project for research or education, please cite it."
+title: "FNP-QNN Local Research Simulator"
 authors:
-  - family-names: Beaulieu
-    given-names: Jean-Sébastien
+  - family-names: "Beaulieu"
+    given-names: "Jean-Sébastien"
     orcid: "https://orcid.org/0009-0007-2904-0443"
-repository-code: https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP-version-desise-simulator-.git
+repository-code: "https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP-version-disease-simulator-"
+abstract: "Alpha-local, non-clinical educational/research simulator for cerebrum-shaped interval memory events, deterministic crossmodal pair construction, feature-vector encoding for QNN candidate lanes, and deterministic PyTorch surrogate fallback. Not clinical, diagnostic, therapeutic, or production-public. License is a custom responsible-research notice pending maintainer/legal review."

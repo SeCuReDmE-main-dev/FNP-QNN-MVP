@@ -112,6 +112,14 @@ Organisation folder: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bac
 - [ ] Visual runtime verification of `panel_app.py` in browser remains pending.
 - [ ] `assets/*-panel.png` finalization and outreach-safe screenshot package remain pending.
 
+## 2026-06-16T17:58:35-04:00 — Panel application runtime bootstrap validation
+
+- [x] Confirmed Panel app object can be instantiated from `panel_app.create_app()` without import/build errors:
+  - `python -c "import panel_app; app=panel_app.create_app(); print(type(app).__name__); print(hasattr(app,'show'))"`
+    - output: `FastListTemplate` and `True`.
+- [x] Attempted `panel serve panel_app.py --port 5006` boot in this environment to verify server startup path.
+- [ ] Full visual browser-side sequence validation remains pending (`panel serve --show` interactive verification not completed in this headless pass).
+
 ## 2026-06-16T21:34:00-04:00 — Front-end bridge + observability phrasing pass
 
 - [x] Wired `ui/network_canvas.py` to serialize graph payloads and invoke `window.fnpNetworkCanvasRender` on each render.

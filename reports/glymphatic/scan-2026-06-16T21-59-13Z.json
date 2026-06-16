@@ -1,0 +1,94 @@
+{
+  "agent": "SeCuReDmE SPOFRE E2B Gate",
+  "mode": "glymphatic_cleanup",
+  "phase": "SCAN",
+  "triggered_by": "user_request",
+  "service": "fnp-qnn-local-research-simulator",
+  "boundary": "alpha-local, non-clinical, educational/research simulator",
+  "generated_at_utc": "2026-06-16T21:59:13Z",
+  "items": [
+    {
+      "path": ".pytest_cache",
+      "kind": "cache_dir",
+      "size_bytes": 3413,
+      "age_days": 4,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 27185,
+      "age_days": 1,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "api/__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 23450,
+      "age_days": 2,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "core/__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 87993,
+      "age_days": 11,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "core/network_designer/__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 41169,
+      "age_days": 8,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "examples/__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 7253,
+      "age_days": 5,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "scripts/__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 16722,
+      "age_days": 4,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "scripts/e2b_datadog_audit/__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 17496,
+      "age_days": 1,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "tests/__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 49306,
+      "age_days": 15,
+      "tag": "safe-to-close"
+    },
+    {
+      "path": "ui/__pycache__",
+      "kind": "cache_dir",
+      "size_bytes": 9014,
+      "age_days": 1,
+      "tag": "safe-to-close"
+    }
+  ],
+  "summary": {
+    "scanned_items": 10,
+    "safe_to_close": 10,
+    "confirm_required": 0,
+    "human_only": 0,
+    "auto_cleaned_items": 0,
+    "pending_human_approval_items": 0,
+    "estimated_cost_avoided": "n/a"
+  },
+  "notes": [
+    "Read-only SCAN. No process killed. No file deleted. No network call.",
+    "Destructive actions require human-in-the-loop approval outside this script."
+  ]
+}

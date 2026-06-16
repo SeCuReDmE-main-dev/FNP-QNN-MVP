@@ -97,10 +97,28 @@ def check_tests() -> None:
     pass_line("unit tests pass")
 
 
+def check_license_policy() -> None:
+    if not (ROOT / "LICENSE_POLICY.json").exists():
+        fail("missing required file: LICENSE_POLICY.json")
+    result = subprocess.run(
+        [sys.executable, "scripts/validate_license_policy.py"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        timeout=120,
+    )
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
+        fail("license policy validation failed")
+    pass_line("license policy validation passes")
+
+
 def main() -> None:
     check_required_files()
     check_no_public_shell()
     check_claim_language()
+    check_license_policy()
     check_imports()
     check_tests()
     pass_line("alpha-local readiness gate complete")

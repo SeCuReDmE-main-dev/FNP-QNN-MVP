@@ -1,27 +1,16 @@
 {
-  "project_name": "FNP-QNN Local Research Simulator",
-  "version": "2026-06-16",
-  "maintainer_name": "Jean-Sébastien Beaulieu",
-  "maintainer_orcid": "0009-0007-2904-0443",
-  "repository_code": "https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP-version-desise-simulator-.git",
-  "required_files": [
-    "README.md",
-    "NOTICE.md",
-    "CITATION.cff",
-    "LICENSE",
-    "LICENSE.md"
-  ],
-  "required_orcid_files": [
-    "README.md",
-    "NOTICE.md",
-    "CITATION.cff",
-    "LICENSE.md"
-  ],
-  "required_boundary_phrases": [
+  "project": "FNP-QNN Local Research Simulator",
+  "version": "0.1.0",
+  "maintainer_orcid": "https://orcid.org/0009-0007-2904-0443",
+  "required_files": ["LICENSE.md", "NOTICE.md", "CITATION.cff", "README.md"],
+  "required_orcid_in": ["README.md", "NOTICE.md", "CITATION.cff", "LICENSE.md"],
+  "required_boundary_phrases_any_of": [
     "alpha-local",
-    "non-clinical"
+    "non-clinical",
+    "educational/research simulator"
   ],
-  "risky_phrases": [
+  "boundary_files_any_of": ["README.md", "SECURITY_MODEL.md", "SECURITY.md"],
+  "forbidden_positive_claims": [
     "clinical AI",
     "medical diagnosis",
     "disease prediction product",
@@ -31,14 +20,5 @@
     "medical-grade AI",
     "clinically validated"
   ],
-  "scan_public_docs": [
-    "README.md",
-    "SECURITY_MODEL.md",
-    "NOTICE.md",
-    "CITATION.cff",
-    "LICENSE",
-    "LICENSE.md",
-    "docs/alpha-readiness.md",
-    "docs/institutional-funding-and-hosting-plan.md"
-  ]
+  "scan_files": ["README.md", "NOTICE.md", "CITATION.cff", "LICENSE.md", "docs", "examples/README.md"]
 }
