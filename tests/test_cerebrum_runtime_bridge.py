@@ -194,6 +194,12 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
 
+    def test_dashboard_route_serves_local_panel(self):
+        response = self.client.get("/dashboard")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("FNP-QNN Control Panel", response.text)
+        self.assertIn("/dashboard/static/app.js", response.text)
+
     def test_runtime_status_endpoint(self):
         response = self.client.get("/cerebrum/runtime/status")
         self.assertEqual(response.status_code, 200)

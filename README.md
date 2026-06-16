@@ -137,6 +137,16 @@ API server:
 uvicorn api.main:app --reload --port 8000
 ```
 
+HoloViz Panel dashboard:
+
+```bash
+panel serve panel_app.py --show --port 5006
+```
+
+The Panel dashboard is the primary local operator panel. It runs the same
+runtime, encoding, QNN smoke, benchmark, and legacy fixture paths as the API
+without adding a Node/React build chain.
+
 ## Evidence And Reports
 
 - `docs/alpha-readiness.md`: alpha-local evidence matrix.

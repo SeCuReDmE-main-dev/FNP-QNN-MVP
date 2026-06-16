@@ -10,8 +10,13 @@ from typing import Any, Dict, List, Optional, Sequence
 import numpy as np
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WEB_ROOT = os.path.join(PROJECT_ROOT, "web")
+
+sys.path.append(PROJECT_ROOT)
 
 from api.schemas import CommandRequest, CommandResponse, EncodeRequest, QNNSmokeRequest, RuntimeRunRequest
 from core import CerebrumAdapter, CerebrumRuntimeBridge, LifeScienceObservationPort, PhiFramework, QNNNucleus
@@ -30,6 +35,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if os.path.isdir(WEB_ROOT):
+    app.mount("/dashboard/static", StaticFiles(directory=WEB_ROOT), name="dashboard-static")
 
 phi_engine = PhiFramework()
 cerebrum_adapter = CerebrumAdapter()
@@ -135,7 +143,7 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
 
 
 def _legacy_runtime_result() -> Dict[str, Any]:
-    legacy_root = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "examples")
+    legacy_root = os.path.join(PROJECT_ROOT, "examples")
     bridge = CerebrumRuntimeBridge(adapter=cerebrum_adapter, legacy_cerebrum_path=legacy_root)
     nucleus = QNNNucleus(adapter=bridge.adapter)
     state = bridge.build_state(None, qnn_nucleus=nucleus, max_epochs=6)
@@ -143,6 +151,14 @@ def _legacy_runtime_result() -> Dict[str, Any]:
     result["legacy_cerebrum_path"] = legacy_root
     result["legacy_cerebrum_path_exists"] = bridge.status(qnn_nucleus=nucleus)["legacy_cerebrum_path_exists"]
     return result
+
+
+@app.get("/dashboard", include_in_schema=False)
+async def dashboard() -> FileResponse:
+    index_path = os.path.join(WEB_ROOT, "index.html")
+    if not os.path.exists(index_path):
+        raise HTTPException(status_code=404, detail="Dashboard assets not found")
+    return FileResponse(index_path)
 
 
 @app.get("/")

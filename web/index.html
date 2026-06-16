@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FNP-QNN Control Panel</title>
+  <link rel="stylesheet" href="/dashboard/static/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="hero panel">
+      <div>
+        <p class="eyebrow">alpha-local research simulator</p>
+        <h1>FNP-QNN Control Panel</h1>
+        <p class="hero-copy">
+          Visual dashboard for Cerebrum-style interval events, crossmodal pair construction,
+          deterministic feature encoding, and QNN candidate smoke paths.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button id="refresh-status" class="button secondary" type="button">Refresh status</button>
+        <a class="button ghost" href="/docs" target="_blank" rel="noreferrer">API docs</a>
+      </div>
+    </header>
+
+    <section class="safety panel">
+      <strong>Research boundary:</strong>
+      local alpha simulator only. Not clinical, diagnostic, therapeutic, safety, emergency, or production-public software.
+    </section>
+
+    <main class="layout">
+      <section class="left-column">
+        <section class="panel status-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">system</p>
+              <h2>Runtime status</h2>
+            </div>
+            <span id="system-indicator" class="pill muted">waiting</span>
+          </div>
+          <div class="metric-grid">
+            <article class="metric-card">
+              <span>API</span>
+              <strong id="metric-api-status">—</strong>
+            </article>
+            <article class="metric-card">
+              <span>Runtime bridge</span>
+              <strong id="metric-bridge">—</strong>
+            </article>
+            <article class="metric-card">
+              <span>QNN backend</span>
+              <strong id="metric-backend">—</strong>
+            </article>
+            <article class="metric-card">
+              <span>Golden ratio</span>
+              <strong id="metric-phi">—</strong>
+            </article>
+          </div>
+          <div id="candidate-list" class="chip-row"></div>
+        </section>
+
+        <section class="panel controls-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">input</p>
+              <h2>Payload builder</h2>
+            </div>
+            <button id="reset-demo" class="button ghost small" type="button">Reset demo</button>
+          </div>
+
+          <div class="control-grid">
+            <label>
+              Label
+              <input id="label-input" type="number" min="0" max="1" step="0.05" value="1" />
+            </label>
+            <label>
+              Epochs
+              <input id="epochs-input" type="number" min="0" max="256" step="1" value="12" />
+            </label>
+            <label class="checkbox-row">
+              <input id="run-qnn-input" type="checkbox" checked />
+              Run QNN smoke path
+            </label>
+          </div>
+
+          <label class="payload-label" for="payload-editor">Runtime payload JSON</label>
+          <textarea id="payload-editor" spellcheck="false" rows="18"></textarea>
+
+          <div class="button-row">
+            <button id="run-simulation" class="button primary" type="button">Run simulation</button>
+            <button id="encode-payload" class="button secondary" type="button">Encode only</button>
+            <button id="qnn-smoke" class="button secondary" type="button">QNN smoke</button>
+            <button id="legacy-demo" class="button ghost" type="button">Legacy demo</button>
+          </div>
+        </section>
+
+        <section class="panel command-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">allowlisted commands</p>
+              <h2>Command console</h2>
+            </div>
+          </div>
+          <div class="button-row compact">
+            <button data-command="phi-status" class="button ghost" type="button">phi-status</button>
+            <button data-command="cerebrum-runtime-status" class="button ghost" type="button">runtime-status</button>
+            <button data-command="cerebrum-runtime-run" class="button ghost" type="button">runtime-run</button>
+            <button data-command="qnn-smoke" class="button ghost" type="button">qnn-smoke</button>
+          </div>
+          <pre id="command-output" class="terminal">Ready.</pre>
+        </section>
+      </section>
+
+      <section class="right-column">
+        <section class="panel result-summary">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">latest run</p>
+              <h2>Run summary</h2>
+            </div>
+            <span id="run-indicator" class="pill muted">idle</span>
+          </div>
+          <div class="metric-grid four">
+            <article class="metric-card">
+              <span>Events</span>
+              <strong id="metric-events">—</strong>
+            </article>
+            <article class="metric-card">
+              <span>Pairs</span>
+              <strong id="metric-pairs">—</strong>
+            </article>
+            <article class="metric-card">
+              <span>Feature dim</span>
+              <strong id="metric-feature-dim">—</strong>
+            </article>
+            <article class="metric-card">
+              <span>Pred. probability</span>
+              <strong id="metric-probability">—</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel visual-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">cerebrum stream</p>
+              <h2>Event timeline</h2>
+            </div>
+          </div>
+          <div id="timeline" class="timeline empty-state">Run the simulator to render event intervals.</div>
+        </section>
+
+        <section class="visual-grid">
+          <section class="panel">
+            <div class="section-heading tight">
+              <div>
+                <p class="eyebrow">encoding</p>
+                <h2>Feature vector</h2>
+              </div>
+            </div>
+            <div id="feature-vector" class="bar-list empty-state">No vector yet.</div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading tight">
+              <div>
+                <p class="eyebrow">transitions</p>
+                <h2>Modality matrix</h2>
+              </div>
+            </div>
+            <div id="transition-matrix" class="matrix empty-state">No matrix yet.</div>
+          </section>
+        </section>
+
+        <section class="visual-grid">
+          <section class="panel">
+            <div class="section-heading tight">
+              <div>
+                <p class="eyebrow">crossmodal</p>
+                <h2>Pair evidence</h2>
+              </div>
+            </div>
+            <div id="pairs-table" class="table-wrap empty-state">No pairs yet.</div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading tight">
+              <div>
+                <p class="eyebrow">qnn candidates</p>
+                <h2>Benchmark lane</h2>
+              </div>
+            </div>
+            <div id="benchmark" class="benchmark empty-state">No benchmark yet.</div>
+          </section>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">raw evidence</p>
+              <h2>Response JSON</h2>
+            </div>
+          </div>
+          <pre id="json-output" class="json-box">{}</pre>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script src="/dashboard/static/app.js" defer></script>
+</body>
+</html>
