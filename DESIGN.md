@@ -2,21 +2,22 @@
 
 ## Purpose
 
-This file is a practical design and repair guide for the FNP-QNN Panel UI.
+This file is the practical design and repair guide for the FNP-QNN Panel UI.
 
-The current Panel exists and runs as a local operator dashboard, but the visual system needs stronger structure, cleaner hierarchy, better asset usage, and a more coherent layout before adding the future Network Designer.
+The current Panel exists and runs as a local operator dashboard, but it needs stronger visual hierarchy, cleaner asset usage, better cropping/framing rules, and a more coherent layout before the future Network Designer is added.
 
 Use this document when improving:
 
 ```text
 panel_app.py
+assets/*
 assets/generated/*
 future ui/network_designer.py
 future assets/network_designer/*
 reports and public-facing screenshots
 ```
 
-The goal is not to preserve every current Panel decision. The goal is to use the real assets already present in `/assets` to rebuild the Panel into a cleaner, more professional FNP-QNN control room.
+The goal is not to preserve every current Panel decision. The goal is to use the real assets already present in `/assets` to rebuild the Panel into a cleaner, more professional FNP-QNN research control room.
 
 ---
 
@@ -47,6 +48,12 @@ diagnostic system
 ```
 
 The design should feel like a research cockpit, not a medical product.
+
+Recommended boundary copy:
+
+```text
+Alpha-local research simulator. Not clinical, diagnostic, therapeutic, emergency, safety-critical, or production-public software. Results are local simulation evidence only.
+```
 
 ---
 
@@ -229,6 +236,454 @@ These should not appear in the main research dashboard by default. They can stay
 
 ---
 
+# Asset Cropping, Framing, and Panel Transfer Rules
+
+## Why this ruling exists
+
+Some current assets are visually strong but messy for UI integration. Several need cleaner cuts, better framing, more consistent centering, and a stable invisible safety layer before they are placed in the Panel.
+
+The Panel must not directly depend on raw, messy, unevenly cropped assets.
+
+A raw asset is source material. A Panel asset is a prepared UI component.
+
+---
+
+## Official asset pipeline
+
+Every important visual asset should move through this pipeline:
+
+```text
+source asset
+→ cut asset
+→ framed asset
+→ panel-ready asset
+```
+
+### Source asset
+
+Original creative file.
+
+Examples:
+
+```text
+assets/logo1.png
+assets/mascoote qbit.png
+assets/qbits stancil.png
+assets/mural fnp-qnn.png
+```
+
+### Cut asset
+
+Clean subject extraction.
+
+Naming:
+
+```text
+*-cut.png
+```
+
+Example:
+
+```text
+qbit-stencil-cut.png
+```
+
+### Framed asset
+
+The subject is placed into a coherent frame or visual support.
+
+Naming:
+
+```text
+*-framed.png
+```
+
+Example:
+
+```text
+qbit-stencil-framed.png
+```
+
+### Panel-ready asset
+
+Final PNG with transparent safety margin and stable dimensions.
+
+Naming:
+
+```text
+*-panel.png
+```
+
+Example:
+
+```text
+qbit-stencil-panel.png
+```
+
+Panel code should prefer `*-panel.png` assets over raw source assets.
+
+---
+
+## Three-layer model
+
+Every Panel-ready asset must be designed as three logical layers:
+
+```text
+Layer 1: visible subject cut
+Layer 2: visible or subtle frame/backplate
+Layer 3: invisible transparent safety cut layer
+```
+
+### Layer 1 — visible subject cut
+
+This is the real object:
+
+```text
+logo
+mascot
+qbit stencil
+brain vector
+orbit head
+circuit brain
+wave brain
+cube research
+future spiderweb node
+```
+
+Rules:
+
+```text
+- remove dirty background
+- clean the silhouette
+- preserve important visual identity
+- avoid jagged or accidental edges
+- do not crop into the subject
+```
+
+### Layer 2 — frame/backplate
+
+This gives the asset a stable UI container.
+
+Allowed frame families:
+
+```text
+soft rounded square
+rounded rectangle
+vertical lab plate
+capsule badge
+light card support
+soft glow plate
+```
+
+Use frame/backplate when the raw silhouette is too irregular for clean Panel placement.
+
+### Layer 3 — invisible transparent safety cut layer
+
+This is a transparent margin around the framed subject.
+
+It prevents:
+
+```text
+- subject touching the card edge
+- inconsistent visual weight
+- assets feeling randomly cropped
+- hover/click states looking unstable
+- tight collisions with Panel containers
+```
+
+This layer is invisible, but required.
+
+---
+
+## Transparent safety margin rules
+
+Add transparent margin around the visible subject or frame.
+
+Recommended margins:
+
+```text
+small tile icons: 8% to 12%
+medium UI assets: 10% to 14%
+large hero assets: 12% to 18%
+brand gallery assets: 10% to 16%
+```
+
+Hard rule:
+
+```text
+No visible subject should touch the final PNG boundary.
+```
+
+---
+
+## Optical centering rules
+
+Center by visual weight, not just pixel geometry.
+
+If an asset has a large element on one side, adjust position until it feels centered to the eye.
+
+Examples:
+
+```text
+A mascot with a large head may need to sit slightly lower.
+A stencil with a wide gesture may need more side margin.
+A circuit-brain asset may need horizontal correction because the active detail is not evenly distributed.
+```
+
+Panel-ready exports must look centered when displayed at:
+
+```text
+64px
+96px
+150px
+220px
+```
+
+---
+
+## Export size rules
+
+Use larger export sizes than display sizes.
+
+### Tile icons
+
+```text
+export size: 512x512 or 640x640
+Panel display: 64px to 96px
+```
+
+### Hero assets
+
+```text
+export size: 1200x900 or 1400x1000
+Panel display: 120px to 220px high
+```
+
+### Sidebar guide assets
+
+```text
+export size: 700x900
+Panel display: 120px to 180px high
+```
+
+### Brand gallery assets
+
+```text
+export size: 1200x900 minimum
+Panel display: 160px to 220px high
+```
+
+---
+
+## Background rules
+
+Preferred final format:
+
+```text
+PNG with transparent background
+```
+
+The asset must work on:
+
+```text
+light cards
+navy cards
+gradient hero blocks
+white operator cards
+network designer canvas
+```
+
+If a background is needed, it must be intentional:
+
+```text
+soft glow plate
+rounded square badge
+vertical lab plate
+subtle light card support
+```
+
+Do not keep accidental source background artifacts.
+
+---
+
+## Frame/backplate rules
+
+Use a frame/backplate to stabilize messy assets.
+
+Recommended backplates:
+
+### Soft glow plate
+
+Best for:
+
+```text
+quantum
+orbit
+signal
+QNN candidate
+```
+
+### Rounded square badge
+
+Best for:
+
+```text
+action tiles
+small cards
+network node icons
+```
+
+### Vertical lab plate
+
+Best for:
+
+```text
+sidebar guide
+mascot
+helper state
+```
+
+### Light card support
+
+Best for:
+
+```text
+brand gallery
+mural preview
+product preview
+```
+
+---
+
+## Asset family coherence
+
+Assets in the same UI family must share:
+
+```text
+same output dimensions
+same safety margin logic
+same backplate style
+same visual density
+same centering logic
+same brightness/contrast range
+```
+
+The functional vector assets should become a coherent family:
+
+```text
+vector-01-brain-network-panel.png
+vector-02-orbit-head-panel.png
+vector-03-circuit-brain-panel.png
+vector-04-wave-brain-panel.png
+vector-05-cube-research-panel.png
+```
+
+They should not vary randomly in scale, padding, or visual weight.
+
+---
+
+## Panel transfer checklist
+
+An asset is transferable to the Panel only if:
+
+```text
+[ ] the subject is cleanly cut
+[ ] there are no dirty borders
+[ ] the subject does not touch the final boundary
+[ ] transparent safety margin exists
+[ ] optical centering is corrected
+[ ] frame/backplate is coherent with asset family
+[ ] readable at 64px to 96px
+[ ] readable on light background
+[ ] readable on navy/dark background
+[ ] filename uses clean panel-ready naming
+```
+
+If any item fails, do not use the asset in `panel_app.py` yet.
+
+---
+
+## Priority assets for recut and framing
+
+Treat these first:
+
+```text
+1. logo1.png
+2. mascoote qbit.png
+3. qbits stancil.png
+4. vector-01-brain-network.png
+5. vector-02-orbit-head.png
+6. vector-03-circuit-brain.png
+7. vector-04-wave-brain.png
+8. vector-05-cube-research.png
+```
+
+Then treat:
+
+```text
+9. mural-ui-thumb.png
+10. qbit-stencil-avatar-strip.png
+11. atom-back-logo-dark.png
+```
+
+Product assets are secondary:
+
+```text
+mug-blue-ui-thumb.png
+shirt-green-ui-thumb.png
+```
+
+They should remain below the operational workflow or inside a collapsed brand section.
+
+---
+
+## New asset naming rules
+
+Existing asset names with spaces may stay for compatibility. New assets should be lowercase and hyphen-separated.
+
+Good:
+
+```text
+qbit-stencil-panel.png
+vector-03-circuit-brain-panel.png
+network-designer-hero-panel.png
+spiderweb-hub-panel.png
+```
+
+Avoid:
+
+```text
+new qbit final 2.png
+better logo crop.png
+panel final use this.png
+```
+
+---
+
+## Panel usage rule
+
+Panel code should prefer prepared assets:
+
+```text
+assets/generated/*-panel.png
+```
+
+Raw assets should be used only as creative sources.
+
+Bad:
+
+```python
+pn.pane.Image(str(ASSET_DIR / "qbits stancil.png"), height=150)
+```
+
+Better:
+
+```python
+pn.pane.Image(str(GENERATED_ASSET_DIR / "qbit-stencil-panel.png"), height=150)
+```
+
+---
+
 ## Current Panel Problems To Fix
 
 The current Panel has useful ingredients but needs redesign.
@@ -317,7 +772,7 @@ The future drag-and-drop designer needs consistent node colors, card hierarchy, 
 
 Fix:
 
-Use the design tokens and node category rules in this document.
+Use the design tokens, node category rules, and asset framing rules in this document.
 
 ---
 
@@ -453,12 +908,6 @@ Do not place shirt/mug product assets in the default sidebar.
 
 ## Hero Section Redesign
 
-### Current problem
-
-The hero is visually rich but too large for an operator-first dashboard.
-
-### Recommended hero
-
 Use a compact status hero:
 
 ```text
@@ -470,8 +919,8 @@ Local alpha research simulator for Cerebrum memory streams, feature encoding, an
 Recommended assets:
 
 ```text
-Left/mark: atom-normalized-dark.png
-Right/accent: vector-03-circuit-brain.png or qbit-stencil-orbit.png
+Left/mark: atom-normalized-dark.png or atom-normalized-dark-panel.png
+Right/accent: vector-03-circuit-brain-panel.png or qbit-stencil-panel.png
 ```
 
 Do not use more than two images in the hero.
@@ -495,21 +944,21 @@ The action tiles should become a workflow grid.
 
 ### Asset mapping
 
-| Action | Asset | Tone |
+| Action | Preferred asset | Tone |
 |---|---|---|
-| Encode Features | `vector-01-brain-network.png` | green/cyan |
-| Run Simulation | `vector-02-orbit-head.png` | blue |
-| QNN Benchmark | `vector-04-wave-brain.png` | cyan/blue |
-| Legacy Fixture | `vector-05-cube-research.png` | orange/navy |
-| Network Designer | `vector-03-circuit-brain.png` | blue/orange |
-| Export Evidence | `atom-back-logo-dark.png` or `vector-05-cube-research.png` | navy |
+| Encode Features | `vector-01-brain-network-panel.png` | green/cyan |
+| Run Simulation | `vector-02-orbit-head-panel.png` | blue |
+| QNN Benchmark | `vector-04-wave-brain-panel.png` | cyan/blue |
+| Legacy Fixture | `vector-05-cube-research-panel.png` | orange/navy |
+| Network Designer | `vector-03-circuit-brain-panel.png` | blue/orange |
+| Export Evidence | `atom-back-logo-dark-panel.png` or `vector-05-cube-research-panel.png` | navy |
 
 ### Tile design rule
 
 Each tile should include:
 
 ```text
-small image/icon
+small prepared panel asset
 short title
 one-sentence function
 button
@@ -520,8 +969,6 @@ No tile should contain long explanations.
 ---
 
 ## Evidence Tabs Redesign
-
-Tabs should be grouped by operator evidence.
 
 Recommended tabs:
 
@@ -554,18 +1001,16 @@ Create a collapsed or lower-page section:
 Brand / Visual Identity
 ```
 
-Include:
+Include only prepared assets:
 
 ```text
-mural-ui-thumb.png
-qbit-stencil-avatar-strip.png
-mug-blue-ui-thumb.png
-shirt-green-ui-thumb.png
+mural-panel-gallery.png
+qbit-stencil-avatar-strip-panel.png
+mug-blue-panel.png
+shirt-green-panel.png
 ```
 
 Keep this section below operational controls and evidence.
-
-This section is useful for identity but should never dominate the simulator workflow.
 
 ---
 
@@ -616,45 +1061,9 @@ For non-clinical warnings and limits.
 
 ---
 
-## Typography Pattern
-
-Use clear hierarchy.
-
-```text
-H1 / hero title: product and page identity
-H2: section headings
-H3: tile/card titles
-Body: short operational descriptions
-Code: payloads, commands, backend names
-```
-
-Avoid long paragraphs inside tiles.
-
-Use short labels:
-
-```text
-Run Simulation
-Encode Features
-Open Network Designer
-Export Evidence
-```
-
-Avoid ambiguous labels:
-
-```text
-Go
-Start
-Magic
-Experimental AI
-```
-
----
-
 ## Image Usage Rules
 
-### Maximum image density
-
-Above the fold:
+### Maximum image density above the fold
 
 ```text
 1 compact logo/mark
@@ -669,8 +1078,6 @@ large mural + logo + mascot + shirt + mug all in first screen
 ```
 
 ### Image sizing
-
-Recommended sizes:
 
 ```text
 Header mark: 36-56px
@@ -736,60 +1143,19 @@ invalid edge: orange
 
 ## Network Designer Asset Mapping
 
-Use:
+Use prepared assets:
 
 ```text
-Network Designer main icon: vector-03-circuit-brain.png
-Neural preset: vector-02-orbit-head.png
-QNN preset: qbit-stencil-orbit.png
-Spiderweb preset: vector-01-brain-network.png or custom generated web asset
-Memory graph preset: vector-01-brain-network.png
-Crossmodal preset: vector-04-wave-brain.png
-Research/export preset: vector-05-cube-research.png
+Network Designer main icon: vector-03-circuit-brain-panel.png
+Neural preset: vector-02-orbit-head-panel.png
+QNN preset: qbit-stencil-panel.png
+Spiderweb preset: vector-01-brain-network-panel.png or future spiderweb-hub-panel.png
+Memory graph preset: vector-01-brain-network-panel.png
+Crossmodal preset: vector-04-wave-brain-panel.png
+Research/export preset: vector-05-cube-research-panel.png
 ```
 
 Do not use KNIME assets, names, colors, icons, or node visual language.
-
----
-
-## Recommended Panel Refactor Actions
-
-Use this sequence when fixing the Panel.
-
-### 1. Reduce hero size
-
-Replace the large hero with a compact hero/status strip.
-
-### 2. Move product assets out of sidebar
-
-Remove mug and shirt images from default sidebar.
-
-Place them in a lower collapsed brand gallery.
-
-### 3. Create an operator action grid
-
-Replace the current three-tile action grid with a six-tile workflow grid:
-
-```text
-Encode Features
-Run Simulation
-QNN Benchmark
-Legacy Fixture
-Network Designer
-Export Evidence
-```
-
-### 4. Move evidence tabs higher
-
-Place `Events`, `Pairs`, `QNN Benchmark`, `Network Designer`, `Raw JSON` immediately after latest run summary.
-
-### 5. Add boundary card
-
-Add a visible but compact non-clinical boundary card near the hero or summary.
-
-### 6. Keep brand gallery optional
-
-Move mural/product visuals lower, preferably inside a collapsed card.
 
 ---
 
@@ -824,33 +1190,6 @@ template = pn.template.FastListTemplate(
 
 ---
 
-## Suggested Boundary Copy
-
-Use this exact or similar language:
-
-```text
-Alpha-local research simulator. Not clinical, diagnostic, therapeutic, emergency, safety-critical, or production-public software. Results are local simulation evidence only.
-```
-
----
-
-## Suggested Hero Copy
-
-```text
-FNP-QNN Control Room
-Local research cockpit for Cerebrum-style memory streams, feature-vector encoding, QNN candidate lanes, and deterministic Torch fallback.
-```
-
-Bad hero copy:
-
-```text
-AI disease simulator that understands diagnosis
-medical prediction network
-clinical quantum intelligence
-```
-
----
-
 ## Screenshot / Demo Readiness Rules
 
 Before using a screenshot externally, verify:
@@ -862,32 +1201,8 @@ Before using a screenshot externally, verify:
 - backend is identified
 - raw JSON or evidence tabs are available
 - visual assets do not overpower results
+- every visible image is panel-ready or intentionally marked as raw/demo
 ```
-
----
-
-## File Naming Rules For New Assets
-
-Use lowercase, hyphen-separated names.
-
-Good:
-
-```text
-network-designer-canvas-bg.png
-spiderweb-node-hub.png
-qnn-node-orbit.png
-runtime-signal-wave.png
-```
-
-Avoid future names with spaces:
-
-```text
-mascoote qbit.png
-qbits stancil.png
-mural fnp-qnn.png
-```
-
-Existing names with spaces may stay for compatibility, but new assets should use clean filenames.
 
 ---
 
@@ -898,14 +1213,14 @@ The current asset set is enough to fix the Panel, but the Network Designer will 
 Recommended future generated assets:
 
 ```text
-assets/generated/network-designer-hero.png
-assets/generated/network-node-input.png
-assets/generated/network-node-neural.png
-assets/generated/network-node-quantum.png
-assets/generated/network-node-spiderweb.png
-assets/generated/network-node-output.png
-assets/generated/spiderweb-hub.png
-assets/generated/spiderweb-leg.png
+assets/generated/network-designer-hero-panel.png
+assets/generated/network-node-input-panel.png
+assets/generated/network-node-neural-panel.png
+assets/generated/network-node-quantum-panel.png
+assets/generated/network-node-spiderweb-panel.png
+assets/generated/network-node-output-panel.png
+assets/generated/spiderweb-hub-panel.png
+assets/generated/spiderweb-leg-panel.png
 ```
 
 ---
@@ -915,6 +1230,8 @@ assets/generated/spiderweb-leg.png
 ```text
 Do not turn the dashboard into a product gallery.
 Do not place mug/shirt assets above runtime evidence.
+Do not inject messy raw assets directly into the Panel.
+Do not use assets that lack transparent safety margin.
 Do not use clinical colors/layouts that imply hospital software.
 Do not use KNIME assets, naming, or code.
 Do not make the Network Designer look like a copied external product.
@@ -931,4 +1248,5 @@ The corrected Panel should communicate this immediately:
 This is a local FNP-QNN research control room.
 The user can prepare memory payloads, encode features, run candidate QNN/Torch paths, inspect evidence, and open a future visual Network Designer.
 The brand is energetic and original, but the workflow remains disciplined and evidence-first.
+Every asset is cut, framed, visually centered, and transferable to Panel containers.
 ```
