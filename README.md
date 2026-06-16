@@ -172,24 +172,37 @@ without adding a Node/React build chain.
 - `reports/cerebrum_runtime_wiring_report.md`: runtime bridge wiring report.
 - `reports/readme_evidence_audit_2026-06-11.md`: earlier README evidence audit.
 
-## Infrastructure audit (internal)
+## Observabilité et audit infrastructure (Datadog + E2B)
 
-The simulator can run a local, structured audit pipeline for temporary E2B sandboxes.
-Each audit is executed through a non-clinical helper script and its outcome is sent
-to Datadog as a structured log with tags:
+L'application contient un **lane d’audit opérationnel local** dédié à la vérification de l’environnement d’exécution:
 
-- `service:e2b-vm-auditor`
-- `env`
-- `sandbox_id`
-- `template_id`
-- `audit_status`
+- **E2B** démarre des sandboxes courtes pour des contrôles non-cliniques et non sensibles:
+  - inventaire des paquets installés,
+  - ouverture des ports,
+  - processus actifs,
+  - visibilité contrôlée des variables d’environnement,
+  - permissions de fichiers sensibles.
+- **Datadog** reçoit un log structuré par run pour garder une trace exploitable des
+  statuts d’audit, sans coupler ces vérifications au cœur de simulation.
 
-See:
+Le script d’audit est lancé depuis l’écosystème projet et s’intègre aux
+workflows externes (cron, workflow Datadog, CI légère) :
 
-- `scripts/e2b_datadog_audit/README.md`
-- `scripts/e2b_datadog_audit/audit_e2b.py`
+- Exécution principale: `scripts/e2b_datadog_audit/audit_e2b.py`
+- Dépendances optionnelles: `scripts/e2b_datadog_audit/requirements.txt`
+- Documentation détaillée: `scripts/e2b_datadog_audit/README.md`
 
-This feature remains optional and is isolated from the core simulation runtime.
+Chaque exécution produit :
+- un log Datadog `service:e2b-vm-auditor`,
+- un `sandbox_id` de la session (si disponible),
+- les tags d’exécution (`env`, `template_id`, `audit_status`),
+- une sortie locale JSON de résumé pour intégration pipeline.
+
+Les secrets (`E2B_API_KEY`, `DATADOG_API_KEY`) sont redressés/redacted dans la
+charge Datadog, et la sandbox est détruite en fin d’audit.
+
+Cette lane reste optionnelle, locale par défaut, et limitée aux usages
+de supervision/contrôle internes.
 
 ## Educational Open Source Use
 

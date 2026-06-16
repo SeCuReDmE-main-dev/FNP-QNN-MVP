@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 import json
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
@@ -19,6 +20,7 @@ from api.main import (
     qnn_nucleus,
 )
 from core import NeuroBitProfile, run_neurobit_gates, run_neurobit_tunnel_demo
+from core.network_designer import build_graph, execute_network, list_available_backends, list_presets, serialize_graph
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 ASSET_DIR = PROJECT_ROOT / "assets"
@@ -47,6 +49,13 @@ MUG_ASSET = ASSET_DIR / "template tasse bleu.png"
 MUG_UI_ASSET = GENERATED_ASSET_DIR / "mug-blue-ui-thumb.png"
 SHIRT_ASSET = ASSET_DIR / "tshirt vert template.png"
 SHIRT_UI_ASSET = GENERATED_ASSET_DIR / "shirt-green-ui-thumb.png"
+
+_NETWORK_PRESET_LIST = tuple(list_presets())
+NETWORK_PRESETS = {preset.preset_id: preset for preset in _NETWORK_PRESET_LIST}
+NETWORK_PRESET_OPTIONS = {
+    f"{preset.family.value}: {preset.name}": preset.preset_id
+    for preset in sorted(_NETWORK_PRESET_LIST, key=lambda p: p.preset_id)
+}
 
 BRAND_CSS = """
 :root {
@@ -293,6 +302,42 @@ body {
   border-radius: 14px;
   border: 1px solid rgba(13, 24, 61, 0.10);
 }
+
+.operator-card {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(13, 24, 61, 0.12);
+  box-shadow: 0 10px 28px rgba(13, 24, 61, 0.10);
+}
+
+.signal-card {
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(85, 217, 255, 0.20), transparent 7rem),
+    linear-gradient(145deg, rgba(13, 24, 61, 0.98), rgba(19, 53, 111, 0.96));
+  border: 1px solid rgba(85, 217, 255, 0.28);
+  box-shadow: 0 16px 34px rgba(8, 18, 37, 0.22);
+}
+
+.boundary-card {
+  border-radius: 14px;
+  background: rgba(253, 170, 55, 0.12);
+  border: 1px solid rgba(253, 170, 55, 0.46);
+  color: var(--fnp-ink);
+}
+
+.visual-guide-card {
+  border-radius: 14px;
+  border: 1px solid rgba(13, 24, 61, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 24px rgba(13, 24, 61, 0.09);
+}
+
+.network-card {
+  border-radius: 16px;
+  background: rgba(13, 24, 61, 0.04);
+  border: 1px solid rgba(13, 24, 61, 0.12);
+}
 """
 
 pn.extension("tabulator", notifications=True, sizing_mode="stretch_width", raw_css=[BRAND_CSS])
@@ -419,58 +464,44 @@ def _status_markdown() -> str:
     )
 
 
-def _brand_hero() -> pn.Row:
+def _compact_hero_status() -> pn.Row:
     return pn.Row(
-        pn.pane.Image(str(LOGO_UI_ASSET), height=190, sizing_mode="fixed", css_classes=["hero-logo"]),
-        pn.Column(
-            pn.pane.HTML(
-                """
-                <div class="hero-copy">
-                  <div class="brand-kicker">simulatez - comprenez - innovez</div>
-                  <h2>FNP-QNN Quantum Simulator</h2>
-                  <p>
-                    A vibrant local research control room for Cerebrum-style memory streams,
-                    LVFM graph signals, and QNN smoke paths. Built for exploration, bounded
-                    for non-clinical research.
-                  </p>
-                </div>
-                """,
-                sizing_mode="stretch_width",
-            ),
-            sizing_mode="stretch_width",
+        pn.pane.Markdown("## FNP-QNN Control Room"),
+        pn.pane.Image(str(ATOM_ASSET), height=54, width=54, css_classes=["atom-badge"]),
+        pn.pane.Markdown(
+            """
+            Local alpha research simulator for memory-event streams, feature encoding,
+            deterministic fallback execution, optional quantum lane previews, and evidence
+            inspection.  
+            Boundary: non-clinical, non-diagnostic, non-therapeutic, and non-production-public.
+            """,
+            css_classes=["hero-copy"],
+            width=900,
         ),
-        pn.pane.Image(str(STENCIL_MAIN_ASSET), height=190, sizing_mode="fixed", css_classes=["hero-vector"]),
-        css_classes=["brand-hero"],
+        css_classes=["operator-card"],
         sizing_mode="stretch_width",
     )
 
 
-def _asset_strip() -> pn.Row:
+def _small_visual_guide() -> pn.Column:
+    return pn.Column(
+        pn.pane.Markdown("### Visual guide"),
+        pn.pane.Image(str(STENCIL_GUIDE_ASSET), height=126, width=126, css_classes=["atom-badge"]),
+        pn.pane.Markdown(
+            "- Build inputs in the payload builder.\n"
+            "- Run simulation, inspect tables, and verify raw JSON.\n"
+            "- Use Network Designer section for contract previews."
+        ),
+        css_classes=["visual-guide-card"],
+        sizing_mode="stretch_width",
+    )
+
+
+def _brand_gallery() -> pn.Card:
     return pn.Row(
-        pn.Column(
-            pn.pane.Image(str(MURAL_UI_ASSET), height=190, sizing_mode="stretch_width"),
-            pn.pane.Markdown("### Street-lab identity\nHigh-energy research mural for first impression."),
-            css_classes=["brand-card"],
-            sizing_mode="stretch_width",
-        ),
-        pn.Column(
-            pn.pane.Image(str(STENCIL_MAIN_ASSET), height=190, sizing_mode="stretch_width"),
-            pn.pane.Markdown("### Qubit stencil\nNotebook-style mascot for the research identity."),
-            css_classes=["brand-card"],
-            sizing_mode="stretch_width",
-        ),
-        pn.Column(
-            pn.pane.Image(str(STENCIL_AVATAR_STRIP_ASSET), height=190, sizing_mode="stretch_width"),
-            pn.pane.Markdown("### Expressions\nMascot states for future onboarding and feedback."),
-            css_classes=["brand-card"],
-            sizing_mode="stretch_width",
-        ),
-        pn.Column(
-            pn.pane.Image(str(MUG_UI_ASSET), height=190, sizing_mode="stretch_width"),
-            pn.pane.Markdown("### Product palette\nBlue, green, orange, navy, and clean white."),
-            css_classes=["brand-card"],
-            sizing_mode="stretch_width",
-        ),
+        pn.Card(pn.pane.Image(str(MURAL_UI_ASSET), height=170), sizing_mode="stretch_both"),
+        pn.Card(pn.pane.Image(str(STENCIL_AVATAR_STRIP_ASSET), height=170), sizing_mode="stretch_both"),
+        pn.Card(pn.pane.Image(str(MUG_UI_ASSET), height=170), sizing_mode="stretch_both"),
         sizing_mode="stretch_width",
     )
 
@@ -496,6 +527,34 @@ def _vector_dock() -> pn.Row:
         css_classes=["vector-dock"],
         sizing_mode="stretch_width",
     )
+
+
+def _network_backend_options(preset_id: str) -> Dict[str, str]:
+    preset = NETWORK_PRESETS[preset_id]
+    options: Dict[str, str] = {}
+    for backend in list_available_backends(preset.family.value):
+        label = f"{backend['name']}: {backend['label']}"
+        if not backend["available"]:
+            label += " (unavailable)"
+        options[label] = backend["name"]
+    return options
+
+
+def _parse_network_features(value: str) -> Dict[str, Any] | list[float] | None:
+    value = value.strip()
+    if not value:
+        return None
+    raw = json.loads(value)
+    if isinstance(raw, dict):
+        return {str(key): float(v) for key, v in raw.items() if isinstance(v, (int, float))}
+    if isinstance(raw, list):
+        return [float(item) for item in raw if isinstance(item, (int, float))]
+    raise ValueError("network input must be a JSON object or array of numbers")
+
+
+def _network_execution_payload(graph_preset_id: str) -> Dict[str, Any]:
+    graph = build_graph(NETWORK_PRESETS[graph_preset_id].family)
+    return {"graph": graph, "graph_json": serialize_graph(graph)}
 
 
 def run_panel_simulation(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -551,12 +610,34 @@ def create_app() -> pn.template.FastListTemplate:
     reset_button = pn.widgets.Button(label="Reset demo", color="light", sizing_mode="stretch_width")
     neurobit_gates_button = pn.widgets.Button(label="NeuroBit gates", color="primary", sizing_mode="stretch_width")
     neurobit_tunnel_button = pn.widgets.Button(label="Tunnel noise", color="warning", sizing_mode="stretch_width")
+    network_designer_button = pn.widgets.Button(label="Network Designer", color="primary", sizing_mode="stretch_width")
+    network_export_button = pn.widgets.Button(label="Export evidence", color="light", sizing_mode="stretch_width")
 
     truth_slider = pn.widgets.FloatSlider(label="Truth", value=0.55, start=0.0, end=1.0, step=0.01)
     indeterminacy_slider = pn.widgets.FloatSlider(label="Indeterminacy", value=0.30, start=0.0, end=1.0, step=0.01)
     falsity_slider = pn.widgets.FloatSlider(label="Falsity", value=0.15, start=0.0, end=1.0, step=0.01)
     delta_falsity_slider = pn.widgets.FloatSlider(label="dF", value=0.0, start=-1.0, end=1.0, step=0.01)
     tunnel_data_input = pn.widgets.TextInput(label="Tunnel demo data", value="neurobit-demo")
+    network_preset_select = pn.widgets.Select(
+        label="Network preset",
+        options=NETWORK_PRESET_OPTIONS,
+        value=next(iter(NETWORK_PRESET_OPTIONS.values())),
+        width=360,
+    )
+    default_preset_id = network_preset_select.value
+    network_backend_select = pn.widgets.Select(
+        label="Execution backend",
+        options=_network_backend_options(default_preset_id),
+        value=next(iter(_network_backend_options(default_preset_id).values())),
+        width=220,
+    )
+    network_inputs = pn.widgets.TextAreaInput(
+        label="Network input features JSON",
+        value="{}",
+        min_height=120,
+        sizing_mode="stretch_width",
+    )
+    run_network_button = pn.widgets.Button(label="Run Network Designer graph", color="primary", sizing_mode="stretch_width")
 
     status_pane = pn.pane.Markdown(_status_markdown())
     summary_pane = pn.pane.Markdown("### Latest run\nRun the simulator to populate this panel.")
@@ -567,6 +648,8 @@ def create_app() -> pn.template.FastListTemplate:
     events_table = pn.widgets.Tabulator(_events_frame({}), height=260, pagination="remote", page_size=8)
     pairs_table = pn.widgets.Tabulator(_pairs_frame({}), height=260, pagination="remote", page_size=8)
     benchmark_table = pn.widgets.Tabulator(_benchmark_frame({}), height=260, pagination="remote", page_size=8)
+    network_graph_json = pn.pane.JSON({}, depth=3, name="Network graph JSON")
+    network_execution_json = pn.pane.JSON({}, depth=3, name="Network execution")
 
     def current_payload() -> Dict[str, Any]:
         payload = json.loads(payload_editor.value.strip() or "{}")
@@ -637,12 +720,45 @@ def create_app() -> pn.template.FastListTemplate:
         except Exception as exc:  # pragma: no cover - UI safety path
             command_output.object = f"NeuroBit tunnel failed: `{exc}`"
 
+    def on_preset_change(_event: Any) -> None:
+        preset_id = network_preset_select.value
+        options = _network_backend_options(preset_id)
+        network_backend_select.options = options
+        if network_backend_select.value not in options.values():
+            network_backend_select.value = next(iter(options.values()))
+        graph_data = _network_execution_payload(preset_id)
+        network_graph_json.object = json.loads(graph_data["graph_json"])
+
+    def on_run_network(_event: Any) -> None:
+        try:
+            preset_id = network_preset_select.value
+            preset = NETWORK_PRESETS[preset_id]
+            graph = build_graph(preset.family)
+            features = _parse_network_features(network_inputs.value)
+            result = execute_network(graph, input_features=features, backend=network_backend_select.value)
+            network_execution_json.object = asdict(result)
+            command_output.object = f"Network Designer execution: {result.status} ({result.backend})"
+        except Exception as exc:  # pragma: no cover - UI safety path
+            network_execution_json.object = {"error": str(exc)}
+            command_output.object = f"Network Designer failed: `{exc}`"
+
+    def on_network_designer_focus(_event: Any) -> None:
+        command_output.object = "Open the Network Designer tab in this panel to inspect preset execution."
+
+    def on_network_export(_event: Any) -> None:
+        command_output.object = "Evidence export placeholder: use terminal/export scripts to capture current JSON tabs."
+
     run_button.on_click(on_run)
     encode_button.on_click(on_encode)
     legacy_button.on_click(on_legacy)
     reset_button.on_click(on_reset)
     neurobit_gates_button.on_click(on_neurobit_gates)
     neurobit_tunnel_button.on_click(on_neurobit_tunnel)
+    run_network_button.on_click(on_run_network)
+    network_preset_select.param.watch(on_preset_change, "value")
+    network_designer_button.on_click(on_network_designer_focus)
+    network_export_button.on_click(on_network_export)
+    on_preset_change(None)
 
     action_tiles = pn.Row(
         pn.Column(
@@ -674,6 +790,20 @@ def create_app() -> pn.template.FastListTemplate:
             css_classes=["app-tile", "tile-run"],
             sizing_mode="stretch_width",
         ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_CUBE_RESEARCH_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Network Designer</h3><p>Open the graph preset execution panel below.</p>"),
+            network_designer_button,
+            css_classes=["app-tile"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_WAVE_BRAIN_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Export Evidence</h3><p>Prepare structured run output for institutional review.</p>"),
+            network_export_button,
+            css_classes=["app-tile", "tile-encode"],
+            sizing_mode="stretch_width",
+        ),
         sizing_mode="stretch_width",
     )
 
@@ -697,32 +827,51 @@ def create_app() -> pn.template.FastListTemplate:
         collapsed=False,
     )
 
+    network_controls = pn.Card(
+        network_preset_select,
+        network_backend_select,
+        network_inputs,
+        run_network_button,
+        width=420,
+        title="Network Designer (backend contract)",
+        collapsed=False,
+    )
+
+    network_output = pn.Card(
+        network_graph_json,
+        network_execution_json,
+        title="Network Designer output",
+        collapsed=False,
+        sizing_mode="stretch_width",
+    )
+
     template = pn.template.FastListTemplate(
         title="FNP-QNN Control Room",
         site="SeCuReDMe",
         logo=str(ATOM_ASSET),
         sidebar=[
             status_pane,
-            pn.pane.Image(str(STENCIL_GUIDE_ASSET), height=150),
-            pn.pane.Image(str(SHIRT_UI_ASSET), height=170),
             controls,
             neurobit_controls,
+            network_controls,
             pn.Card(command_output, title="Command output"),
+            pn.Card(_small_visual_guide(), title="Visual guide", collapsed=True),
         ],
         main=[
-            _brand_hero(),
+            _compact_hero_status(),
             _vector_dock(),
             action_tiles,
-            pn.Row(summary_pane, css_classes=["brand-card"]),
+            pn.Row(summary_pane, css_classes=["operator-card"]),
             pn.Tabs(
                 ("Events", events_table),
                 ("Pairs", pairs_table),
                 ("QNN benchmark", benchmark_table),
                 ("NeuroBit", neurobit_json_pane),
                 ("Raw JSON", raw_json_pane),
+                ("Network Designer", network_output),
                 dynamic=True,
             ),
-            _asset_strip(),
+            pn.Card(_brand_gallery(), title="Brand / Visual Identity", collapsed=True),
         ],
         accent_base_color="#2f6f9f",
         header_background="#0d183d",
