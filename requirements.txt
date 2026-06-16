@@ -6,3 +6,6 @@ uvicorn>=0.23.0
 python-multipart>=0.0.6
 # Required by fastapi.testclient.TestClient used in the test suite / readiness gate.
 httpx>=0.24.0
+
+# Optional for Datadog APM launcher scripts/start_datadog_apm.ps1.
+ddtrace>=2.8.0
