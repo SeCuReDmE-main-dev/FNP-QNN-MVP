@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterable, List
 
 import pandas as pd
 import panel as pn
+from ui.network_canvas import build_network_designer_canvas
 
 from api.main import (
     _encode_observations,
@@ -844,6 +845,7 @@ def create_app() -> pn.template.FastListTemplate:
         collapsed=False,
         sizing_mode="stretch_width",
     )
+    network_canvas_panel = build_network_designer_canvas()
 
     template = pn.template.FastListTemplate(
         title="FNP-QNN Control Room",
@@ -869,6 +871,7 @@ def create_app() -> pn.template.FastListTemplate:
                 ("NeuroBit", neurobit_json_pane),
                 ("Raw JSON", raw_json_pane),
                 ("Network Designer", network_output),
+                ("Network Designer Canvas", network_canvas_panel),
                 dynamic=True,
             ),
             pn.Card(_brand_gallery(), title="Brand / Visual Identity", collapsed=True),

@@ -174,7 +174,7 @@ without adding a Node/React build chain.
 
 ## Observabilité et audit infrastructure (Datadog + E2B)
 
-L'application contient un **lane d’audit opérationnel local** dédié à la vérification de l’environnement d’exécution:
+L’application intègre une **voie d’audit opérationnel optionnelle** dédiée à la vérification de l’environnement d’exécution:
 
 - **E2B** démarre des sandboxes courtes pour des contrôles non-cliniques et non sensibles:
   - inventaire des paquets installés,
@@ -182,27 +182,30 @@ L'application contient un **lane d’audit opérationnel local** dédié à la v
   - processus actifs,
   - visibilité contrôlée des variables d’environnement,
   - permissions de fichiers sensibles.
-- **Datadog** reçoit un log structuré par run pour garder une trace exploitable des
-  statuts d’audit, sans coupler ces vérifications au cœur de simulation.
+- **Datadog** reçoit les résultats d’audit sous forme de logs structurés pour permettre un suivi centralisé sans affecter le cœur de calcul de l’app.
 
-Le script d’audit est lancé depuis l’écosystème projet et s’intègre aux
-workflows externes (cron, workflow Datadog, CI légère) :
+Dans le produit FNP-QNN, cette intégration est utilisée ainsi:
 
-- Exécution principale: `scripts/e2b_datadog_audit/audit_e2b.py`
+1. On lance un run d’audit via le script `scripts/e2b_datadog_audit/audit_e2b.py`.
+2. Le script crée une sandbox E2B, exécute la vérification et nettoie la sandbox en fin de run.
+3. Le résumé (JSON local) est produit et un log Datadog est envoyé si la clé `DATADOG_API_KEY` est présente.
+4. Le monitoring peut déclencher des alertes sur `status:error service:e2b-vm-auditor`.
+
+Chemins utiles:
+
+- Script principal: `scripts/e2b_datadog_audit/audit_e2b.py`
 - Dépendances optionnelles: `scripts/e2b_datadog_audit/requirements.txt`
 - Documentation détaillée: `scripts/e2b_datadog_audit/README.md`
 
-Chaque exécution produit :
-- un log Datadog `service:e2b-vm-auditor`,
-- un `sandbox_id` de la session (si disponible),
-- les tags d’exécution (`env`, `template_id`, `audit_status`),
-- une sortie locale JSON de résumé pour intégration pipeline.
+Métadonnées Datadog produites par exécution:
 
-Les secrets (`E2B_API_KEY`, `DATADOG_API_KEY`) sont redressés/redacted dans la
-charge Datadog, et la sandbox est détruite en fin d’audit.
+- `service`: `e2b-vm-auditor`
+- `sandbox_id`: identifiant de la sandbox E2B (si disponible)
+- `env`, `template_id`, `audit_status` (pass/fail)
+- JSON local de synthèse (utile pour pipelines et logs internes)
 
-Cette lane reste optionnelle, locale par défaut, et limitée aux usages
-de supervision/contrôle internes.
+Les secrets (`E2B_API_KEY`, `DATADOG_API_KEY`) sont nettoyés avant envoi au log.
+Cette lane reste optionnelle, locale par défaut, et limitée aux usages de supervision interne.
 
 ## Educational Open Source Use
 

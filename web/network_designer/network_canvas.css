@@ -1,0 +1,76 @@
+.fnp-network-canvas {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  align-items: start;
+  padding: 12px;
+  border: 1px solid rgba(13, 24, 61, 0.16);
+  border-radius: 16px;
+  background: rgba(242, 246, 250, 0.9);
+  min-height: 190px;
+}
+
+.fnp-node {
+  border: 1px solid rgba(13, 24, 61, 0.22);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.fnp-node h4 {
+  margin: 0 0 8px;
+  color: #0d183d;
+}
+
+.fnp-node p {
+  margin: 3px 0;
+  color: #223b62;
+  font-size: 0.84rem;
+}
+
+.fnp-node .meta {
+  font-weight: 700;
+  color: #0d4d7f;
+}
+
+.fnp-palette {
+  border: 1px solid rgba(13, 24, 61, 0.14);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #13294b;
+}
+
+.fnp-palette summary {
+  cursor: pointer;
+  margin: 4px 0;
+  color: #0d183d;
+}
+
+.fnp-palette ul {
+  margin: 4px 0 8px 18px;
+  padding: 0;
+}
+
+.fnp-palette li {
+  margin: 4px 0;
+  color: #264067;
+}
+
+.network-designer-layout {
+  gap: 12px;
+}
+
+.network-canvas-controls {
+  border-right: 1px solid rgba(13, 24, 61, 0.1);
+  padding-right: 8px;
+}
+
+.fnp-network-canvas .placeholder {
+  color: #5a7399;
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(13, 24, 61, 0.25);
+  border-radius: 12px;
+}
