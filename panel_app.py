@@ -498,7 +498,93 @@ def _small_visual_guide() -> pn.Column:
     )
 
 
-def _brand_gallery() -> pn.Card:
+def _operator_action_grid(
+    run_button: pn.widgets.Button,
+    encode_button: pn.widgets.Button,
+    legacy_button: pn.widgets.Button,
+    neurobit_gates_button: pn.widgets.Button,
+    neurobit_tunnel_button: pn.widgets.Button,
+    network_designer_button: pn.widgets.Button,
+    network_export_button: pn.widgets.Button,
+) -> pn.Row:
+    return pn.Row(
+        pn.Column(
+            pn.pane.Image(str(VECTOR_ORBIT_HEAD_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Run</h3><p>Build stream, graph state, QNN smoke and benchmark.</p>"),
+            run_button,
+            css_classes=["app-tile", "tile-run"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_BRAIN_NETWORK_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Encode</h3><p>Convert memory observations into feature vectors.</p>"),
+            encode_button,
+            css_classes=["app-tile", "tile-encode"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_CUBE_RESEARCH_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Legacy</h3><p>Replay the bundled Cerebrum fixture safely.</p>"),
+            legacy_button,
+            css_classes=["app-tile", "tile-legacy"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_CIRCUIT_BRAIN_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>NeuroBit</h3><p>Run H/W/X/Y/Z gates and tunnel noise.</p>"),
+            neurobit_gates_button,
+            neurobit_tunnel_button,
+            css_classes=["app-tile", "tile-run"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_CUBE_RESEARCH_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Network Designer</h3><p>Open the graph preset execution panel below.</p>"),
+            network_designer_button,
+            css_classes=["app-tile"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_WAVE_BRAIN_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Export Evidence</h3><p>Prepare structured run output for institutional review.</p>"),
+            network_export_button,
+            css_classes=["app-tile", "tile-encode"],
+            sizing_mode="stretch_width",
+        ),
+        sizing_mode="stretch_width",
+    )
+
+
+def _latest_run_overview(summary_pane: pn.pane.Markdown) -> pn.Row:
+    return pn.Row(summary_pane, css_classes=["operator-card"])
+
+
+def _evidence_tabs(
+    events_table: pn.widgets.Tabulator,
+    pairs_table: pn.widgets.Tabulator,
+    benchmark_table: pn.widgets.Tabulator,
+    neurobit_json_pane: pn.pane.JSON,
+    raw_json_pane: pn.pane.JSON,
+    network_output: pn.Card,
+    network_canvas_panel: pn.Column,
+) -> pn.Tabs:
+    return pn.Tabs(
+        ("Events", events_table),
+        ("Pairs", pairs_table),
+        ("QNN benchmark", benchmark_table),
+        ("NeuroBit", neurobit_json_pane),
+        ("Raw JSON", raw_json_pane),
+        ("Network Designer", network_output),
+        ("Network Designer Canvas", network_canvas_panel),
+        dynamic=True,
+    )
+
+
+def _collapsed_brand_assets() -> pn.Card:
+    return pn.Card(_brand_gallery(), title="Brand / Visual Identity", collapsed=True)
+
+
+def _brand_gallery() -> pn.Row:
     return pn.Row(
         pn.Card(pn.pane.Image(str(MURAL_UI_ASSET), height=170), sizing_mode="stretch_both"),
         pn.Card(pn.pane.Image(str(STENCIL_AVATAR_STRIP_ASSET), height=170), sizing_mode="stretch_both"),
@@ -761,51 +847,14 @@ def create_app() -> pn.template.FastListTemplate:
     network_export_button.on_click(on_network_export)
     on_preset_change(None)
 
-    action_tiles = pn.Row(
-        pn.Column(
-            pn.pane.Image(str(VECTOR_ORBIT_HEAD_ASSET), height=74, align="center", css_classes=["atom-badge"]),
-            pn.pane.HTML("<h3>Run</h3><p>Build stream, graph state, QNN smoke and benchmark.</p>"),
-            run_button,
-            css_classes=["app-tile", "tile-run"],
-            sizing_mode="stretch_width",
-        ),
-        pn.Column(
-            pn.pane.Image(str(VECTOR_BRAIN_NETWORK_ASSET), height=74, align="center", css_classes=["atom-badge"]),
-            pn.pane.HTML("<h3>Encode</h3><p>Convert memory observations into feature vectors.</p>"),
-            encode_button,
-            css_classes=["app-tile", "tile-encode"],
-            sizing_mode="stretch_width",
-        ),
-        pn.Column(
-            pn.pane.Image(str(VECTOR_CUBE_RESEARCH_ASSET), height=74, align="center", css_classes=["atom-badge"]),
-            pn.pane.HTML("<h3>Legacy</h3><p>Replay the bundled Cerebrum fixture safely.</p>"),
-            legacy_button,
-            css_classes=["app-tile", "tile-legacy"],
-            sizing_mode="stretch_width",
-        ),
-        pn.Column(
-            pn.pane.Image(str(VECTOR_CIRCUIT_BRAIN_ASSET), height=74, align="center", css_classes=["atom-badge"]),
-            pn.pane.HTML("<h3>NeuroBit</h3><p>Run H/W/X/Y/Z gates and Fibonacci tunnel noise.</p>"),
-            neurobit_gates_button,
-            neurobit_tunnel_button,
-            css_classes=["app-tile", "tile-run"],
-            sizing_mode="stretch_width",
-        ),
-        pn.Column(
-            pn.pane.Image(str(VECTOR_CUBE_RESEARCH_ASSET), height=74, align="center", css_classes=["atom-badge"]),
-            pn.pane.HTML("<h3>Network Designer</h3><p>Open the graph preset execution panel below.</p>"),
-            network_designer_button,
-            css_classes=["app-tile"],
-            sizing_mode="stretch_width",
-        ),
-        pn.Column(
-            pn.pane.Image(str(VECTOR_WAVE_BRAIN_ASSET), height=74, align="center", css_classes=["atom-badge"]),
-            pn.pane.HTML("<h3>Export Evidence</h3><p>Prepare structured run output for institutional review.</p>"),
-            network_export_button,
-            css_classes=["app-tile", "tile-encode"],
-            sizing_mode="stretch_width",
-        ),
-        sizing_mode="stretch_width",
+    action_tiles = _operator_action_grid(
+        run_button=run_button,
+        encode_button=encode_button,
+        legacy_button=legacy_button,
+        neurobit_gates_button=neurobit_gates_button,
+        neurobit_tunnel_button=neurobit_tunnel_button,
+        network_designer_button=network_designer_button,
+        network_export_button=network_export_button,
     )
 
     controls = pn.Card(
@@ -854,8 +903,6 @@ def create_app() -> pn.template.FastListTemplate:
         sidebar=[
             status_pane,
             controls,
-            neurobit_controls,
-            network_controls,
             pn.Card(command_output, title="Command output"),
             pn.Card(_small_visual_guide(), title="Visual guide", collapsed=True),
         ],
@@ -863,18 +910,18 @@ def create_app() -> pn.template.FastListTemplate:
             _compact_hero_status(),
             _vector_dock(),
             action_tiles,
-            pn.Row(summary_pane, css_classes=["operator-card"]),
-            pn.Tabs(
-                ("Events", events_table),
-                ("Pairs", pairs_table),
-                ("QNN benchmark", benchmark_table),
-                ("NeuroBit", neurobit_json_pane),
-                ("Raw JSON", raw_json_pane),
-                ("Network Designer", network_output),
-                ("Network Designer Canvas", network_canvas_panel),
-                dynamic=True,
+            _latest_run_overview(summary_pane),
+            pn.Row(neurobit_controls, network_controls, sizing_mode="stretch_width"),
+            _evidence_tabs(
+                events_table,
+                pairs_table,
+                benchmark_table,
+                neurobit_json_pane,
+                raw_json_pane,
+                network_output,
+                network_canvas_panel,
             ),
-            pn.Card(_brand_gallery(), title="Brand / Visual Identity", collapsed=True),
+            _collapsed_brand_assets(),
         ],
         accent_base_color="#2f6f9f",
         header_background="#0d183d",

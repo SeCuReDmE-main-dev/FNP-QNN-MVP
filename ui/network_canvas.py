@@ -26,19 +26,19 @@ def build_network_designer_canvas() -> pn.Column:
     """Build a lightweight operator canvas skeleton (no drag/drop yet)."""
     presets = sorted(list_presets(), key=lambda preset: preset.preset_id)
     preset_selector = pn.widgets.Select(
-        name="Preset",
+        label="Preset",
         options={f"{p.family.value} · {p.preset_id}": p.preset_id for p in presets},
         value=presets[0].preset_id,
     )
 
-    backend_selector = pn.widgets.Select(name="Backend", options=_available_backends(presets[0].family.value))
+    backend_selector = pn.widgets.Select(label="Backend", options=_available_backends(presets[0].family.value))
     features_input = pn.widgets.TextAreaInput(
-        name="Features JSON",
+        label="Features JSON",
         value="{}",
         height=100,
         placeholder='{"input": 0.5, "encoder": 0.25}',
     )
-    run_button = pn.widgets.Button(name="Run network graph", button_type="primary")
+    run_button = pn.widgets.Button(label="Run network graph", color="success")
     palette = _build_palette(presets)
     canvas = pn.pane.HTML(_empty_canvas_markup(), height=340, margin=0)
     inspector = pn.pane.JSON({}, depth=2, name="Inspector", height=180)

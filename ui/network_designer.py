@@ -84,22 +84,22 @@ def build_network_designer_panel() -> pn.Column:
     """Build a minimal backend-contract-first Network Designer UI card."""
     presets = list_preset_cards()
     preset_selector = pn.widgets.Select(
-        name="Preset",
+        label="Preset",
         options=[preset["id"] for preset in presets],
         value=presets[0]["id"] if presets else "neural_network_v1",
     )
     backend_selector = pn.widgets.Select(
-        name="Backend",
+        label="Backend",
         options=backend_options_for_preset(presets[0]["id"]) if presets else [],
         value="torch_surrogate",
     )
     feature_input = pn.widgets.TextAreaInput(
-        name="Features",
+        label="Features",
         value="{}",
         height=120,
         placeholder='{"input": 0.5, "encoder": 0.25}',
     )
-    run_button = pn.widgets.Button(name="Run (Contract)", button_type="primary")
+    run_button = pn.widgets.Button(label="Run (Contract)", color="success")
     status = pn.pane.Markdown("Aucun run exécuté.", sizing_mode="stretch_width")
     output = pn.pane.JSON({}, height=220, name="Execution output", sizing_mode="stretch_width")
 
