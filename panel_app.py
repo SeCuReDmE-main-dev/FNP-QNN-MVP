@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
 import pandas as pd
@@ -18,7 +19,277 @@ from api.main import (
     qnn_nucleus,
 )
 
-pn.extension("tabulator", notifications=True, sizing_mode="stretch_width")
+PROJECT_ROOT = Path(__file__).resolve().parent
+ASSET_DIR = PROJECT_ROOT / "assets"
+GENERATED_ASSET_DIR = ASSET_DIR / "generated"
+LOGO_ASSET = ASSET_DIR / "logo1.png"
+MASCOT_ASSET = ASSET_DIR / "mascoote qbit.png"
+STENCIL_ASSET = ASSET_DIR / "qbits stancil.png"
+STENCIL_MAIN_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-main.png"
+STENCIL_LAB_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-lab.png"
+STENCIL_ORBIT_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-orbit.png"
+STENCIL_GUIDE_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-guide.png"
+STENCIL_AVATAR_STRIP_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-avatar-strip.png"
+ATOM_ASSET = GENERATED_ASSET_DIR / "atom-normalized-dark.png"
+ATOM_BACK_LOGO_ASSET = GENERATED_ASSET_DIR / "atom-back-logo-dark.png"
+VECTOR_BRAIN_NETWORK_ASSET = GENERATED_ASSET_DIR / "vector-01-brain-network.png"
+VECTOR_ORBIT_HEAD_ASSET = GENERATED_ASSET_DIR / "vector-02-orbit-head.png"
+VECTOR_CIRCUIT_BRAIN_ASSET = GENERATED_ASSET_DIR / "vector-03-circuit-brain.png"
+VECTOR_WAVE_BRAIN_ASSET = GENERATED_ASSET_DIR / "vector-04-wave-brain.png"
+VECTOR_CUBE_RESEARCH_ASSET = GENERATED_ASSET_DIR / "vector-05-cube-research.png"
+MURAL_ASSET = ASSET_DIR / "mural fnp-qnn.png"
+VECTOR_ASSET = ASSET_DIR / "vector template.png"
+MUG_ASSET = ASSET_DIR / "template tasse bleu.png"
+SHIRT_ASSET = ASSET_DIR / "tshirt vert template.png"
+
+BRAND_CSS = """
+:root {
+  --fnp-navy: #0d183d;
+  --fnp-blue: #1e3aba;
+  --fnp-cyan: #55d9ff;
+  --fnp-green: #36837e;
+  --fnp-orange: #fdaa37;
+  --fnp-paper: #f2f6fa;
+  --fnp-ink: #081225;
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 4%, rgba(85, 217, 255, 0.18), transparent 26rem),
+    radial-gradient(circle at 88% 7%, rgba(253, 170, 55, 0.16), transparent 22rem),
+    linear-gradient(180deg, #071025 0%, #f2f6fa 34%, #edf4fb 100%) !important;
+}
+
+.bk-FastListTemplate {
+  --design-primary-color: var(--fnp-blue);
+}
+
+#header {
+  background: linear-gradient(90deg, #071025 0%, #0d183d 48%, #12356f 100%) !important;
+  border-bottom: 3px solid var(--fnp-orange);
+  box-shadow: 0 12px 34px rgba(8, 18, 37, 0.25);
+}
+
+#sidebar {
+  background:
+    linear-gradient(180deg, rgba(13, 24, 61, 0.98), rgba(12, 32, 62, 0.96)) !important;
+  border-right: 1px solid rgba(85, 217, 255, 0.24);
+}
+
+#sidebar h3,
+#sidebar p,
+#sidebar li,
+#sidebar strong,
+#sidebar code {
+  color: #f2f6fa !important;
+}
+
+#sidebar code {
+  background: rgba(85, 217, 255, 0.14);
+  border: 1px solid rgba(85, 217, 255, 0.25);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.brand-hero {
+  border: 1px solid rgba(85, 217, 255, 0.28);
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(13, 24, 61, 0.94), rgba(30, 58, 186, 0.82)),
+    linear-gradient(90deg, rgba(253, 170, 55, 0.22), transparent);
+  box-shadow: 0 22px 60px rgba(13, 24, 61, 0.22);
+}
+
+.hero-copy {
+  color: #f2f6fa;
+  padding: 24px 18px 18px 6px;
+}
+
+.hero-copy h2 {
+  color: #ffffff;
+  font-size: 2.0rem;
+  line-height: 1.05;
+  margin: 0 0 10px;
+}
+
+.hero-copy p {
+  color: rgba(242, 246, 250, 0.84);
+  font-size: 1rem;
+}
+
+.hero-logo,
+.hero-vector {
+  padding: 12px;
+  margin: 12px;
+  border-radius: 22px;
+  background:
+    linear-gradient(#f2f6fa, #f2f6fa) padding-box,
+    linear-gradient(135deg, var(--fnp-cyan), var(--fnp-orange), var(--fnp-green)) border-box;
+  border: 2px solid transparent;
+  box-shadow: 0 16px 36px rgba(8, 18, 37, 0.32);
+}
+
+.hero-vector {
+  background:
+    linear-gradient(180deg, rgba(242, 246, 250, 0.94), rgba(255, 255, 255, 0.86)) padding-box,
+    linear-gradient(135deg, rgba(253, 170, 55, 0.95), rgba(85, 217, 255, 0.95)) border-box;
+}
+
+.brand-kicker {
+  color: var(--fnp-orange);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-tile {
+  border: 1px solid rgba(85, 217, 255, 0.28);
+  border-radius: 18px;
+  padding: 12px;
+  background:
+    radial-gradient(circle at 14% 14%, rgba(85, 217, 255, 0.22), transparent 7rem),
+    linear-gradient(145deg, rgba(13, 24, 61, 0.98), rgba(19, 53, 111, 0.96));
+  box-shadow: 0 16px 34px rgba(8, 18, 37, 0.22);
+}
+
+.app-tile h3 {
+  color: #ffffff;
+  margin: 0;
+}
+
+.app-tile p {
+  color: rgba(242, 246, 250, 0.78);
+  margin: 4px 0 10px;
+}
+
+.app-tile button {
+  min-height: 44px;
+  border-radius: 14px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em;
+}
+
+.atom-badge {
+  display: grid;
+  place-items: center;
+  width: fit-content;
+  margin: 0 auto 8px;
+  padding: 8px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(85, 217, 255, 0.28), transparent 4rem),
+    linear-gradient(145deg, #071025, #0d183d);
+  border: 2px solid rgba(253, 170, 55, 0.82);
+  box-shadow:
+    0 16px 30px rgba(8, 18, 37, 0.30),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.atom-badge img,
+.atom-badge canvas {
+  border-radius: 16px;
+}
+
+.brand-card img,
+.brand-card canvas {
+  border-radius: 14px;
+  border: 1px solid rgba(13, 24, 61, 0.14);
+  box-shadow: 0 10px 26px rgba(8, 18, 37, 0.12);
+}
+
+.vector-dock {
+  gap: 14px;
+}
+
+.vector-card {
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.90);
+  border: 2px solid rgba(13, 24, 61, 0.10);
+  box-shadow: 0 12px 28px rgba(13, 24, 61, 0.12);
+}
+
+.vector-card h3 {
+  margin: 4px 0 0;
+  color: var(--fnp-navy);
+  font-size: 1rem;
+}
+
+.vector-card p {
+  margin: 2px 0 0;
+  color: #465571;
+  font-size: 0.84rem;
+}
+
+.vector-card img,
+.vector-card canvas {
+  border-radius: 16px;
+  padding: 8px;
+  background: #ffffff;
+}
+
+.vector-blue {
+  border-color: rgba(30, 58, 186, 0.72);
+}
+
+.vector-green {
+  border-color: rgba(54, 131, 126, 0.78);
+}
+
+.vector-orange {
+  border-color: rgba(253, 170, 55, 0.88);
+}
+
+.vector-navy {
+  border-color: rgba(13, 24, 61, 0.82);
+}
+
+.vector-cyan {
+  border-color: rgba(85, 217, 255, 0.86);
+}
+
+.tile-run button {
+  background: linear-gradient(90deg, var(--fnp-blue), #16a7d8) !important;
+}
+
+.tile-encode button {
+  background: linear-gradient(90deg, var(--fnp-green), #1aa86f) !important;
+}
+
+.tile-legacy button {
+  background: linear-gradient(90deg, var(--fnp-orange), #ff6f1d) !important;
+  color: #081225 !important;
+}
+
+.brand-card {
+  border-radius: 18px;
+  border: 1px solid rgba(13, 24, 61, 0.12);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 32px rgba(13, 24, 61, 0.11);
+  overflow: hidden;
+}
+
+.brand-card h3 {
+  color: var(--fnp-navy);
+}
+
+.brand-card p,
+.brand-card li {
+  color: #24324f;
+}
+
+.bk-card {
+  border-radius: 16px !important;
+}
+
+.tabulator {
+  border-radius: 14px;
+  border: 1px solid rgba(13, 24, 61, 0.10);
+}
+"""
+
+pn.extension("tabulator", notifications=True, sizing_mode="stretch_width", raw_css=[BRAND_CSS])
 
 DEFAULT_PAYLOAD: Dict[str, Any] = {
     "label": 1,
@@ -142,6 +413,85 @@ def _status_markdown() -> str:
     )
 
 
+def _brand_hero() -> pn.Row:
+    return pn.Row(
+        pn.pane.Image(str(LOGO_ASSET), height=190, sizing_mode="fixed", css_classes=["hero-logo"]),
+        pn.Column(
+            pn.pane.HTML(
+                """
+                <div class="hero-copy">
+                  <div class="brand-kicker">simulatez - comprenez - innovez</div>
+                  <h2>FNP-QNN Quantum Simulator</h2>
+                  <p>
+                    A vibrant local research control room for Cerebrum-style memory streams,
+                    LVFM graph signals, and QNN smoke paths. Built for exploration, bounded
+                    for non-clinical research.
+                  </p>
+                </div>
+                """,
+                sizing_mode="stretch_width",
+            ),
+            sizing_mode="stretch_width",
+        ),
+        pn.pane.Image(str(STENCIL_MAIN_ASSET), height=190, sizing_mode="fixed", css_classes=["hero-vector"]),
+        css_classes=["brand-hero"],
+        sizing_mode="stretch_width",
+    )
+
+
+def _asset_strip() -> pn.Row:
+    return pn.Row(
+        pn.Column(
+            pn.pane.Image(str(MURAL_ASSET), height=190, sizing_mode="stretch_width"),
+            pn.pane.Markdown("### Street-lab identity\nHigh-energy research mural for first impression."),
+            css_classes=["brand-card"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(STENCIL_MAIN_ASSET), height=190, sizing_mode="stretch_width"),
+            pn.pane.Markdown("### Qubit stencil\nNotebook-style mascot for the research identity."),
+            css_classes=["brand-card"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(STENCIL_AVATAR_STRIP_ASSET), height=190, sizing_mode="stretch_width"),
+            pn.pane.Markdown("### Expressions\nMascot states for future onboarding and feedback."),
+            css_classes=["brand-card"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(MUG_ASSET), height=190, sizing_mode="stretch_width"),
+            pn.pane.Markdown("### Product palette\nBlue, green, orange, navy, and clean white."),
+            css_classes=["brand-card"],
+            sizing_mode="stretch_width",
+        ),
+        sizing_mode="stretch_width",
+    )
+
+
+def _vector_dock() -> pn.Row:
+    items = [
+        ("Stream", "memory graph", VECTOR_BRAIN_NETWORK_ASSET, "vector-blue"),
+        ("Orbit", "QNN candidate", VECTOR_ORBIT_HEAD_ASSET, "vector-cyan"),
+        ("Circuit", "signal logic", VECTOR_CIRCUIT_BRAIN_ASSET, "vector-orange"),
+        ("Wave", "runtime pulse", VECTOR_WAVE_BRAIN_ASSET, "vector-green"),
+        ("Cube", "research core", VECTOR_CUBE_RESEARCH_ASSET, "vector-navy"),
+    ]
+    return pn.Row(
+        *[
+            pn.Column(
+                pn.pane.Image(str(asset), height=92, align="center"),
+                pn.pane.HTML(f"<h3>{title}</h3><p>{subtitle}</p>"),
+                css_classes=["vector-card", tone],
+                sizing_mode="stretch_width",
+            )
+            for title, subtitle, asset, tone in items
+        ],
+        css_classes=["vector-dock"],
+        sizing_mode="stretch_width",
+    )
+
+
 def run_panel_simulation(payload: Dict[str, Any]) -> Dict[str, Any]:
     return _runtime_result(payload, run_qnn=bool(payload.get("run_qnn")))
 
@@ -229,22 +579,57 @@ def create_app() -> pn.template.FastListTemplate:
     legacy_button.on_click(on_legacy)
     reset_button.on_click(on_reset)
 
+    action_tiles = pn.Row(
+        pn.Column(
+            pn.pane.Image(str(VECTOR_ORBIT_HEAD_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Run</h3><p>Build stream, graph state, QNN smoke and benchmark.</p>"),
+            run_button,
+            css_classes=["app-tile", "tile-run"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_BRAIN_NETWORK_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Encode</h3><p>Convert memory observations into feature vectors.</p>"),
+            encode_button,
+            css_classes=["app-tile", "tile-encode"],
+            sizing_mode="stretch_width",
+        ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_CUBE_RESEARCH_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>Legacy</h3><p>Replay the bundled Cerebrum fixture safely.</p>"),
+            legacy_button,
+            css_classes=["app-tile", "tile-legacy"],
+            sizing_mode="stretch_width",
+        ),
+        sizing_mode="stretch_width",
+    )
+
     controls = pn.Card(
         label_input,
         epochs_input,
         run_qnn_input,
         reset_button,
         payload_editor,
-        pn.Column(run_button, encode_button, legacy_button, sizing_mode="stretch_width"),
         title="Payload builder",
         collapsed=False,
     )
 
     template = pn.template.FastListTemplate(
-        title="FNP-QNN HoloViz Panel",
-        sidebar=[status_pane, controls, pn.Card(command_output, title="Command output")],
+        title="FNP-QNN Control Room",
+        site="SeCuReDMe",
+        logo=str(ATOM_ASSET),
+        sidebar=[
+            status_pane,
+            pn.pane.Image(str(STENCIL_GUIDE_ASSET), height=150),
+            pn.pane.Image(str(SHIRT_ASSET), height=170),
+            controls,
+            pn.Card(command_output, title="Command output"),
+        ],
         main=[
-            pn.Row(summary_pane),
+            _brand_hero(),
+            _vector_dock(),
+            action_tiles,
+            pn.Row(summary_pane, css_classes=["brand-card"]),
             pn.Tabs(
                 ("Events", events_table),
                 ("Pairs", pairs_table),
@@ -252,9 +637,14 @@ def create_app() -> pn.template.FastListTemplate:
                 ("Raw JSON", raw_json_pane),
                 dynamic=True,
             ),
+            _asset_strip(),
         ],
         accent_base_color="#2f6f9f",
-        header_background="#102033",
+        header_background="#0d183d",
+        background_color="#f2f6fa",
+        neutral_color="#0d183d",
+        main_max_width="1480px",
+        sidebar_width=370,
     )
     return template
 
