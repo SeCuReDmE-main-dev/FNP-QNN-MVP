@@ -99,6 +99,21 @@ def _serialize_benchmark(benchmark: Sequence[Any]) -> List[Dict[str, Any]]:
     ]
 
 
+def _json_safe_qnn_result(result: Dict[str, Any]) -> Dict[str, Any]:
+    safe = dict(result)
+    bundle = safe.pop("bundle", None)
+    if bundle is not None:
+        safe["bundle"] = {
+            "sequence_length": bundle.sequence_length,
+            "summary": bundle.summary,
+            "modality_counts": bundle.modality_counts,
+            "modality_means": bundle.modality_means,
+            "modality_stds": bundle.modality_stds,
+            "transition_matrix": bundle.transition_matrix.tolist(),
+        }
+    return safe
+
+
 def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Dict[str, Any]:
     runtime_payload = _runtime_payload(payload)
     state = cerebrum_runtime_bridge.build_state(
@@ -113,6 +128,8 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         runtime_label = 1 if float((payload or {}).get("label", 1)) >= 0.5 else 0
         benchmark_samples = [state.observations, *samples, state.observations, *samples]
         benchmark_labels = [runtime_label, 0, 1, 0, 1 - runtime_label, 1, 0, 1]
+        if result.get("qnn_result"):
+            result["qnn_result"] = _json_safe_qnn_result(result["qnn_result"])
         result["benchmark"] = _serialize_benchmark(qnn_nucleus.benchmark(benchmark_samples, benchmark_labels))
     return result
 
@@ -229,12 +246,12 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
     labels = payload.labels
     if not samples or not labels:
         samples, labels = build_demo_samples()
-    result = qnn_nucleus.smoke_run(
+    result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
         samples[0],
         label=float(labels[0]) if labels else 1.0,
         max_epochs=payload.epochs,
         test_size=payload.test_size,
-    )
+    ))
     return {
         "status": "ok",
         "result": result,
@@ -294,7 +311,7 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
         labels = qnn_request.labels
         if not samples or not labels:
             samples, labels = build_demo_samples()
-        result = qnn_nucleus.smoke_run(samples[0], label=float(labels[0]), max_epochs=qnn_request.epochs, test_size=qnn_request.test_size)
+        result = _json_safe_qnn_result(qnn_nucleus.smoke_run(samples[0], label=float(labels[0]), max_epochs=qnn_request.epochs, test_size=qnn_request.test_size))
         return CommandResponse(
             success=True,
             output=(
