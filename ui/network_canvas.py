@@ -102,7 +102,6 @@ def build_network_designer_canvas() -> pn.Column:
         title="Network Designer (canvas scaffold)",
         collapsed=False,
         css_classes=["operator-card"],
-        css_stylesheets=[str(CANVAS_STYLE_PATH)],
     )
 
 
@@ -151,7 +150,7 @@ def _refresh_canvas(graph_json_pane: pn.pane.JSON, canvas: pn.pane.HTML, preset_
 
 def _render_canvas(graph: NetworkGraph, outputs: Dict[str, float]) -> str:
     lines: List[str] = ['<div class="fnp-network-canvas">']
-    for node in graph.nodes:
+    for node in graph.nodes.values():
         value = outputs.get(node.node_id, None)
         value_text = "n/a" if value is None else f"{float(value):.6f}"
         lines.append(
@@ -196,4 +195,3 @@ def _load_canvas_assets(canvas: pn.pane.HTML) -> None:
         if js:
             prefix += f"<script>{js}</script>"
         canvas.object = prefix + canvas.object
-

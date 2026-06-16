@@ -14,7 +14,7 @@ from .graph import (
     NetworkPort,
     NetworkPortDirection,
 )
-from .presets import NetworkPreset, get_preset, get_supported_families, list_presets
+from .presets import NetworkPreset, build_graph, get_preset, get_supported_families, list_presets
 from .serialization import deserialize_graph, serialize_graph
 from .serialization import write_json_file, read_json_file
 from .validator import NetworkValidationReport, ValidationIssue, validate_graph
@@ -31,6 +31,7 @@ __all__ = [
     "NetworkPort",
     "NetworkPortDirection",
     "NetworkPreset",
+    "build_graph",
     "get_preset",
     "get_supported_families",
     "list_presets",

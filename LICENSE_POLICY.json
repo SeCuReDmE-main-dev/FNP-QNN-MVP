@@ -8,12 +8,14 @@
     "README.md",
     "NOTICE.md",
     "CITATION.cff",
-    "LICENSE"
+    "LICENSE",
+    "LICENSE.md"
   ],
   "required_orcid_files": [
     "README.md",
     "NOTICE.md",
-    "CITATION.cff"
+    "CITATION.cff",
+    "LICENSE.md"
   ],
   "required_boundary_phrases": [
     "alpha-local",
@@ -35,6 +37,7 @@
     "NOTICE.md",
     "CITATION.cff",
     "LICENSE",
+    "LICENSE.md",
     "docs/alpha-readiness.md",
     "docs/institutional-funding-and-hosting-plan.md"
   ]

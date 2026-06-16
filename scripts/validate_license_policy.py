@@ -44,12 +44,27 @@ def _contains_phrases(text: str, phrases: Iterable[str]) -> bool:
 
 def _scan_for_risky_text(text: str, risks: Iterable[str]) -> List[str]:
     found: List[str] = []
-    negation_tokens = ("not ", "no ", "without ", "never ", "avoid ", "non ", "non-", "no-")
-    for line in text.splitlines():
+    negation_tokens = (
+        "not ",
+        " no ",
+        "without ",
+        "never ",
+        "avoid ",
+        "avoidances ",
+        "non ",
+        "non-",
+        "no-",
+        "must not",
+        "should not",
+        "do not",
+    )
+    lines = text.splitlines()
+    for idx, line in enumerate(lines):
         lowered = line.lower()
         for risk in risks:
             if risk in lowered:
-                if any(token in lowered for token in negation_tokens):
+                context = " ".join(lines[max(0, idx - 8) : idx + 8]).lower()
+                if any(token in context for token in negation_tokens):
                     continue
                 found.append(risk)
     return found
