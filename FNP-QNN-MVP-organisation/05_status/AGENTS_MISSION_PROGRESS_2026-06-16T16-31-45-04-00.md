@@ -120,6 +120,14 @@ Organisation folder: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bac
 - [x] Attempted `panel serve panel_app.py --port 5006` boot in this environment to verify server startup path.
 - [ ] Full visual browser-side sequence validation remains pending (`panel serve --show` interactive verification not completed in this headless pass).
 
+## 2026-06-16T18:02:40-04:00 — Panel runtime network reachability validation
+
+- [x] Started `panel serve panel_app.py --port 5011` in a background process and confirmed TCP reachability on port 5011.
+- [x] Confirmed startup log path and binding:
+  - `Bokeh app running at: http://localhost:5011/panel_app`
+- [x] Verified the server process started successfully (`process id` observed) and was stopped cleanly after the check.
+- [ ] Interactive browser screenshot/UI sequence validation remains pending (`panel serve --show` check and visual sequence capture still required).
+
 ## 2026-06-16T21:34:00-04:00 — Front-end bridge + observability phrasing pass
 
 - [x] Wired `ui/network_canvas.py` to serialize graph payloads and invoke `window.fnpNetworkCanvasRender` on each render.
