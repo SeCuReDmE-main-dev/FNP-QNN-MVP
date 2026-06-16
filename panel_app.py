@@ -142,6 +142,19 @@ def _status_markdown() -> str:
     )
 
 
+def run_panel_simulation(payload: Dict[str, Any]) -> Dict[str, Any]:
+    return _runtime_result(payload, run_qnn=bool(payload.get("run_qnn")))
+
+
+def encode_panel_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+    observations = payload.get("memories") or payload.get("observations") or build_demo_observations()
+    return _encode_observations(observations)
+
+
+def legacy_panel_replay() -> Dict[str, Any]:
+    return _legacy_runtime_result()
+
+
 def create_app() -> pn.template.FastListTemplate:
     payload_editor = pn.widgets.TextAreaInput(
         label="Runtime payload JSON",
@@ -153,10 +166,10 @@ def create_app() -> pn.template.FastListTemplate:
     epochs_input = pn.widgets.IntInput(label="Epochs", value=12, start=0, end=256, step=1)
     run_qnn_input = pn.widgets.Checkbox(label="Run QNN smoke path", value=True)
 
-    run_button = pn.widgets.Button(label="Run simulation", color="primary")
-    encode_button = pn.widgets.Button(label="Encode only", color="success")
-    legacy_button = pn.widgets.Button(label="Legacy demo", color="light")
-    reset_button = pn.widgets.Button(label="Reset demo", color="light")
+    run_button = pn.widgets.Button(label="Run simulation", color="primary", sizing_mode="stretch_width")
+    encode_button = pn.widgets.Button(label="Encode only", color="success", sizing_mode="stretch_width")
+    legacy_button = pn.widgets.Button(label="Legacy demo", color="light", sizing_mode="stretch_width")
+    reset_button = pn.widgets.Button(label="Reset demo", color="light", sizing_mode="stretch_width")
 
     status_pane = pn.pane.Markdown(_status_markdown())
     summary_pane = pn.pane.Markdown("### Latest run\nRun the simulator to populate this panel.")
@@ -184,7 +197,7 @@ def create_app() -> pn.template.FastListTemplate:
     def on_run(_event: Any) -> None:
         try:
             payload = current_payload()
-            update_runtime(_runtime_result(payload, run_qnn=bool(payload.get("run_qnn"))))
+            update_runtime(run_panel_simulation(payload))
             command_output.object = "Simulation complete."
         except Exception as exc:  # pragma: no cover - UI safety path
             command_output.object = f"Simulation failed: `{exc}`"
@@ -192,16 +205,14 @@ def create_app() -> pn.template.FastListTemplate:
     def on_encode(_event: Any) -> None:
         try:
             payload = current_payload()
-            observations = payload.get("memories") or payload.get("observations") or build_demo_observations()
-            encoded = _encode_observations(observations)
-            raw_json_pane.object = encoded
+            raw_json_pane.object = encode_panel_payload(payload)
             command_output.object = "Payload encoded without runtime/QNN execution."
         except Exception as exc:  # pragma: no cover - UI safety path
             command_output.object = f"Encode failed: `{exc}`"
 
     def on_legacy(_event: Any) -> None:
         try:
-            update_runtime(_legacy_runtime_result())
+            update_runtime(legacy_panel_replay())
             command_output.object = "Legacy fixture replay complete."
         except Exception as exc:  # pragma: no cover - UI safety path
             command_output.object = f"Legacy replay failed: `{exc}`"
@@ -224,7 +235,7 @@ def create_app() -> pn.template.FastListTemplate:
         run_qnn_input,
         reset_button,
         payload_editor,
-        pn.Row(run_button, encode_button, legacy_button),
+        pn.Column(run_button, encode_button, legacy_button, sizing_mode="stretch_width"),
         title="Payload builder",
         collapsed=False,
     )

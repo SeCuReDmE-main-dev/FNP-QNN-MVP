@@ -10,4 +10,4 @@ build/
 *.egg-info/
 output/tmp/
 reports/generated/
-
+panel_server*.log

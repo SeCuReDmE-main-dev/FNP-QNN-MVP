@@ -10,6 +10,22 @@ class PanelAppTests(unittest.TestCase):
         self.assertGreaterEqual(len(app.main), 2)
         self.assertGreaterEqual(len(app.sidebar), 2)
 
+    def test_panel_actions_execute_runtime_paths(self):
+        import panel_app
+
+        payload = dict(panel_app.DEFAULT_PAYLOAD)
+        payload["epochs"] = 2
+        runtime = panel_app.run_panel_simulation(payload)
+        self.assertGreaterEqual(len(runtime["events"]), 4)
+        self.assertGreaterEqual(len(runtime["pairs"]), 4)
+        self.assertIn("benchmark", runtime)
+
+        encoded = panel_app.encode_panel_payload(payload)
+        self.assertGreater(encoded["feature_dimension"], 0)
+
+        legacy = panel_app.legacy_panel_replay()
+        self.assertTrue(legacy["legacy_cerebrum_path_exists"])
+
 
 if __name__ == "__main__":
     unittest.main()
