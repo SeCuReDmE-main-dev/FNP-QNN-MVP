@@ -95,19 +95,23 @@ Notes:
 - README modules/docs were updated to state Datadog + E2B as optional external audit workflows.
 - Visual screenshot validation still pending due headless execution.
 
+
+Scope note:
+- Validation gate refresh was completed successfully after latest local mission updates.
+- Visual browser capture validation remains pending in headless environment.
 ## Run at 2026-06-16T18:50:25-04:00
 
-`	ext
+```text
 python scripts/validate_alpha_readiness.py
 python -m unittest discover -s tests -p "test_*.py"
 python -m compileall api core examples tests scripts
-`
+```
 
 Result:
 
-`	ext
+```text
 PASS
-`
+```
 
 Scope note:
 - Validation gate refresh was completed successfully after latest local mission updates.
