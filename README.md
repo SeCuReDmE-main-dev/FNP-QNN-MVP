@@ -197,7 +197,7 @@ without adding a Node/React build chain.
 
 ## Observabilité et audit infrastructure (Datadog + E2B)
 
-L’application intègre une **voie d’audit opérationnel optionnelle** dédiée à la vérification de l’environnement d’exécution:
+L’application FNP-QNN intègre une **voie d’audit opérationnel optionnelle** dédiée à la vérification de l’environnement d’exécution:
 
 - **E2B** démarre des sandboxes courtes pour des contrôles non-cliniques et non sensibles:
   - inventaire des paquets installés,
@@ -206,6 +206,8 @@ L’application intègre une **voie d’audit opérationnel optionnelle** dédi�
   - visibilité contrôlée des variables d’environnement,
   - permissions de fichiers sensibles.
 - **Datadog** reçoit les résultats d’audit sous forme de logs structurés pour permettre un suivi centralisé sans affecter le cœur de calcul de l’app.
+
+Concrètement dans ce dépôt, l’audit n’est pas exécuté par défaut dans le flux applicatif principal; c’est un workflow CLI local optionnel qui s’appuie sur **Datadog + E2B** via `scripts/e2b_datadog_audit/audit_e2b.py`.
 
 Dans le produit FNP-QNN, cette intégration est utilisée ainsi:
 

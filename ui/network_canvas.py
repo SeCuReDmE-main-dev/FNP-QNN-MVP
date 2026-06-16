@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import panel as pn
 
@@ -20,6 +20,7 @@ from core.network_designer import (
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CANVAS_STYLE_PATH = ROOT_DIR / "web" / "network_designer" / "network_canvas.css"
 CANVAS_SCRIPT_PATH = ROOT_DIR / "web" / "network_designer" / "network_canvas.js"
+CANVAS_TARGET_ID = "fnp-network-canvas"
 
 
 def build_network_designer_canvas() -> pn.Column:
@@ -45,7 +46,6 @@ def build_network_designer_canvas() -> pn.Column:
     command_log = pn.pane.Markdown("Aucun run effectué.")
     graph_json_pane = pn.pane.JSON({}, depth=3, height=220)
 
-    _load_canvas_assets(canvas)
     _refresh_canvas(graph_json_pane, canvas, preset_selector.value)
 
     def on_preset_change(event: Any) -> None:
@@ -149,25 +149,63 @@ def _refresh_canvas(graph_json_pane: pn.pane.JSON, canvas: pn.pane.HTML, preset_
 
 
 def _render_canvas(graph: NetworkGraph, outputs: Dict[str, float]) -> str:
-    lines: List[str] = ['<div class="fnp-network-canvas">']
-    for node in graph.nodes.values():
-        value = outputs.get(node.node_id, None)
-        value_text = "n/a" if value is None else f"{float(value):.6f}"
-        lines.append(
-            f'<article class="fnp-node">'
-            f'<h4>{node.label}</h4>'
-            f'<p><span class="meta">id:</span> {node.node_id}</p>'
-            f'<p><span class="meta">family:</span> {node.family}</p>'
-            f'<p><span class="meta">type:</span> {node.node_type}</p>'
-            f'<p><span class="meta">value:</span> {value_text}</p>'
-            f"</article>"
-        )
-    lines.append("</div>")
-    return "\n".join(lines)
+    payload = _build_render_payload(graph, outputs)
+    payload_json = json.dumps(payload, sort_keys=True).replace("</script>", "<\\/script>")
+    return "".join(
+        [
+            _canvas_asset_bundle(),
+            '<div id="',
+            CANVAS_TARGET_ID,
+            '" class="fnp-network-canvas"></div>',
+            "<script>(function(){",
+            f"var payload = {payload_json};",
+            f'if (window.fnpNetworkCanvasRender) {{ window.fnpNetworkCanvasRender("{CANVAS_TARGET_ID}", payload); }}',
+            "else {",
+            'const container = document.getElementById("',
+            CANVAS_TARGET_ID,
+            '");',
+            "if (container) {",
+            "var output = (payload && payload.outputs) || {};",
+            "var nodes = (payload && payload.nodes) || [];",
+            "container.innerHTML = (nodes.length > 0 ? '' : '<div class=\"placeholder\">No nodes available.</div>');",
+            "for (var i = 0; i < nodes.length; i++) {",
+            "var node = nodes[i] || {};",
+            "var value = output[node.node_id];",
+            "var valueText = (typeof value === 'number') ? value.toFixed(6) : 'n/a';",
+            "container.insertAdjacentHTML('beforeend',",
+            "'<article class=\"fnp-node\">' +",
+            "'<h4>' + (node.label || 'node') + '</h4>' +",
+            "'<p><span class=\"meta\">id:</span> ' + (node.node_id || '') + '</p>' +",
+            "'<p><span class=\"meta\">value:</span> ' + valueText + '</p>' +",
+            "'</article>');",
+            "}",
+            "}",
+            "}",
+            "})();</script>",
+        ]
+    )
 
 
 def _empty_canvas_markup() -> str:
-    return '<div class="fnp-network-canvas"><div class="placeholder">Sélectionnez un preset pour voir le graphe.</div></div>'
+    payload = {
+        "nodes": [],
+        "edges": [],
+        "outputs": {},
+        "empty": True,
+    }
+    payload_json = json.dumps(payload).replace("</script>", "<\\/script>")
+    return "".join(
+        [
+            _canvas_asset_bundle(),
+            '<div id="',
+            CANVAS_TARGET_ID,
+            '" class="fnp-network-canvas"><div class="placeholder">Sélectionnez un preset pour voir le graphe.</div></div>',
+            "<script>(function(){",
+            f"var payload = {payload_json};",
+            f'if (window.fnpNetworkCanvasRender) {{ window.fnpNetworkCanvasRender("{CANVAS_TARGET_ID}", payload); }}',
+            "})();</script>",
+        ]
+    )
 
 
 def _build_palette(presets: Any) -> pn.pane.HTML:
@@ -181,17 +219,33 @@ def _build_palette(presets: Any) -> pn.pane.HTML:
     return pn.pane.HTML("<div class=\"fnp-palette\">" + "".join(items) + "</div>", height=170)
 
 
+def _build_render_payload(graph: NetworkGraph, outputs: Dict[str, float]) -> Dict[str, Any]:
+    return {
+        "nodes": [graph.nodes[node_id].to_dict() for node_id in sorted(graph.nodes)],
+        "edges": [edge.to_dict() for edge in graph.edges],
+        "outputs": {key: float(value) for key, value in outputs.items()},
+        "metadata": dict(graph.metadata),
+        "family": graph.family,
+    }
+
+
 def _load_canvas_assets(canvas: pn.pane.HTML) -> None:
+    """Backward-compatible helper kept for existing call sites."""
+    canvas.object = _canvas_asset_bundle() + canvas.object
+
+
+def _canvas_asset_bundle() -> str:
     css = ""
     if CANVAS_STYLE_PATH.exists():
         css = CANVAS_STYLE_PATH.read_text(encoding="utf-8")
     js = ""
     if CANVAS_SCRIPT_PATH.exists():
         js = CANVAS_SCRIPT_PATH.read_text(encoding="utf-8")
-    if css or js:
-        prefix = ""
-        if css:
-            prefix += f"<style>{css}</style>"
-        if js:
-            prefix += f"<script>{js}</script>"
-        canvas.object = prefix + canvas.object
+    if not (css or js):
+        return ""
+    prefix = ""
+    if css:
+        prefix += f"<style>{css}</style>"
+    if js:
+        prefix += f"<script>{js}</script>"
+    return prefix

@@ -100,8 +100,15 @@ Organisation folder: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bac
 
 - [ ] Validate `panel_app.py` visual sequence in runtime render and finalize final polish to match `DESIGN.md` screenshots.
 - [ ] Finalize and enforce full `*-panel.png` asset pipeline before broader Panel substitution.
-- [ ] Implement the front-end Network Designer stack (`ui/network_designer.py`, `ui/network_canvas.py`, `network_canvas.js`, `network_canvas.css`) and Panel tab integration.
+- [x] Implement the front-end Network Designer stack (`ui/network_designer.py`, `ui/network_canvas.py`, `network_canvas.js`, `network_canvas.css`) and Panel tab integration.
 - [ ] Produce public-safe outreach packaging artifacts (clean screenshots / demo script / institutional demo package).
+
+## 2026-06-16T21:34:00-04:00 — Front-end bridge + observability phrasing pass
+
+- [x] Wired `ui/network_canvas.py` to serialize graph payloads and invoke `window.fnpNetworkCanvasRender` on each render.
+- [x] Updated `web/network_designer/network_canvas.js` with richer fallback rendering, safe HTML escaping, and payload-driven summaries.
+- [x] Updated `README.md` to make explicit that Datadog and E2B are used in-app through the optional CLI workflow in `scripts/e2b_datadog_audit/audit_e2b.py`.
+- [ ] Full UI polish and screenshot validation still pending in `panel_app.py` end-to-end runtime checks.
 
 ### Validation snapshot (documentation-only checkpoint)
 
