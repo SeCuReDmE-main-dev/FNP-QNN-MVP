@@ -124,6 +124,39 @@ class QNNSmokeRequest(BaseModel):
         return [[event.model_dump(exclude_none=True) for event in sample] for sample in self.samples]
 
 
+class NeuroBitProfileRequest(BaseModel):
+    truth: float = Field(default=0.55, ge=0.0)
+    indeterminacy: float = Field(default=0.30, ge=0.0)
+    falsity: float = Field(default=0.15, ge=0.0)
+    delta_falsity: float = 0.0
+    n_qubits: int = Field(default=4, ge=1, le=12)
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_df_alias(cls, values):
+        if isinstance(values, dict) and "dF" in values and "delta_falsity" not in values:
+            values = dict(values)
+            values["delta_falsity"] = values.pop("dF")
+        return values
+
+    @field_validator("truth", "indeterminacy", "falsity", "delta_falsity")
+    @classmethod
+    def validate_neurobit_numbers(cls, value: float, info):
+        return _finite(value, info.field_name)
+
+    def to_profile_payload(self) -> Dict[str, Any]:
+        return {
+            "truth": self.truth,
+            "indeterminacy": self.indeterminacy,
+            "falsity": self.falsity,
+            "delta_falsity": self.delta_falsity,
+        }
+
+
+class NeuroBitTunnelRequest(NeuroBitProfileRequest):
+    data: str = Field(default="neurobit-demo", max_length=4096)
+
+
 class CommandRequest(BaseModel):
     payload: Optional[RuntimeRunRequest] = None
     observations: Optional[List[Observation]] = None
@@ -131,6 +164,7 @@ class CommandRequest(BaseModel):
     labels: Optional[List[int]] = None
     epochs: int = Field(default=24, ge=0, le=256)
     test_size: float = Field(default=0.25, ge=0.0, le=0.9)
+    neurobit: Optional[NeuroBitTunnelRequest] = None
 
 
 class CommandResponse(BaseModel):

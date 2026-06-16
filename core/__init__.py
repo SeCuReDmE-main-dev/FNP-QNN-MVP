@@ -12,6 +12,11 @@ from .lvfm_runtime_graph import (
 from .life_science_port import LifeScienceObservationPort
 from .phi_framework import PhiFramework, QuantumState
 from .qnn_nucleus import QNNBenchmarkResult, QNNCandidate, QNNNucleus
+from .neurobit_gate_tunnel import (
+    NeuroBitProfile,
+    run_neurobit_gates,
+    run_neurobit_tunnel_demo,
+)
 
 __version__ = "1.2.0-research"
 __author__ = "SeCuReDmE Innovation Lab"
@@ -35,4 +40,7 @@ __all__ = [
     "QNNCandidate",
     "QNNBenchmarkResult",
     "QNNNucleus",
+    "NeuroBitProfile",
+    "run_neurobit_gates",
+    "run_neurobit_tunnel_demo",
 ]

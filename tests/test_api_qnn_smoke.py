@@ -19,6 +19,46 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertIsInstance(payload["result"]["bundle"]["transition_matrix"], list)
         self.assertTrue(any(item["candidate"] == "torch_surrogate" for item in payload["benchmark"]))
 
+    def test_neurobit_api_endpoints_return_bounded_payloads(self):
+        client = TestClient(app)
+
+        status_response = client.get("/fnp-qnn/neurobit/status")
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["feature"], "neurobit-gates-and-tunnel-demo")
+
+        gates_response = client.post(
+            "/fnp-qnn/neurobit/gates/run",
+            json={"truth": 0.6, "indeterminacy": 0.2, "falsity": 0.2, "dF": 0.1},
+        )
+        self.assertEqual(gates_response.status_code, 200)
+        gates_payload = gates_response.json()
+        self.assertEqual(gates_payload["status"], "ok")
+        self.assertEqual(gates_payload["profile"]["delta_falsity"], 0.1)
+        self.assertIn("expectation_vector", gates_payload)
+
+        tunnel_response = client.post(
+            "/fnp-qnn/neurobit/tunnel/demo",
+            json={"truth": 0.55, "indeterminacy": 0.3, "falsity": 0.15, "data": "smoke"},
+        )
+        self.assertEqual(tunnel_response.status_code, 200)
+        tunnel_payload = tunnel_response.json()
+        self.assertEqual(tunnel_payload["status"], "ok")
+        self.assertIn("not encryption", tunnel_payload["research_boundary"])
+
+    def test_neurobit_commands_are_available(self):
+        client = TestClient(app)
+
+        gates_response = client.post("/commands/neurobit-gates", json={"neurobit": {"truth": 0.5}})
+        self.assertEqual(gates_response.status_code, 200)
+        self.assertTrue(gates_response.json()["success"])
+
+        tunnel_response = client.post(
+            "/commands/neurobit-tunnel-demo",
+            json={"neurobit": {"truth": 0.5, "data": "abc"}},
+        )
+        self.assertEqual(tunnel_response.status_code, 200)
+        self.assertTrue(tunnel_response.json()["success"])
+
 
 if __name__ == "__main__":
     unittest.main()

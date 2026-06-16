@@ -18,6 +18,7 @@ from api.main import (
     phi_engine,
     qnn_nucleus,
 )
+from core import NeuroBitProfile, run_neurobit_gates, run_neurobit_tunnel_demo
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 ASSET_DIR = PROJECT_ROOT / "assets"
@@ -510,6 +511,29 @@ def legacy_panel_replay() -> Dict[str, Any]:
     return _legacy_runtime_result()
 
 
+def run_panel_neurobit_gates(profile: Dict[str, float]) -> Dict[str, Any]:
+    return run_neurobit_gates(
+        NeuroBitProfile(
+            truth=float(profile.get("truth", 0.55)),
+            indeterminacy=float(profile.get("indeterminacy", 0.30)),
+            falsity=float(profile.get("falsity", 0.15)),
+            delta_falsity=float(profile.get("delta_falsity", profile.get("dF", 0.0))),
+        )
+    )
+
+
+def run_panel_neurobit_tunnel(profile: Dict[str, float], data: str = "neurobit-demo") -> Dict[str, Any]:
+    return run_neurobit_tunnel_demo(
+        NeuroBitProfile(
+            truth=float(profile.get("truth", 0.55)),
+            indeterminacy=float(profile.get("indeterminacy", 0.30)),
+            falsity=float(profile.get("falsity", 0.15)),
+            delta_falsity=float(profile.get("delta_falsity", profile.get("dF", 0.0))),
+        ),
+        data=data,
+    )
+
+
 def create_app() -> pn.template.FastListTemplate:
     payload_editor = pn.widgets.TextAreaInput(
         label="Runtime payload JSON",
@@ -525,10 +549,19 @@ def create_app() -> pn.template.FastListTemplate:
     encode_button = pn.widgets.Button(label="Encode only", color="success", sizing_mode="stretch_width")
     legacy_button = pn.widgets.Button(label="Legacy demo", color="light", sizing_mode="stretch_width")
     reset_button = pn.widgets.Button(label="Reset demo", color="light", sizing_mode="stretch_width")
+    neurobit_gates_button = pn.widgets.Button(label="NeuroBit gates", color="primary", sizing_mode="stretch_width")
+    neurobit_tunnel_button = pn.widgets.Button(label="Tunnel noise", color="warning", sizing_mode="stretch_width")
+
+    truth_slider = pn.widgets.FloatSlider(label="Truth", value=0.55, start=0.0, end=1.0, step=0.01)
+    indeterminacy_slider = pn.widgets.FloatSlider(label="Indeterminacy", value=0.30, start=0.0, end=1.0, step=0.01)
+    falsity_slider = pn.widgets.FloatSlider(label="Falsity", value=0.15, start=0.0, end=1.0, step=0.01)
+    delta_falsity_slider = pn.widgets.FloatSlider(label="dF", value=0.0, start=-1.0, end=1.0, step=0.01)
+    tunnel_data_input = pn.widgets.TextInput(label="Tunnel demo data", value="neurobit-demo")
 
     status_pane = pn.pane.Markdown(_status_markdown())
     summary_pane = pn.pane.Markdown("### Latest run\nRun the simulator to populate this panel.")
     raw_json_pane = pn.pane.JSON({}, depth=3, name="Raw result")
+    neurobit_json_pane = pn.pane.JSON({}, depth=3, name="NeuroBit result")
     command_output = pn.pane.Markdown("Ready.")
 
     events_table = pn.widgets.Tabulator(_events_frame({}), height=260, pagination="remote", page_size=8)
@@ -548,6 +581,14 @@ def create_app() -> pn.template.FastListTemplate:
         pairs_table.value = _pairs_frame(runtime)
         benchmark_table.value = _benchmark_frame(runtime)
         raw_json_pane.object = runtime
+
+    def current_neurobit_profile() -> Dict[str, float]:
+        return {
+            "truth": float(truth_slider.value),
+            "indeterminacy": float(indeterminacy_slider.value),
+            "falsity": float(falsity_slider.value),
+            "delta_falsity": float(delta_falsity_slider.value),
+        }
 
     def on_run(_event: Any) -> None:
         try:
@@ -579,10 +620,29 @@ def create_app() -> pn.template.FastListTemplate:
         run_qnn_input.value = bool(DEFAULT_PAYLOAD["run_qnn"])
         command_output.object = "Demo payload reset."
 
+    def on_neurobit_gates(_event: Any) -> None:
+        try:
+            neurobit_json_pane.object = run_panel_neurobit_gates(current_neurobit_profile())
+            command_output.object = "NeuroBit gates complete."
+        except Exception as exc:  # pragma: no cover - UI safety path
+            command_output.object = f"NeuroBit gates failed: `{exc}`"
+
+    def on_neurobit_tunnel(_event: Any) -> None:
+        try:
+            neurobit_json_pane.object = run_panel_neurobit_tunnel(
+                current_neurobit_profile(),
+                data=tunnel_data_input.value or "neurobit-demo",
+            )
+            command_output.object = "NeuroBit tunnel noise demo complete."
+        except Exception as exc:  # pragma: no cover - UI safety path
+            command_output.object = f"NeuroBit tunnel failed: `{exc}`"
+
     run_button.on_click(on_run)
     encode_button.on_click(on_encode)
     legacy_button.on_click(on_legacy)
     reset_button.on_click(on_reset)
+    neurobit_gates_button.on_click(on_neurobit_gates)
+    neurobit_tunnel_button.on_click(on_neurobit_tunnel)
 
     action_tiles = pn.Row(
         pn.Column(
@@ -606,6 +666,14 @@ def create_app() -> pn.template.FastListTemplate:
             css_classes=["app-tile", "tile-legacy"],
             sizing_mode="stretch_width",
         ),
+        pn.Column(
+            pn.pane.Image(str(VECTOR_CIRCUIT_BRAIN_ASSET), height=74, align="center", css_classes=["atom-badge"]),
+            pn.pane.HTML("<h3>NeuroBit</h3><p>Run H/W/X/Y/Z gates and Fibonacci tunnel noise.</p>"),
+            neurobit_gates_button,
+            neurobit_tunnel_button,
+            css_classes=["app-tile", "tile-run"],
+            sizing_mode="stretch_width",
+        ),
         sizing_mode="stretch_width",
     )
 
@@ -619,6 +687,16 @@ def create_app() -> pn.template.FastListTemplate:
         collapsed=False,
     )
 
+    neurobit_controls = pn.Card(
+        truth_slider,
+        indeterminacy_slider,
+        falsity_slider,
+        delta_falsity_slider,
+        tunnel_data_input,
+        title="NeuroBit profile",
+        collapsed=False,
+    )
+
     template = pn.template.FastListTemplate(
         title="FNP-QNN Control Room",
         site="SeCuReDMe",
@@ -628,6 +706,7 @@ def create_app() -> pn.template.FastListTemplate:
             pn.pane.Image(str(STENCIL_GUIDE_ASSET), height=150),
             pn.pane.Image(str(SHIRT_UI_ASSET), height=170),
             controls,
+            neurobit_controls,
             pn.Card(command_output, title="Command output"),
         ],
         main=[
@@ -639,6 +718,7 @@ def create_app() -> pn.template.FastListTemplate:
                 ("Events", events_table),
                 ("Pairs", pairs_table),
                 ("QNN benchmark", benchmark_table),
+                ("NeuroBit", neurobit_json_pane),
                 ("Raw JSON", raw_json_pane),
                 dynamic=True,
             ),

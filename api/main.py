@@ -18,8 +18,25 @@ WEB_ROOT = os.path.join(PROJECT_ROOT, "web")
 
 sys.path.append(PROJECT_ROOT)
 
-from api.schemas import CommandRequest, CommandResponse, EncodeRequest, QNNSmokeRequest, RuntimeRunRequest
-from core import CerebrumAdapter, CerebrumRuntimeBridge, LifeScienceObservationPort, PhiFramework, QNNNucleus
+from api.schemas import (
+    CommandRequest,
+    CommandResponse,
+    EncodeRequest,
+    NeuroBitProfileRequest,
+    NeuroBitTunnelRequest,
+    QNNSmokeRequest,
+    RuntimeRunRequest,
+)
+from core import (
+    CerebrumAdapter,
+    CerebrumRuntimeBridge,
+    LifeScienceObservationPort,
+    NeuroBitProfile,
+    PhiFramework,
+    QNNNucleus,
+    run_neurobit_gates,
+    run_neurobit_tunnel_demo,
+)
 from core.cerebrum_adapter import MODALITIES
 
 app = FastAPI(
@@ -44,6 +61,17 @@ cerebrum_adapter = CerebrumAdapter()
 qnn_nucleus = QNNNucleus(adapter=cerebrum_adapter)
 cerebrum_runtime_bridge = CerebrumRuntimeBridge(adapter=cerebrum_adapter)
 life_science_port = LifeScienceObservationPort()
+
+
+def _neurobit_profile_from_request(payload: NeuroBitProfileRequest | None = None) -> NeuroBitProfile:
+    if payload is None:
+        return NeuroBitProfile()
+    return NeuroBitProfile(
+        truth=payload.truth,
+        indeterminacy=payload.indeterminacy,
+        falsity=payload.falsity,
+        delta_falsity=payload.delta_falsity,
+    )
 
 
 def build_demo_observations() -> List[Dict[str, Any]]:
@@ -275,6 +303,33 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
     }
 
 
+@app.get("/fnp-qnn/neurobit/status")
+async def neurobit_status() -> Dict[str, Any]:
+    result = run_neurobit_gates(NeuroBitProfile())
+    return {
+        "status": "ok",
+        "mode": "alpha-local-research",
+        "feature": "neurobit-gates-and-tunnel-demo",
+        "backend": result["backend"],
+        "qiskit_available": result["qiskit_available"],
+        "available_gates": ["hadamard", "w", "x", "y", "z"],
+        "research_boundary": result["research_boundary"],
+        "hierarchy": result["hierarchy"],
+    }
+
+
+@app.post("/fnp-qnn/neurobit/gates/run")
+async def neurobit_gates_run(payload: NeuroBitProfileRequest) -> Dict[str, Any]:
+    profile = _neurobit_profile_from_request(payload)
+    return run_neurobit_gates(profile, n_qubits=payload.n_qubits)
+
+
+@app.post("/fnp-qnn/neurobit/tunnel/demo")
+async def neurobit_tunnel_demo(payload: NeuroBitTunnelRequest) -> Dict[str, Any]:
+    profile = _neurobit_profile_from_request(payload)
+    return run_neurobit_tunnel_demo(profile, data=payload.data)
+
+
 def _command_response(command_name: str, request: Optional[CommandRequest] = None) -> CommandResponse:
     request = request or CommandRequest()
     if command_name == "phi-status":
@@ -338,6 +393,40 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             ),
             type="qnn-system",
             data={"result": result, "benchmark": _serialize_benchmark(qnn_nucleus.benchmark(samples, labels))},
+        )
+    if command_name == "neurobit-gates":
+        neurobit_request = request.neurobit if request and request.neurobit is not None else NeuroBitTunnelRequest()
+        result = run_neurobit_gates(
+            _neurobit_profile_from_request(neurobit_request),
+            n_qubits=neurobit_request.n_qubits,
+        )
+        return CommandResponse(
+            success=True,
+            output=(
+                "NeuroBit gates complete:\n"
+                f"Backend: {result['backend']}\n"
+                f"Sequence: {', '.join(result['sequence'])}\n"
+                f"Expectation: {result['expectation_vector']}"
+            ),
+            type="neurobit-system",
+            data=result,
+        )
+    if command_name == "neurobit-tunnel-demo":
+        neurobit_request = request.neurobit if request and request.neurobit is not None else NeuroBitTunnelRequest()
+        result = run_neurobit_tunnel_demo(
+            _neurobit_profile_from_request(neurobit_request),
+            data=neurobit_request.data,
+        )
+        return CommandResponse(
+            success=True,
+            output=(
+                "NeuroBit tunnel demo complete:\n"
+                f"Backend: {result['backend']}\n"
+                f"Sequence id: {result['sequence_id']}\n"
+                "Boundary: deterministic noise simulation, not security."
+            ),
+            type="neurobit-system",
+            data=result,
         )
     raise HTTPException(status_code=404, detail=f"Command '{command_name}' is not available in alpha-local mode")
 
