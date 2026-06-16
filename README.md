@@ -4,6 +4,9 @@
 
 # FNP-QNN Local Research Simulator
 
+[![SPONSORED BY E2B FOR STARTUPS](https://img.shields.io/badge/SPONSORED%20BY-E2B%20FOR%20STARTUPS-ff8800?style=for-the-badge)](https://e2b.dev/startups)
+[![SUPPORTED BY DATADOG FOR STARTUPS](https://img.shields.io/badge/SUPPORTED%20BY-DATADOG%20FOR%20STARTUPS-632CA6?style=for-the-badge&logo=datadog&logoColor=white)](https://www.datadoghq.com/partner/datadog-for-startups/)
+
 This repository is an alpha-local, non-clinical research simulator for:
 
 - Cerebrum-shaped interval memory events;
