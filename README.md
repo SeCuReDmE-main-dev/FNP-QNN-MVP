@@ -1,4 +1,4 @@
-{{ attention ne pas effacer : le code est en phase de conception active. Il n'est pas pret pour une contribution publique large. Merci de ne pas ouvrir d'issues, pull requests, pushes ou demandes de review non sollicitees pendant que ce message reste present. }}
+{{ attention mainteneur : le code est en phase de conception active. Les contributions doivent rester maintainer-guidees pendant que ce message reste present. Merci de discuter avant d'ouvrir de grands changements, issues, pull requests, pushes ou demandes de review. }}
 
 <img width="1055" height="1491" alt="simulator-repository-background" src="https://github.com/user-attachments/assets/47416585-b351-442e-bb20-09db14ee6ef2" />
 
@@ -10,6 +10,7 @@ This repository is an alpha-local, non-clinical research simulator for:
 - deterministic crossmodal pair construction;
 - feature-vector encoding for QNN candidate lanes;
 - a deterministic PyTorch surrogate fallback;
+- deterministic NeuroBit gate profiles and trace previews;
 - optional future Qiskit and legacy-export evidence lanes.
 
 It is not a clinical, diagnostic, therapeutic, safety, emergency, or production-public system. Public claims must stay tied to local tests, demo output, or explicit reports in this repository.
@@ -23,6 +24,7 @@ Validated locally:
 - `python examples/cerebrum_runtime_demo.py`
 - `python examples/cerebrum_runtime_legacy_demo.py`
 - Torch surrogate fallback.
+- NeuroBit gate and tunnel-noise demo.
 
 Not validated by the default local runtime:
 
@@ -43,12 +45,17 @@ core/
   cerebrum_adapter.py          # flat and interval event normalization
   cerebrum_runtime_bridge.py   # Cerebrum-shaped runtime bridge and pair builder
   life_science_port.py         # dormant StateField-shaped observation adapter
+  neurobit_gates.py            # public NeuroBit gate primitive contract
+  neurobit_gate_tunnel.py      # NeuroBit gate + tunnel-noise demo runtime
+  experiment_seed.py           # deterministic experiment seed provenance
+  quantum_feature_transforms.py # pure amplitude/phase feature transforms
   qnn_nucleus.py               # QNN candidate matrix and Torch fallback
   phi_framework.py             # synthetic phi-framework simulation primitives
 examples/
   cerebrum_qnn_demo.py
   cerebrum_runtime_demo.py
   cerebrum_runtime_legacy_demo.py
+  neurobit_gate_demo.py
   legacy_unvalidated_demo.py
 tests/
   test_cerebrum_qnn.py
@@ -71,6 +78,9 @@ Core HTTP endpoints:
 - `GET /cerebrum/runtime/legacy-demo`
 - `GET /qnn/candidates`
 - `POST /qnn/smoke`
+- `GET /fnp-qnn/neurobit/status`
+- `POST /fnp-qnn/neurobit/gates/run`
+- `POST /fnp-qnn/neurobit/tunnel/demo`
 - `POST /commands/{command_name}`
 
 Compatibility endpoint:
@@ -119,6 +129,12 @@ Legacy fixture replay:
 python examples/cerebrum_runtime_legacy_demo.py
 ```
 
+NeuroBit gate demo:
+
+```bash
+python examples/neurobit_gate_demo.py --truth 0.55 --indeterminacy 0.30 --falsity 0.15
+```
+
 Unit/API tests:
 
 ```bash
@@ -155,6 +171,21 @@ without adding a Node/React build chain.
 - `reports/cerebrum_runtime_wiring_report.md`: runtime bridge wiring report.
 - `reports/readme_evidence_audit_2026-06-11.md`: earlier README evidence audit.
 
+## Educational Open Source Use
+
+This project is suitable for supervised educational exploration of local
+simulation pipelines, feature encoding, deterministic fallback behavior,
+NeuroBit gate traces, and future visual network-design workflows.
+
+Start with:
+
+- `EDUCATION.md`
+- `ROADMAP.md`
+- `DESIGN.md`
+- `AGENTS.md`
+- `FNP_QNN_INSTITUTIONAL_BRIEF.md`
+- `SECURITY_MODEL.md`
+
 ## Known Boundaries
 
 - Qiskit packages are optional and not required for the default runtime.
@@ -163,3 +194,5 @@ without adding a Node/React build chain.
 - Legacy replay is fixture-backed unless an explicit snapshot export is provided.
 - The life-science port only converts StateField-shaped payloads into simulator observations.
 - Runtime inputs are size-limited and API payloads are validated through Pydantic schemas.
+- The NeuroBit tunnel-noise demo is not encryption and not a security guarantee.
+- CeLeBrUm/private evidence material is not part of the public demo layer.

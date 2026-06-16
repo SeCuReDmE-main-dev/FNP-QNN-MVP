@@ -17,6 +17,11 @@ from .neurobit_gate_tunnel import (
     run_neurobit_gates,
     run_neurobit_tunnel_demo,
 )
+from .experiment_seed import ExperimentSeedManager
+from .quantum_feature_transforms import (
+    complex_wavefunction_to_amplitude_phase_features,
+    structure_vector_to_phi_scaled_state,
+)
 
 __version__ = "1.2.0-research"
 __author__ = "SeCuReDmE Innovation Lab"
@@ -43,4 +48,7 @@ __all__ = [
     "NeuroBitProfile",
     "run_neurobit_gates",
     "run_neurobit_tunnel_demo",
+    "ExperimentSeedManager",
+    "complex_wavefunction_to_amplitude_phase_features",
+    "structure_vector_to_phi_scaled_state",
 ]
