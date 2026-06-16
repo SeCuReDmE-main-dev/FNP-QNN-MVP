@@ -1,7 +1,5 @@
 {{ attention mainteneur : le code est en phase de conception active. Les contributions doivent rester maintainer-guidees pendant que ce message reste present. Merci de discuter avant d'ouvrir de grands changements, issues, pull requests, pushes ou demandes de review. }}
 
-<img width="1055" height="1491" alt="simulator-repository-background" src="https://github.com/user-attachments/assets/47416585-b351-442e-bb20-09db14ee6ef2" />
-
 # FNP-QNN Local Research Simulator
 
 [![SPONSORED BY E2B FOR STARTUPS](https://img.shields.io/badge/SPONSORED%20BY-E2B%20FOR%20STARTUPS-ff8800?style=for-the-badge)](https://e2b.dev/startups)
