@@ -169,6 +169,26 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
         self.assertEqual(observations[0]["modality"], "stimuli")
         self.assertTrue(0.0 <= observations[0]["value"] <= 1.0)
 
+    def test_life_science_statefield_defaults_when_only_mu_provided(self):
+        port = LifeScienceObservationPort()
+        # Previously raised a numpy broadcast ValueError because the nu/pi defaults
+        # were dropped by _as_vector and eagerly broadcast against mu.
+        observations = port.statefield_to_observations({"mu": [0.2, 0.7, 0.4]})
+        self.assertEqual(len(observations), 3)
+        self.assertTrue(all(0.0 <= obs["value"] <= 1.0 for obs in observations))
+
+    def test_life_science_statefield_handles_mismatched_lengths(self):
+        port = LifeScienceObservationPort()
+        observations = port.statefield_to_observations({"mu": [0.2, 0.7, 0.4], "nu": [0.1, 0.2]})
+        self.assertEqual(len(observations), 3)
+        self.assertTrue(all(np.isfinite(obs["value"]) for obs in observations))
+
+    def test_life_science_statefield_computes_residual_pi(self):
+        port = LifeScienceObservationPort()
+        observations = port.statefield_to_observations({"mu": [0.0], "nu": [0.0]})
+        # pi defaults to the residual 1 - mu - nu = 1.0, so value = 0 * 1 + 0.5 * 1 = 0.5.
+        self.assertAlmostEqual(observations[0]["value"], 0.5)
+
 
 class CerebrumRuntimeApiTests(unittest.TestCase):
     def setUp(self):
