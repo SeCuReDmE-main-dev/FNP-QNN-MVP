@@ -2,8 +2,31 @@
 
 # FNP-QNN Local Research Simulator
 
-[![SPONSORED BY E2B FOR STARTUPS](https://img.shields.io/badge/SPONSORED%20BY-E2B%20FOR%20STARTUPS-ff8800?style=for-the-badge)](https://e2b.dev/startups)
-[![SUPPORTED BY DATADOG FOR STARTUPS](https://img.shields.io/badge/SUPPORTED%20BY-DATADOG%20FOR%20STARTUPS-632CA6?style=for-the-badge&logo=datadog&logoColor=white)](https://www.datadoghq.com/partner/datadog-for-startups/)
+<p align="center">
+  <a href="https://e2b.dev/startups">
+    <img alt="Sponsored by E2B for Startups" src="https://img.shields.io/badge/Sponsored%20by-E2B%20for%20Startups-FF8800?style=for-the-badge" />
+  </a>
+  <a href="https://www.datadoghq.com/partner/datadog-for-startups/">
+    <img alt="Supported by Datadog for Startups" src="https://img.shields.io/badge/Supported%20by-Datadog%20for%20Startups-632CA6?style=for-the-badge&amp;logo=datadog&amp;logoColor=white" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://orcid.org/0009-0007-2904-0443">
+    <img alt="ORCID: 0009-0007-2904-0443" src="https://img.shields.io/badge/ORCID-0009--0007--2904--0443-A6CE39?style=flat-square&amp;logo=orcid&amp;logoColor=white" />
+  </a>
+  <img alt="Alpha-local research simulator" src="https://img.shields.io/badge/alpha--local-research%20simulator-1f6feb?style=flat-square" />
+  <img alt="Non-clinical educational research" src="https://img.shields.io/badge/non--clinical-educational%2Fresearch-6e7781?style=flat-square" />
+</p>
+
+## Authorship and Research Boundary
+
+Primary maintainer provenance: Jean-Sébastien Beaulieu  
+ORCID: https://orcid.org/0009-0007-2904-0443
+
+This project remains an alpha-local, non-clinical educational/research simulator.
+It is not clinical, diagnostic, therapeutic, emergency, safety-critical, or
+production-public software.
 
 This repository is an alpha-local, non-clinical research simulator for:
 

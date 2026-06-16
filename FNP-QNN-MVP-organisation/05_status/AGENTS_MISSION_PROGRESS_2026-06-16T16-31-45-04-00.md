@@ -4,6 +4,13 @@ Date: 2026-06-16T16:31:45-04:00
 Repository: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP-QNN-MVP-version-desise-simulator-`
 Organisation folder: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP-QNN-MVP-organisation`
 
+## 2026-06-16T20:00:00-04:00 — Provenance / License Guarding continuation
+
+- Added the centered ORCID-focused badge block and boundary section in `README.md`.
+- Added provenance artifacts: `NOTICE.md`, `CITATION.cff`, `LICENSE_POLICY.json`.
+- Added publication guard script: `scripts/validate_license_policy.py`.
+- Added GitHub workflow: `.github/workflows/license-guard.yml`.
+
 ## Mission status
 
 ### Completed since last checkpoint
@@ -29,6 +36,14 @@ Organisation folder: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bac
   - `FNP-QNN-MVP-organisation\\05_status\\AGENTS_COMPLETION_UPDATE_2026-06-16.md`
   - `FNP-QNN-MVP-organisation\\05_status\\NETWORK_DESIGNER_BACKEND_REPORT_2026-06-16.md`
   - `FNP-QNN-MVP-organisation\\05_status\\BLOCKERS_LOCAL.md`
+- [x] README badge provenance block updated with centered ORCID/Datadog/E2B badges and alpha-local boundary section.
+- [x] Added provenance artifacts required for publication guardrail:
+  - `NOTICE.md`
+  - `CITATION.cff`
+  - `LICENSE_POLICY.json`
+- [x] Added lightweight provenance policy validator and CI:
+  - `scripts/validate_license_policy.py`
+  - `.github/workflows/license-guard.yml`
 
 ### In progress / not completed
 
@@ -49,4 +64,3 @@ Organisation folder: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bac
 
 - This update is explicitly for mission continuity.
 - Remaining work is UI/asset/reachout focused, with backend contract complete and stable.
-

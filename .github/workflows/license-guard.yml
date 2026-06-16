@@ -1,0 +1,27 @@
+name: License and Boundary Guard
+
+on:
+  pull_request:
+  push:
+    branches:
+      - FNP_QNN
+
+permissions:
+  contents: read
+
+jobs:
+  license-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install runtime
+        run: python -m pip install --upgrade pip
+      - name: Validate license and public boundary
+        run: python scripts/validate_license_policy.py
+      - name: Validate alpha readiness
+        run: python scripts/validate_alpha_readiness.py
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -p "test_*.py"
