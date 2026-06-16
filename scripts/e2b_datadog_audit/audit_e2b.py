@@ -130,6 +130,7 @@ class DatadogEmitter:
         self.timeout = timeout
         self.service = service
         self._last_status: Optional[int] = None
+        self._sdk_unavailable: Optional[str] = None
 
     @staticmethod
     def _tag_dict_to_datadog_tags(tags: Dict[str, str]) -> List[str]:
@@ -141,8 +142,24 @@ class DatadogEmitter:
             ordered.append(f"{key}:{value}")
         return ordered
 
-    def emit_log(self, summary: AuditSummary) -> Tuple[bool, str]:
-        endpoint = f"https://http-intake.logs.{self.site}/api/v2/logs"
+    @staticmethod
+    def _normalize_site(site: str) -> str:
+        normalized = site.strip().lower()
+        if normalized.startswith("http://") or normalized.startswith("https://"):
+            return normalized
+        return f"https://api.{normalized}"
+
+    @staticmethod
+    def _normalize_intake_site(site: str) -> str:
+        normalized = site.strip().lower()
+        if normalized.startswith("http://") or normalized.startswith("https://"):
+            normalized = normalized.split("://", 1)[1]
+        if normalized.startswith("api."):
+            normalized = normalized[len("api.") :]
+        return f"https://http-intake.logs.{normalized}/api/v2/logs"
+
+    def _build_datadog_payload(self, summary: AuditSummary) -> Tuple[List[str], Dict[str, Any]]:
+        checks_failed = [entry["name"] for entry in summary.results if not entry.get("passed", False)]
         datadog_tags = self._tag_dict_to_datadog_tags(
             {
                 "service": self.service,
@@ -152,15 +169,61 @@ class DatadogEmitter:
                 "audit_status": summary.audit_status,
             }
         )
-        payload = {
+        details = asdict(summary)
+        details["checks_failures"] = checks_failed
+        message = (
+            f"E2B sandbox audit {summary.audit_status.upper()} "
+            f"({summary.checks_passed}/{summary.checks_total} checks passed). "
+            f"Failures: {', '.join(checks_failed) or 'none'}"
+        )
+        return datadog_tags, {
             "service": summary.service,
             "timestamp": summary.ended_at,
             "status": "error" if summary.audit_status != "pass" else "info",
-            "message": f"E2B sandbox audit {summary.audit_status.upper()}",
+            "message": message,
             "ddsource": "e2b_audit",
-            "ddtags": ",".join(datadog_tags),
-            "details": asdict(summary),
+            "details": details,
         }
+
+    def emit_log(self, summary: AuditSummary) -> Tuple[bool, str]:
+        try:
+            from datadog_api_client import ApiClient as _DatadogApiClient
+            from datadog_api_client import Configuration
+            from datadog_api_client.v2.api.logs_api import LogsApi
+            from datadog_api_client.v2.model.http_log import HTTPLog
+            from datadog_api_client.v2.model.http_log_item import HTTPLogItem
+
+            datadog_tags, payload = self._build_datadog_payload(summary)
+            host = self._normalize_site(self.site)
+            config = Configuration()
+            config.host = host
+            config.api_key["apiKeyAuth"] = self.api_key
+            config.connection_pool_maxsize = 5
+            log_item = HTTPLogItem(
+                message=payload["message"],
+                ddsource=payload["ddsource"],
+                service=self.service,
+                status=payload["status"],
+                details=payload["details"],
+            )
+            body = HTTPLog([log_item])
+            with _DatadogApiClient(configuration=config) as api_client:
+                logs_api = LogsApi(api_client)
+                logs_api.submit_log(body=body, ddtags=",".join(datadog_tags))
+            self._last_status = 202
+            return True, self._last_status_response(self._last_status)
+        except ImportError as exc:
+            self._sdk_unavailable = str(exc)
+            try:
+                return self._emit_http_fallback(summary)
+            except Exception as exc_fallback:
+                return False, f"Datadog SDK and fallback both unavailable: {exc_fallback!r}"
+        except Exception as exc:  # pragma: no cover - environment/network variation
+            return False, f"Datadog transport error: {exc!r}"
+
+    def _emit_http_fallback(self, summary: AuditSummary) -> Tuple[bool, str]:
+        datadog_tags, payload = self._build_datadog_payload(summary)
+        endpoint = self._normalize_intake_site(self.site)
         request_body = json.dumps([payload]).encode("utf-8")
         headers = {
             "Content-Type": "application/json",
@@ -175,8 +238,6 @@ class DatadogEmitter:
             return False, f"Datadog HTTP error {exc.code}: {exc.reason}"
         except urllib_error.URLError as exc:
             return False, f"Datadog network error: {exc.reason}"
-        except Exception as exc:  # pragma: no cover - safety net for environment differences
-            return False, f"Datadog transport error: {exc!r}"
 
     def _last_status_response(self, status: int) -> str:
         if status in {200, 202}:

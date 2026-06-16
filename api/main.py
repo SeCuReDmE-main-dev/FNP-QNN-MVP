@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Sequence
 import numpy as np
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -52,6 +53,26 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class DashboardSecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/dashboard"):
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
+                "script-src 'self'; connect-src 'self'; frame-ancestors 'none'; "
+                "base-uri 'none'; form-action 'self'"
+            )
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["Referrer-Policy"] = "no-referrer"
+            response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=(), payment=()"
+            response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+            response.headers["X-Frame-Options"] = "DENY"
+        return response
+
+
+app.add_middleware(DashboardSecurityHeadersMiddleware)
 
 if os.path.isdir(WEB_ROOT):
     app.mount("/dashboard/static", StaticFiles(directory=WEB_ROOT), name="dashboard-static")
