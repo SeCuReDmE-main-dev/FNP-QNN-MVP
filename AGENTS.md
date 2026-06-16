@@ -22,15 +22,15 @@ Project type:
 alpha-local, non-clinical, educational/research open source simulator
 ```
 
-Agents must read this file before modifying code, documentation, assets, README language, reports, UI files, or funding/institutional materials.
+Agents must read this file before modifying code, documentation, assets, README language, reports, UI files, funding materials, or source-to-MVP transfer work.
 
-Detailed design rules live in:
+Detailed design rules:
 
 ```text
 DESIGN.md
 ```
 
-Detailed institutional funding and hosting plan lives in:
+Detailed institutional funding, hosting, and source-to-MVP transfer plan:
 
 ```text
 docs/institutional-funding-and-hosting-plan.md
@@ -273,6 +273,183 @@ KNIME node repository
 
 ---
 
+# FNP-QNN Source-to-MVP Transfer Rules
+
+Agents must use the detailed transfer map in:
+
+```text
+docs/institutional-funding-and-hosting-plan.md
+```
+
+The full/private `FNP-QNN` repository contains broad research material. The MVP must not import the whole project. Transfer only small, public-safe, testable primitives that make the MVP valid and distinctive.
+
+Migration rule:
+
+```text
+copy concept → rewrite minimal primitive → add tests → document boundary → expose only if deterministic and public-safe
+```
+
+## P0 mandatory transfers
+
+These are the high-priority items required for a valid FNP-QNN MVP.
+
+### 1. Neurobit / neutrosophic gate profile
+
+Source concept:
+
+```text
+FNP-QNN/neural_network/quantum_gates_neutrosophic.py
+```
+
+Target:
+
+```text
+core/neurobit_gates.py
+tests/test_neurobit_gates.py
+examples/neurobit_gate_demo.py
+```
+
+Include:
+
+```text
+NeutrosophicGateProfile
+normalized profile metadata
+H/X/Y/Z/W gate matrices
+gate_matrix()
+build_neutrosophic_gate_sequence()
+build_gate_parameters()
+counts_to_expectation_vector()
+```
+
+### 2. Optional Qiskit trace adapter
+
+Include `apply_gate_sequence_qiskit()` behavior only behind Qiskit availability.
+
+Rule:
+
+```text
+Qiskit visible but gated.
+No base runtime dependency on Qiskit.
+Missing Qiskit must return a clear unavailable message.
+```
+
+### 3. Backend-neutral operation descriptors
+
+Include `to_torchquantum_ops()` as plain operation descriptors.
+
+Rule:
+
+```text
+No torchquantum import required.
+Use descriptors for education, JSON traces, and future backend mapping.
+```
+
+### 4. Experiment seed manager subset
+
+Target:
+
+```text
+core/experiment_seed.py
+tests/test_experiment_seed.py
+```
+
+Include only:
+
+```text
+base_seed/current_seed
+set_seed()
+get_seed()
+golden-ratio get_next_seed()
+register_experiment()
+get_experiment_seed()
+get_state_summary()
+```
+
+Do not add secure-random claims or file state writes unless explicitly requested.
+
+### 5. Amplitude/phase feature encoder
+
+Source concept:
+
+```text
+FNP-QNN/neural_network/quantum_neural_bridge.py
+```
+
+Target:
+
+```text
+core/quantum_feature_transforms.py
+tests/test_quantum_feature_transforms.py
+```
+
+Include only pure transforms:
+
+```text
+complex wavefunction → amplitude/phase features
+structure vector → phi-scaled complex state
+```
+
+Do not port AccessDatabaseManager, `.accdb` paths, SQL operations, or live brain-structure updates.
+
+## P1 optional transfers
+
+Only after P0 is stable:
+
+```text
+FractalGeometry.fractal_dimension()
+FibonacciDynamics.next_value()
+NeutrosophicLogic.apply()
+EigenvalueAnalysis.compute_eigenvalues()
+EigenvalueAnalysis.is_stable()
+Neurobit signal signature as educational metadata, not secure tunnel
+```
+
+## Explicit non-transfers for MVP
+
+Do not migrate these into the MVP now:
+
+```text
+Full FFeD framework execution
+full quanvolutional neural network execution
+TorchQuantum runtime dependency
+FossaDataManager / PostgreSQL sync
+MindsDB/PostgreSQL integration
+IIS / Apache Ignite / Mahout / Iceberg / Avalanche scripts
+Access database bridge
+quantum-circuit-designer submodule
+smolagents / swarm manager placeholders
+PQC / Kyber / Dilithium claims
+secure quantum tunnel claims
+```
+
+Reason:
+
+```text
+too dependency-heavy, not public-safe enough, not validated enough, or too risky for educational MVP claims
+```
+
+## Valid MVP definition after transfer
+
+The MVP can be described as valid when it has:
+
+```text
+[ ] local runtime bridge
+[ ] feature-vector encoding
+[ ] deterministic Torch surrogate fallback
+[ ] QNN candidate matrix
+[ ] Neurobit/neutrosophic gate profile and deterministic gate sequence
+[ ] optional Qiskit trace, gated by availability
+[ ] experiment seed manager / run provenance
+[ ] amplitude-phase feature transform
+[ ] Panel dashboard showing runtime evidence and Neurobit preview
+[ ] tests for every transferred primitive
+[ ] examples/neurobit_gate_demo.py
+[ ] no clinical/security/encryption claims
+[ ] no heavy full-project dependency creep
+```
+
+---
+
 # Panel Repair Rules
 
 Agents working on `panel_app.py`, `assets/`, `assets/generated/`, or future UI files must read `DESIGN.md` first.
@@ -281,15 +458,6 @@ Target feeling:
 
 ```text
 FNP-QNN Research Control Room
-```
-
-Not:
-
-```text
-asset gallery
-medical product
-unfinished notebook
-random demo board
 ```
 
 Panel hierarchy must prioritize:
@@ -327,8 +495,6 @@ sidebar=[
 ]
 ```
 
-Do not place shirt/mug product assets in the default sidebar.
-
 Required action tiles:
 
 ```text
@@ -365,14 +531,6 @@ source asset
 → panel-ready asset
 ```
 
-Naming:
-
-```text
-*-cut.png
-*-framed.png
-*-panel.png
-```
-
 Three-layer asset model:
 
 ```text
@@ -396,49 +554,7 @@ Hard rule:
 No visible subject should touch the final PNG boundary.
 ```
 
-Panel-ready exports must look centered at:
-
-```text
-64px
-96px
-150px
-220px
-```
-
-Asset transfer checklist:
-
-```text
-[ ] subject is cleanly cut
-[ ] no dirty borders
-[ ] subject does not touch final boundary
-[ ] transparent safety margin exists
-[ ] optical centering is corrected
-[ ] frame/backplate is coherent with asset family
-[ ] readable at 64px to 96px
-[ ] readable on light background
-[ ] readable on navy/dark background
-[ ] filename uses clean panel-ready naming
-```
-
-If any item fails, do not use the asset in `panel_app.py` yet.
-
-Priority assets for recut/framing:
-
-```text
-1. logo1.png
-2. mascoote qbit.png
-3. qbits stancil.png
-4. vector-01-brain-network.png
-5. vector-02-orbit-head.png
-6. vector-03-circuit-brain.png
-7. vector-04-wave-brain.png
-8. vector-05-cube-research.png
-9. mural-ui-thumb.png
-10. qbit-stencil-avatar-strip.png
-11. atom-back-logo-dark.png
-```
-
-Product assets are secondary and belong below the operational workflow or inside a collapsed brand section.
+If an asset fails the checklist in `DESIGN.md`, do not use it in `panel_app.py` yet.
 
 ---
 
@@ -466,71 +582,6 @@ Spiderweb local propagation model
 ```
 
 Qiskit lanes must be visible but gated by availability.
-
-Recommended file layout:
-
-```text
-core/network_designer/
-  __init__.py
-  graph.py
-  registry.py
-  presets.py
-  validator.py
-  serialization.py
-  executor.py
-  spiderweb.py
-
-ui/
-  __init__.py
-  network_designer.py
-  network_canvas.py
-
-assets/network_designer/
-  network_canvas.js
-  network_canvas.css
-
-tests/
-  test_network_designer_graph.py
-  test_network_designer_registry.py
-  test_network_designer_presets.py
-  test_network_designer_validator.py
-  test_network_designer_serialization.py
-  test_network_designer_executor.py
-  test_spiderweb_network.py
-
-reports/
-  fnp_network_designer_architecture.md
-```
-
-Core model:
-
-```text
-DesignerPort(id, label, kind, data_type)
-DesignerNode(id, type, category, label, x, y, config, inputs, outputs)
-DesignerEdge(id, source_node, source_port, target_node, target_port)
-DesignerGraph(graph_id, name, graph_type, version, nodes, edges, metadata, training)
-```
-
-Required presets:
-
-```text
-1. Torch Surrogate Neural Network
-2. Qiskit Estimator QNN
-3. Spiderweb Memory Network
-4. Cerebrum Crossmodal Network
-5. Blank Custom Network
-```
-
-Minimum drag-and-drop behavior:
-
-```text
-- user can drag node from palette to canvas
-- user can move node on canvas
-- selected node is highlighted
-- inspector updates when node is selected
-- edges redraw when nodes move
-- graph JSON updates after moves
-```
 
 Implementation order:
 
@@ -581,31 +632,20 @@ token-gated operator API
 Datadog metadata-only reports
 ```
 
-Institutional-host candidate layer:
-
-```text
-supervised lab server
-course/lab sandbox
-university or CCTT demo machine
-academic compute allocation
-```
-
 Never expose private CeLeBrUm material through public FNP-QNN docs, public dashboards, Vercel pages, screenshots, or funding decks.
 
 ---
 
 # JetBrains Open Source Support Readiness
 
-Goal: make the repo clearly eligible as an educational, non-commercial, open source project.
-
 Do these 10 actions:
 
 ```text
 1. Add LICENSE at repository root, recommended Apache-2.0.
-2. Add EDUCATION.md with learning goals, audience, concepts taught, demos, tests, boundary, learning path.
-3. Add CONTRIBUTING.md inviting small guided docs/test/repro/demo contributions.
+2. Add EDUCATION.md.
+3. Add CONTRIBUTING.md.
 4. Replace harsh README contribution warning with maintainer-guided language.
-5. Add ROADMAP.md with Panel cleanup, stable demo, Network Designer contract, drag-and-drop MVP, evidence reports, optional Qiskit validation.
+5. Add ROADMAP.md.
 6. Add or strengthen at least two recent code/test commits before applying.
 7. Add CODE_OF_CONDUCT.md.
 8. Add Educational Open Source Use section to README.
@@ -613,30 +653,9 @@ Do these 10 actions:
 10. Prepare exact application answers: project name, repo URL, license URL, 1 license, non-commercial educational open source description.
 ```
 
-Do not submit JetBrains application until:
-
-```text
-[ ] LICENSE exists
-[ ] EDUCATION.md exists
-[ ] CONTRIBUTING.md exists
-[ ] README has educational open source language
-[ ] README contribution warning is maintainer-guided
-[ ] ROADMAP.md exists
-[ ] CODE_OF_CONDUCT.md exists
-[ ] at least two recent code/test commits exist after docs/assets work
-[ ] tests have been run or exact limitations documented
-[ ] requested license count matches visible active human contributors
-```
-
 ---
 
 # Institutional Funding and Hosting Plan
-
-Detailed plan:
-
-```text
-docs/institutional-funding-and-hosting-plan.md
-```
 
 Correct institutional frame:
 
@@ -650,13 +669,14 @@ French:
 FNP-QNN est un cockpit local de recherche pour construire, tester et visualiser des pipelines expérimentaux mémoire → encodage → réseau → évidence.
 ```
 
-Do not pitch the full private research universe first. Pitch a public-safe educational open source simulator with a local evidence server strategy and a clear path to a visual Network Designer MVP.
+Do not pitch the full private research universe first. Pitch a public-safe educational open source simulator with a local evidence server strategy, a tested Neurobit/FNP-QNN primitive, and a clear path to a visual Network Designer MVP.
 
-Funding should be described as supporting:
+Funding should support:
 
 ```text
 - Panel UI cleanup
 - panel-ready asset generation
+- Neurobit/FNP-QNN primitive transfer
 - Network Designer v0.1
 - backend graph contract and presets
 - tests and validation gates
@@ -677,8 +697,6 @@ Avoid:
 ---
 
 ## Immediate Home Plan For Maintainer
-
-When the maintainer returns home, follow this order.
 
 ### 1. Pull and inspect
 
@@ -702,19 +720,13 @@ python -m unittest discover -s tests -p "test_*.py"
 python scripts/validate_alpha_readiness.py
 ```
 
-If dependencies are missing, capture the exact error.
-
 ### 3. Start the Panel
 
 ```bash
 panel serve panel_app.py --show --port 5006
 ```
 
-Check whether runtime evidence appears early or whether the Panel still feels like an asset gallery.
-
 ### 4. Create OSS readiness files
-
-Priority:
 
 ```text
 LICENSE
@@ -724,7 +736,19 @@ ROADMAP.md
 CODE_OF_CONDUCT.md
 ```
 
-### 5. Prepare institutional package
+### 5. Create MVP transfer skeleton
+
+Start with:
+
+```text
+core/neurobit_gates.py
+tests/test_neurobit_gates.py
+examples/neurobit_gate_demo.py
+```
+
+Do not start with FFeD, quantum tunnel, databases, or heavy integrations.
+
+### 6. Prepare institutional package
 
 Create:
 
@@ -733,19 +757,20 @@ FNP_QNN_INSTITUTIONAL_BRIEF.md
 SECURITY_MODEL.md
 ```
 
-### 6. Make one code/test commit
+### 7. Make one code/test commit
 
 Do not only add docs. Add one small test or code skeleton, for example:
 
 ```text
+tests/test_neurobit_gates.py
 tests/test_panel_app_build.py
 tests/test_design_asset_references.py
 core/network_designer/graph.py + tests
 ```
 
-### 7. Record blocker list
+### 8. Record blocker list locally
 
-Create a local note:
+Create a local-only note unless public-safe:
 
 ```text
 BLOCKERS_LOCAL.md
@@ -760,56 +785,33 @@ Panel visual problems
 asset preparation needed
 server requirement estimate
 potential professor/CCTT contacts
+FNP-QNN transfer blockers
 ```
 
 Do not commit private names, private contacts, secrets, or non-public research text.
 
 ---
 
-# Funding / Presentation Guidance
-
-Prepare deck now, but do not pitch as market-ready until:
-
-```text
-[ ] Panel cleanup completed
-[ ] demo script works in under 3 minutes
-[ ] tests pass locally or known limitations are documented
-[ ] screenshots are clean and non-clinical boundary is visible
-[ ] Network Designer plan is documented
-[ ] funding use is framed as MVP hardening, not commercial launch
-```
-
-Recommended pitch title:
-
-```text
-FNP-QNN: Local Research Control Room for Visual Network Simulation
-```
-
-Recommended subtitle:
-
-```text
-From memory-event encoding to neural/QNN candidate lanes, with a planned drag-and-drop Network Designer.
-```
-
-French:
-
-```text
-FNP-QNN : cockpit local de recherche pour simulation visuelle de réseaux
-De l’encodage d’événements mémoire aux lanes neural/QNN candidates, avec un Network Designer drag-and-drop en préparation.
-```
-
----
-
 # Recommended Commit Plans
+
+## FNP-QNN transfer work
+
+```text
+1. Add neurobit gate primitives and tests
+2. Add neurobit gate demo
+3. Add experiment seed manager and tests
+4. Add amplitude/phase feature transforms and tests
+5. Add Panel Neurobit preview
+6. Add Network Designer NeurobitGate node/preset later
+```
 
 ## Panel/design work
 
 ```text
-1. Add or update DESIGN.md rules
-2. Generate panel-ready assets
-3. Refactor Panel layout
-4. Add Panel construction tests
-5. Update screenshots/reports
+1. Generate panel-ready assets
+2. Refactor Panel layout
+3. Add Panel construction tests
+4. Update screenshots/reports
 ```
 
 ## Network Designer work
@@ -823,34 +825,6 @@ De l’encodage d’événements mémoire aux lanes neural/QNN candidates, avec 
 6. Add canvas assets
 7. Add drag-and-drop behavior
 8. Add architecture report
-```
-
-## JetBrains OSS readiness work
-
-```text
-1. LICENSE
-2. EDUCATION.md
-3. CONTRIBUTING.md
-4. README wording update
-5. ROADMAP.md
-6. CODE_OF_CONDUCT.md
-7. code/test commits
-8. local validation
-9. final README review
-10. application draft
-```
-
-## Institutional package work
-
-```text
-1. docs/institutional-funding-and-hosting-plan.md
-2. FNP_QNN_INSTITUTIONAL_BRIEF.md
-3. SECURITY_MODEL.md
-4. 3-minute demo script
-5. clean screenshots
-6. public-safe evidence report
-7. server/compute requirement estimate
-8. professor/CCTT outreach draft
 ```
 
 ---
@@ -875,20 +849,19 @@ For code tasks, also report:
 - whether existing behavior was preserved
 ```
 
-For docs/design/funding tasks, also report:
+For docs/design/funding/source-transfer tasks, also report:
 
 ```text
 - public language boundary preserved
 - no clinical claims added
 - no copied third-party assets/code
 - no private CeLeBrUm material exposed
+- no heavyweight dependency creep added
 ```
 
 ---
 
 # Final Direction
-
-The repository is moving toward a funding-ready, educational open source MVP.
 
 Correct direction:
 
@@ -896,6 +869,7 @@ Correct direction:
 local simulator
 clean Panel
 prepared assets
+tested Neurobit/FNP-QNN primitive
 visual Network Designer
 strong tests
 clear open source eligibility
@@ -914,6 +888,7 @@ copied KNIME implementation
 heavy dependency creep
 closed-project language
 public exposure of private CeLeBrUm material
+wholesale import of full private FNP-QNN modules
 ```
 
 When uncertain, make the smallest safe change and leave a clear note for the maintainer.
