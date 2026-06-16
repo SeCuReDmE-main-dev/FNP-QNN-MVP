@@ -20,6 +20,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 
 from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, MODALITIES
+from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
 from .qnn_nucleus import QNNNucleus
 
 
@@ -147,6 +148,7 @@ class CerebrumRuntimeState:
     feature_vector: np.ndarray
     qnn_result: Optional[Dict[str, Any]] = None
     warnings: List[str] = field(default_factory=list)
+    lvfm: Optional[Dict[str, Any]] = None
 
     def to_dict(self, include_bundle: bool = True) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -158,6 +160,8 @@ class CerebrumRuntimeState:
             "qnn_result": self.qnn_result,
             "warnings": self.warnings,
         }
+        if self.lvfm is not None:
+            payload["lvfm"] = self.lvfm
         if include_bundle:
             payload["bundle"] = {
                 "sequence_length": self.feature_bundle.sequence_length,
@@ -225,6 +229,7 @@ class CerebrumRuntimeBridge:
         observations = [event.to_observation() for event in events]
         bundle = self.adapter.build_bundle(observations)
         vector = self.adapter.bundle_to_vector(bundle)
+        lvfm = self._build_lvfm_snapshot(events, pairs)
         qnn_result = None
         if qnn_nucleus is not None:
             qnn_result = qnn_nucleus.smoke_run(observations, label=label, max_epochs=max_epochs, test_size=0.0)
@@ -237,7 +242,74 @@ class CerebrumRuntimeBridge:
             feature_vector=vector,
             qnn_result=qnn_result,
             warnings=warnings,
+            lvfm=lvfm,
         )
+
+    def _build_lvfm_snapshot(
+        self,
+        events: Sequence[CerebrumMemoryEvent],
+        pairs: Sequence[CrossModalPair],
+    ) -> Dict[str, Any]:
+        graph = LVFMRuntimeGraph()
+
+        def _normalize_bit(event: CerebrumMemoryEvent) -> RegisterBit:
+            t = float(min(1.0, max(0.0, event.value)))
+            f = float(min(1.0, max(0.0, 1.0 - event.value)))
+            d_f = float(min(1.0, max(0.0, 1.0 - abs(t - f))))
+            duration_signal = float(min(1.0, max(0.0, event.duration / 4.0)))
+            d_f = float(min(1.0, (d_f + duration_signal) / 2.0))
+            return RegisterBit(t=t, d_f=d_f, f=f)
+
+        events_by_key: Dict[Tuple[str, float], List[int]] = {}
+        for idx, event in enumerate(events):
+            node_id = f"{event.modality}:{idx}:{event.starting_time:.6f}"
+            graph.register_node(
+                node_id=node_id,
+                bit=_normalize_bit(event),
+                register_weight=max(1e-6, event.duration),
+                metadata={
+                    "modality": event.modality,
+                    "source": event.source,
+                    "label": event.label,
+                    "payload_ref": event.payload_ref,
+                },
+            )
+            events_by_key.setdefault((event.modality, round(event.starting_time, 6)), []).append(idx)
+
+        def _find_node(modality: str, timestamp: float) -> str | None:
+            rounded = round(timestamp, 6)
+            key = (modality, rounded)
+            candidates = events_by_key.get(key, [])
+            if candidates:
+                return f"{modality}:{candidates[0]}:{events[candidates[0]].starting_time:.6f}"
+            closest_idx: Optional[int] = None
+            closest_delta = float("inf")
+            for candidate_idx, event in enumerate(events):
+                if event.modality != modality:
+                    continue
+                delta = abs(event.starting_time - timestamp)
+                if delta < closest_delta:
+                    closest_delta = delta
+                    closest_idx = candidate_idx
+            if closest_idx is None or closest_delta > 1.0:
+                return None
+            return f"{modality}:{closest_idx}:{events[closest_idx].starting_time:.6f}"
+
+        for pair in pairs:
+            source_node = _find_node(pair.source_modality, pair.timestamp1)
+            target_node = _find_node(pair.target_modality, pair.timestamp2)
+            if source_node is None or target_node is None:
+                continue
+            if source_node == target_node:
+                continue
+            graph.add_edge(source_node, target_node, weight=pair.overlap_score)
+
+        if graph.edge_count() == 0:
+            ordered_nodes = sorted(graph.nodes)
+            for left, right in zip(ordered_nodes, ordered_nodes[1:]):
+                graph.add_edge(left, right, weight=1.0)
+
+        return graph.to_snapshot()
 
     def build_pairs(self, events: Sequence[CerebrumMemoryEvent]) -> List[CrossModalPair]:
         if len(events) > MAX_RUNTIME_EVENTS:

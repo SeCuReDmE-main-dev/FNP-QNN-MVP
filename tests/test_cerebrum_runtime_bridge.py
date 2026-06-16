@@ -197,6 +197,9 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("qnn_result", runtime)
         self.assertIn("benchmark", runtime)
         self.assertGreater(runtime["feature_dimension"], 0)
+        self.assertIn("lvfm", runtime)
+        self.assertIn("snapshot", runtime["lvfm"])
+        self.assertIn("decision", runtime["lvfm"])
 
     def test_legacy_runtime_demo_endpoint(self):
         response = self.client.get("/cerebrum/runtime/legacy-demo")

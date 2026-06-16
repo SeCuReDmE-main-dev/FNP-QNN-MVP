@@ -2,6 +2,13 @@
 
 from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, CrossModalEvent
 from .cerebrum_runtime_bridge import CerebrumMemoryEvent, CerebrumRuntimeBridge, CerebrumRuntimeState, CrossModalPair
+from .lvfm_runtime_graph import (
+    LVFMRuntimeGraph,
+    LVFMDecision,
+    LVFMDirection,
+    RegisterBit,
+    RegisterKey,
+)
 from .life_science_port import LifeScienceObservationPort
 from .phi_framework import PhiFramework, QuantumState
 from .qnn_nucleus import QNNBenchmarkResult, QNNCandidate, QNNNucleus
@@ -19,6 +26,11 @@ __all__ = [
     "CrossModalPair",
     "CerebrumRuntimeState",
     "CerebrumRuntimeBridge",
+    "RegisterBit",
+    "RegisterKey",
+    "LVFMDirection",
+    "LVFMDecision",
+    "LVFMRuntimeGraph",
     "LifeScienceObservationPort",
     "QNNCandidate",
     "QNNBenchmarkResult",
