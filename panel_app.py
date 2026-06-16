@@ -23,8 +23,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 ASSET_DIR = PROJECT_ROOT / "assets"
 GENERATED_ASSET_DIR = ASSET_DIR / "generated"
 LOGO_ASSET = ASSET_DIR / "logo1.png"
+LOGO_UI_ASSET = GENERATED_ASSET_DIR / "logo-ui-thumb.png"
 MASCOT_ASSET = ASSET_DIR / "mascoote qbit.png"
 STENCIL_ASSET = ASSET_DIR / "qbits stancil.png"
+STENCIL_UI_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-ui-thumb.png"
 STENCIL_MAIN_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-main.png"
 STENCIL_LAB_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-lab.png"
 STENCIL_ORBIT_ASSET = GENERATED_ASSET_DIR / "qbit-stencil-orbit.png"
@@ -38,9 +40,12 @@ VECTOR_CIRCUIT_BRAIN_ASSET = GENERATED_ASSET_DIR / "vector-03-circuit-brain.png"
 VECTOR_WAVE_BRAIN_ASSET = GENERATED_ASSET_DIR / "vector-04-wave-brain.png"
 VECTOR_CUBE_RESEARCH_ASSET = GENERATED_ASSET_DIR / "vector-05-cube-research.png"
 MURAL_ASSET = ASSET_DIR / "mural fnp-qnn.png"
+MURAL_UI_ASSET = GENERATED_ASSET_DIR / "mural-ui-thumb.png"
 VECTOR_ASSET = ASSET_DIR / "vector template.png"
 MUG_ASSET = ASSET_DIR / "template tasse bleu.png"
+MUG_UI_ASSET = GENERATED_ASSET_DIR / "mug-blue-ui-thumb.png"
 SHIRT_ASSET = ASSET_DIR / "tshirt vert template.png"
+SHIRT_UI_ASSET = GENERATED_ASSET_DIR / "shirt-green-ui-thumb.png"
 
 BRAND_CSS = """
 :root {
@@ -415,7 +420,7 @@ def _status_markdown() -> str:
 
 def _brand_hero() -> pn.Row:
     return pn.Row(
-        pn.pane.Image(str(LOGO_ASSET), height=190, sizing_mode="fixed", css_classes=["hero-logo"]),
+        pn.pane.Image(str(LOGO_UI_ASSET), height=190, sizing_mode="fixed", css_classes=["hero-logo"]),
         pn.Column(
             pn.pane.HTML(
                 """
@@ -442,7 +447,7 @@ def _brand_hero() -> pn.Row:
 def _asset_strip() -> pn.Row:
     return pn.Row(
         pn.Column(
-            pn.pane.Image(str(MURAL_ASSET), height=190, sizing_mode="stretch_width"),
+            pn.pane.Image(str(MURAL_UI_ASSET), height=190, sizing_mode="stretch_width"),
             pn.pane.Markdown("### Street-lab identity\nHigh-energy research mural for first impression."),
             css_classes=["brand-card"],
             sizing_mode="stretch_width",
@@ -460,7 +465,7 @@ def _asset_strip() -> pn.Row:
             sizing_mode="stretch_width",
         ),
         pn.Column(
-            pn.pane.Image(str(MUG_ASSET), height=190, sizing_mode="stretch_width"),
+            pn.pane.Image(str(MUG_UI_ASSET), height=190, sizing_mode="stretch_width"),
             pn.pane.Markdown("### Product palette\nBlue, green, orange, navy, and clean white."),
             css_classes=["brand-card"],
             sizing_mode="stretch_width",
@@ -621,7 +626,7 @@ def create_app() -> pn.template.FastListTemplate:
         sidebar=[
             status_pane,
             pn.pane.Image(str(STENCIL_GUIDE_ASSET), height=150),
-            pn.pane.Image(str(SHIRT_ASSET), height=170),
+            pn.pane.Image(str(SHIRT_UI_ASSET), height=170),
             controls,
             pn.Card(command_output, title="Command output"),
         ],
