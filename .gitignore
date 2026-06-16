@@ -10,5 +10,4 @@ build/
 *.egg-info/
 output/tmp/
 reports/generated/
-.png
-*.jpg
+
