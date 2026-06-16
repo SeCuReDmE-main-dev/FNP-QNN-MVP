@@ -195,13 +195,49 @@ without adding a Node/React build chain.
 - `reports/cerebrum_runtime_wiring_report.md`: runtime bridge wiring report.
 - `reports/readme_evidence_audit_2026-06-11.md`: earlier README evidence audit.
 
-### Glymphatic Idle Cleanup (read-only SCAN)
+## Datadog and E2B usage in this application
 
-Optional local utility for sober idle-time inventory:
-- `python scripts/glymphatic_scan.py`
-- Read-only. No process killed. No file deleted. No network call.
-- Destructive actions are out of scope here and require human-in-the-loop approval.
-- See `docs/glymphatic_cleanup.md` for the full design.
+The simulator uses a local, offline-first posture, with **optional external audit tooling**:
+This is separate from the core API/Panel runtime and is intended for optional VM/autobuild security checks only.
+
+### 1) Datadog
+
+- **Role**: receives structured audit logs from optional VM security audits.
+- **Service tag**: `e2b-vm-auditor`.
+- **Mandatory tags**: `env`, `sandbox_id`, `template_id`, `audit_status`.
+- **Where it is wired**:
+  - `scripts/e2b_datadog_audit/audit_e2b.py`
+  - optional workflow orchestration around autobuild and release validation.
+- **Local impact**: no Datadog calls are required for the main app runtime.
+
+### 2) E2B
+
+- **Role**: launches temporary audit sandboxes for command checks on generated VM images.
+- **Checks executed** in sandbox:
+  - package inventory (`dpkg -l` fallback to `pip list`),
+  - open ports (`ss -tlnp`),
+  - active processes (`ps aux`),
+  - environment variables (`env`) with redaction,
+  - sensitive path permission checks.
+- **Lifetime**: sandbox is destroyed in script cleanup even when a check fails.
+- **Where it is used**:
+  - `scripts/e2b_datadog_audit/audit_e2b.py`.
+
+### 3) Workflow expectation
+
+Datadog logs from each audit can be used by a monitor, for example:
+
+- `status:error service:e2b-vm-auditor`
+
+This keeps the app evidence loop separated from runtime execution while still surfacing
+operator signals for follow-up remediation.
+
+### Optional local scan utility
+
+You can still use `python scripts/glymphatic_scan.py` as a local-only inventory tool:
+- read-only, no process termination,
+- no automatic file deletion,
+- no network action.
 
 ## Educational Open Source Use
 

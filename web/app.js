@@ -1,6 +1,20 @@
 const API_BASE = window.location.origin;
 const MODALITIES = ["audio", "video", "text", "stimuli"];
 
+function showToast(message, kind = "info", timeoutMs = 3200) {
+  const region = document.getElementById("toast-region");
+  if (!region) return;
+  const node = document.createElement("div");
+  node.className = `toast ${kind}`;
+  node.textContent = String(message);
+  region.appendChild(node);
+  requestAnimationFrame(() => node.classList.add("show"));
+  window.setTimeout(() => {
+    node.classList.remove("show");
+    window.setTimeout(() => node.remove(), 220);
+  }, timeoutMs);
+}
+
 const demoPayload = {
   label: 1,
   epochs: 12,
@@ -71,6 +85,14 @@ function setPanelState(node, hasData) {
   node.classList.toggle("empty-state", !hasData);
 }
 
+function setSkeleton(selectors, on) {
+  for (const sel of selectors) {
+    const node = document.querySelector(sel);
+    if (!node) continue;
+    node.classList.toggle("skeleton", !!on);
+  }
+}
+
 function prettyJson(data) {
   return JSON.stringify(data ?? {}, null, 2);
 }
@@ -120,7 +142,9 @@ async function apiRequest(path, options = {}) {
 }
 
 async function refreshStatus() {
+  const heroMetrics = ["#metric-api-status", "#metric-bridge", "#metric-backend", "#metric-phi"];
   setPill("#system-indicator", "loading", "busy");
+  setSkeleton(heroMetrics, true);
   try {
     const [health, runtime, candidates] = await Promise.all([
       apiRequest("/health"),
@@ -132,12 +156,16 @@ async function refreshStatus() {
     setText("#metric-bridge", runtime.bridge || runtime.status || "—");
     setText("#metric-backend", runtime.qnn_backend || health.qnn_backend || "—");
     setText("#metric-phi", formatNumber(health.golden_ratio, 12));
+    setSkeleton(heroMetrics, false);
     setPill("#system-indicator", "online", "ok");
     renderCandidates(candidates.candidates || []);
     writeCommand("Status refreshed.", { health, runtime, candidates });
+    showToast("Status refreshed.", "success");
   } catch (error) {
+    setSkeleton(heroMetrics, false);
     setPill("#system-indicator", "offline", "error");
     writeCommand(`Status refresh failed: ${error.message}`);
+    showToast(error.message || "Request failed.", "error");
   }
 }
 
@@ -174,9 +202,11 @@ async function runSimulation() {
       qnn_backend: response.runtime?.qnn_result?.backend || "not-run"
     });
     setPill("#run-indicator", "complete", "ok");
+    showToast("Simulation completed.", "success");
   } catch (error) {
     setPill("#run-indicator", "error", "error");
     writeCommand(`Simulation failed: ${error.message}`);
+    showToast(error.message || "Request failed.", "error");
   }
 }
 
@@ -193,9 +223,11 @@ async function encodePayload() {
     writeJson(response);
     writeCommand("Encoding completed.", response.encoded?.summary || {});
     setPill("#run-indicator", "encoded", "ok");
+    showToast("Encoding completed.", "success");
   } catch (error) {
     setPill("#run-indicator", "error", "error");
     writeCommand(`Encoding failed: ${error.message}`);
+    showToast(error.message || "Request failed.", "error");
   }
 }
 
@@ -227,9 +259,11 @@ async function runQnnSmoke() {
     writeJson(response);
     writeCommand("QNN smoke completed.", response.result || {});
     setPill("#run-indicator", "qnn complete", "ok");
+    showToast("QNN smoke completed.", "success");
   } catch (error) {
     setPill("#run-indicator", "error", "error");
     writeCommand(`QNN smoke failed: ${error.message}`);
+    showToast(error.message || "Request failed.", "error");
   }
 }
 
@@ -245,9 +279,11 @@ async function runLegacyDemo() {
       pairs: response.runtime?.pairs?.length ?? 0
     });
     setPill("#run-indicator", "legacy complete", "ok");
+    showToast("Legacy fixture replay completed.", "success");
   } catch (error) {
     setPill("#run-indicator", "error", "error");
     writeCommand(`Legacy demo failed: ${error.message}`);
+    showToast(error.message || "Request failed.", "error");
   }
 }
 
@@ -267,8 +303,10 @@ async function runCommand(commandName) {
     if (commandName === "cerebrum-runtime-run" && response.data) {
       renderRuntime(response.data);
     }
+    showToast(`${commandName} complete.`, "success");
   } catch (error) {
     writeCommand(`${commandName} failed: ${error.message}`);
+    showToast(error.message || "Request failed.", "error");
   }
 }
 

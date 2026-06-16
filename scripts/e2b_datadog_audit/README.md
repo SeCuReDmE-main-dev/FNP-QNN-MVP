@@ -1,7 +1,7 @@
 # E2B Datadog Sandbox Auditor
 
 Ce module fournit un agent local pour auditer automatiquement une sandbox E2B et
-émettre un log Datadog structuré.
+émettre un log Datadog structuré, avec priorité au SDK officiel Datadog (fallback HTTP si nécessaire).
 
 ## Structure
 
@@ -57,10 +57,13 @@ set DATADOG_API_KEY=xxx
 python audit_e2b.py --template-id py --e2b-timeout 120 --service e2b-vm-auditor --dd-env ci
 ```
 
-La sortie standard contient un JSON résumant :
+La sortie standard contient un JSON résumé :
 - status global (`pass` / `fail`)
 - le résultat de chaque commande
 - l’`sandbox_id` (si disponible dans le SDK E2B utilisé)
+
+Quand Datadog est disponible, le script tente d’abord l’envoi via `datadog-api-client`
+et bascule sur l’API HTTP d’ingestion en secours si la librairie Python n’est pas importable.
 
 ## Intégration Datadog Workflow / Cron
 
