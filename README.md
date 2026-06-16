@@ -198,6 +198,7 @@ without adding a Node/React build chain.
 ## Datadog and E2B usage in this application
 
 The simulator uses a local, offline-first posture, with **optional external audit tooling**:
+This is separate from the core API/Panel runtime and is intended for optional VM/autobuild security checks only.
 
 ### 1) Datadog
 

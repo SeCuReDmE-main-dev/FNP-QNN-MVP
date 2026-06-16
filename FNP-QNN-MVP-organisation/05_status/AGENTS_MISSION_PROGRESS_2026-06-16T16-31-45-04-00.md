@@ -224,3 +224,27 @@ Organisation folder: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bac
   - modified files remain limited to mission-related docs/code and UI surfaces.
 - [ ] Visual browser screenshot-level validation remains pending (headless execution).
 - [ ] Final front-end polish + outreach-safe screenshot package remains pending.
+
+## 2026-06-16T18:54:06-04:00 — Validation refresh checkpoint (post gate rerun)
+
+- [x] Re-ran validation gates after latest touchpoints:
+  - python scripts/validate_alpha_readiness.py → PASS
+  - python -m unittest discover -s tests -p "test_*.py" → PASS (67 tests, 0 fail, 0 error)
+  - python -m compileall api core examples tests scripts → PASS
+  - python -m py_compile scripts/e2b_datadog_audit/audit_e2b.py → PASS
+- [ ] Panel visual browser capture (panel serve --show / screenshot validation) remains pending in this environment.
+- [x] Runtime endpoint smoke check attempted (panel serve + HTTP on /panel_app) encountered HttpClient timeout, no functional regression evidence change observed in this pass.
+  - next step: rerun with longer stable session in interactive environment.
+
+## 2026-06-16T18:57:12-04:00 — Visual/endpoint continuity checkpoint
+
+- [x] Re-ran panel endpoint smoke check with extended timeout:
+  - command: python -m panel serve panel_app.py --port 5650 --address 127.0.0.1 --allow-websocket-origin=*
+  - GET /panel_app → 200 (Control Room marker present in HTML)
+  - server started successfully and reported bind at /panel_app.
+- [x] Re-ran required validation gates after the checkpoint:
+  - python scripts/validate_alpha_readiness.py → PASS
+  - python -m unittest discover -s tests -p "test_*.py" → PASS (67 tests, 0 fail, 0 error)
+  - python -m compileall api core examples tests scripts → PASS
+  - python -m py_compile scripts/e2b_datadog_audit/audit_e2b.py → PASS
+- [ ] Interactive browser visual screenshot validation still pending in this environment (no screenshot capture tooling used here).
