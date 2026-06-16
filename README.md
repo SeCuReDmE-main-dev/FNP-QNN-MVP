@@ -172,6 +172,25 @@ without adding a Node/React build chain.
 - `reports/cerebrum_runtime_wiring_report.md`: runtime bridge wiring report.
 - `reports/readme_evidence_audit_2026-06-11.md`: earlier README evidence audit.
 
+## Infrastructure audit (internal)
+
+The simulator can run a local, structured audit pipeline for temporary E2B sandboxes.
+Each audit is executed through a non-clinical helper script and its outcome is sent
+to Datadog as a structured log with tags:
+
+- `service:e2b-vm-auditor`
+- `env`
+- `sandbox_id`
+- `template_id`
+- `audit_status`
+
+See:
+
+- `scripts/e2b_datadog_audit/README.md`
+- `scripts/e2b_datadog_audit/audit_e2b.py`
+
+This feature remains optional and is isolated from the core simulation runtime.
+
 ## Educational Open Source Use
 
 This project is suitable for supervised educational exploration of local

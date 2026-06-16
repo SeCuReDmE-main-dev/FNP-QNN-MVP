@@ -1,0 +1,2 @@
+e2b-code-interpreter>=2.5.0
+datadog-api-client>=2.18.0
