@@ -303,6 +303,42 @@ This project is suitable for supervised educational exploration of local
 simulation pipelines, feature encoding, deterministic fallback behavior,
 NeuroBit gate traces, and future visual network-design workflows.
 
+Recent quantum-neutrosophic learning additions:
+
+- `core/neutrosophic_quantum_primitives.py` adds a small, pure simulation
+  grammar for `NeutrobitState`, coherent/decoherent neutrosophic states,
+  non-projective T/I/F measurement, finite punctured-wave states, partial
+  entanglement profiles, and optional neutrobit feature expansion.
+- `core/neurobit_gate_tunnel.py` now reports the `W` gate as the local `|I>`
+  basis marker, includes triplet measurement metadata, exposes a bounded
+  partial-entanglement T/I/F profile, and can include finite
+  `puncture_delta` metadata when requested.
+- `core/qnn_nucleus.py` keeps the default `state_basis="binary"` path intact
+  and adds opt-in `state_basis="neutrobit"` feature expansion before the
+  QNN/Torch surrogate lane.
+- `api/schemas.py` and `api/main.py` expose the compatible optional fields
+  `state_basis` and `puncture_delta` for QNN smoke, runtime runs, and
+  NeuroBit gate demos.
+- `docs/source_ledger/quantum_neutrosophic_sources.md` maps each source PDF
+  to the exact simulator mechanism, accepted educational claim, and forbidden
+  public claim.
+- `tests/test_neutrosophic_quantum_primitives.py` and the updated NeuroBit,
+  QNN, and API tests cover normalization, measurement output, finite
+  puncture-grid behavior, opt-in feature expansion, and backward-compatible
+  API behavior.
+
+Source-backed topics now available for education and code reading:
+
+- neutrobit basis `|0>`, `|1>`, and `|I>`;
+- coherent versus decoherent neutrosophic state handling;
+- non-projective measurement as a T/I/F distribution;
+- finite punctured-wave simulation through `puncture_delta`;
+- partial entanglement represented as bounded T/I/F metadata.
+
+These additions are local educational simulation primitives only. They do not
+claim a physical neutrosophic quantum computer, clinical system, security
+system, production system, quantum advantage, or validated physics engine.
+
 Start with:
 
 - `EDUCATION.md`
