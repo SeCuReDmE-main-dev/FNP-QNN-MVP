@@ -34,6 +34,14 @@ DEFAULT_SERVICE = "e2b-vm-auditor"
 DEFAULT_DATADOG_SITE = "datadoghq.com"
 
 
+def _env_first(*names: str, default: Optional[str] = None) -> Optional[str]:
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    return default
+
+
 @dataclass
 class CheckResult:
     name: str
@@ -553,10 +561,14 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--e2b-api-key", default=os.getenv("E2B_API_KEY"), help="E2B API key")
     parser.add_argument(
         "--datadog-api-key",
-        default=os.getenv("DATADOG_API_KEY"),
-        help="Datadog API key used by log intake",
+        default=_env_first("DATADOG_API_KEY", "DD_API_KEY"),
+        help="Datadog API key used by log intake. Accepts DATADOG_API_KEY or DD_API_KEY.",
     )
-    parser.add_argument("--datadog-site", default=os.getenv("DATADOG_SITE", DEFAULT_DATADOG_SITE), help="Datadog site")
+    parser.add_argument(
+        "--datadog-site",
+        default=_env_first("DATADOG_SITE", "DD_SITE", default=DEFAULT_DATADOG_SITE),
+        help="Datadog site. Accepts DATADOG_SITE or DD_SITE.",
+    )
     parser.add_argument("--service", default=DEFAULT_SERVICE, help="Datadog service tag")
     parser.add_argument("--dd-env", default=os.getenv("DD_ENV", "local"), help="Datadog env tag")
     parser.add_argument(
@@ -674,7 +686,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     dd_key = args.datadog_api_key
     if not dd_key:
-        print("Missing DATADOG_API_KEY, skipped Datadog emission.", file=sys.stderr)
+        print("Missing DATADOG_API_KEY or DD_API_KEY, skipped Datadog emission.", file=sys.stderr)
         return 0 if summary.audit_status == "pass" else 1
 
     emitter = DatadogEmitter(dd_key, site=args.datadog_site, service=args.service)

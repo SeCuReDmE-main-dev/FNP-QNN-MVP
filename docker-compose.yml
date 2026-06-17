@@ -101,8 +101,8 @@ services:
     image: gcr.io/datadoghq/agent:7
     container_name: fnp-qnn-datadog-agent
     environment:
-      DD_API_KEY: ${DATADOG_API_KEY:-}
-      DD_SITE: ${DATADOG_SITE:-datadoghq.com}
+      DD_API_KEY: ${DD_API_KEY:-${DATADOG_API_KEY:-}}
+      DD_SITE: ${DD_SITE:-${DATADOG_SITE:-datadoghq.com}}
       DD_ENV: ${DD_ENV:-local}
       DD_LOGS_ENABLED: ${DD_LOGS_ENABLED:-true}
       DD_APM_ENABLED: ${DD_APM_ENABLED:-true}
@@ -125,8 +125,8 @@ services:
     container_name: fnp-qnn-e2b-auditor
     environment:
       E2B_API_KEY: ${E2B_API_KEY:-}
-      DATADOG_API_KEY: ${DATADOG_API_KEY:-}
-      DATADOG_SITE: ${DATADOG_SITE:-datadoghq.com}
+      DATADOG_API_KEY: ${DATADOG_API_KEY:-${DD_API_KEY:-}}
+      DATADOG_SITE: ${DATADOG_SITE:-${DD_SITE:-datadoghq.com}}
       DD_ENV: ${DD_ENV:-local}
       E2B_TEMPLATE_ID: ${E2B_TEMPLATE_ID:-python}
       AUDIT_TARGET_URL: ${AUDIT_TARGET_URL:-http://vllm:8000/metrics}

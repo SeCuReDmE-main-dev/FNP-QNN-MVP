@@ -21,8 +21,8 @@ python -m pip install -r requirements.txt
 Les variables suivantes peuvent être définies avant lancement :
 
 - `E2B_API_KEY` : token API E2B (requis)
-- `DATADOG_API_KEY` : token API Datadog pour l’ingestion de logs
-- `DATADOG_SITE` : site Datadog (défaut `datadoghq.com`)
+- `DATADOG_API_KEY` ou `DD_API_KEY` : token API Datadog pour l’ingestion de logs
+- `DATADOG_SITE` ou `DD_SITE` : site Datadog (défaut `datadoghq.com`)
 - `DD_ENV` : tag d’environnement Datadog (défaut `local`)
 - `E2B_TEMPLATE_ID` : template E2B (défaut `python`)
 
@@ -53,7 +53,8 @@ Options utiles :
 
 ```bash
 set E2B_API_KEY=xxx
-set DATADOG_API_KEY=xxx
+set DD_API_KEY=xxx
+set DD_SITE=us3.datadoghq.com
 python audit_e2b.py --template-id py --e2b-timeout 120 --service e2b-vm-auditor --dd-env ci
 ```
 
@@ -99,4 +100,4 @@ status:error service:e2b-vm-auditor @audit.tags.env:ci
 
 - Le script évite toute persistance de données.
 - La sandbox est supprimée via le mécanisme de sortie `with` et/ou `close`.
-- Les secrets (`E2B_API_KEY`, `DATADOG_API_KEY`) ne sont jamais sérialisés dans les logs.
+- Les secrets (`E2B_API_KEY`, `DATADOG_API_KEY`, `DD_API_KEY`) ne sont jamais sérialisés dans les logs.
