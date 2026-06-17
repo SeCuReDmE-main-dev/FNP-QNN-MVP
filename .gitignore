@@ -10,4 +10,6 @@ build/
 *.egg-info/
 output/tmp/
 reports/generated/
+reports/runtime_logs/
 panel_server*.log
+.tmp_panel_showcase.*

@@ -53,6 +53,23 @@ class CerebrumQNNTests(unittest.TestCase):
         else:
             self.assertEqual(result["backend"], "torch_surrogate")
 
+    def test_neutrobit_basis_expands_feature_vector_when_requested(self):
+        nucleus = QNNNucleus()
+        events = nucleus.adapter.default_observations()
+        binary = nucleus.fit_surrogate([events], [1], max_epochs=2, test_size=0.0)
+        neutrobit = nucleus.fit_surrogate(
+            [events],
+            [1],
+            max_epochs=2,
+            test_size=0.0,
+            state_basis="neutrobit",
+            puncture_delta=0.25,
+        )
+        self.assertEqual(binary["state_basis"], "binary")
+        self.assertEqual(neutrobit["state_basis"], "neutrobit")
+        self.assertGreater(neutrobit["feature_dimension"], binary["feature_dimension"])
+        self.assertEqual(neutrobit["puncture_delta"], 0.25)
+
     def test_benchmark_returns_entries_for_all_candidates(self):
         nucleus = QNNNucleus()
         benchmark = nucleus.benchmark(

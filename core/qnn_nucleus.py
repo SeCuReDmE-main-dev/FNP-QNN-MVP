@@ -18,6 +18,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 from .cerebrum_adapter import CerebrumAdapter
+from .neutrosophic_quantum_primitives import neutrobit_features_from_vector
 
 try:  # Optional Qiskit path. The repo should still run without it.
     from qiskit.circuit import QuantumCircuit
@@ -125,10 +126,19 @@ class QNNNucleus:
         label: float = 1.0,
         max_epochs: int = 12,
         test_size: float = 0.0,
+        state_basis: str = "binary",
+        puncture_delta: Optional[float] = None,
     ) -> Dict[str, Any]:
         if QISKIT_AVAILABLE:
             try:
-                return self.fit_qiskit_hybrid([raw_events], [int(label)], max_epochs=max_epochs, test_size=test_size)
+                return self.fit_qiskit_hybrid(
+                    [raw_events],
+                    [int(label)],
+                    max_epochs=max_epochs,
+                    test_size=test_size,
+                    state_basis=state_basis,
+                    puncture_delta=puncture_delta,
+                )
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
                     [raw_events],
@@ -136,6 +146,8 @@ class QNNNucleus:
                     max_epochs=max_epochs if max_epochs > 0 else 32,
                     test_size=test_size,
                     return_bundle=True,
+                    state_basis=state_basis,
+                    puncture_delta=puncture_delta,
                 )
                 fallback["qiskit_error"] = str(exc)
                 fallback["backend"] = "torch_surrogate_fallback_after_qiskit_error"
@@ -146,6 +158,8 @@ class QNNNucleus:
             max_epochs=max_epochs if max_epochs > 0 else 32,
             test_size=test_size,
             return_bundle=True,
+            state_basis=state_basis,
+            puncture_delta=puncture_delta,
         )
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -232,12 +246,14 @@ class QNNNucleus:
         max_epochs: int = 48,
         test_size: float = 0.25,
         return_bundle: bool = False,
+        state_basis: str = "binary",
+        puncture_delta: Optional[float] = None,
     ) -> Dict[str, Any]:
         np.random.seed(self.DEFAULT_SEED)
         torch.manual_seed(self.DEFAULT_SEED)
         if torch.cuda.is_available():  # pragma: no cover - local CPU path is expected
             torch.cuda.manual_seed_all(self.DEFAULT_SEED)
-        vectors = self._vectorize_samples(samples)
+        vectors = self._vectorize_samples(samples, state_basis=state_basis, puncture_delta=puncture_delta)
         y = np.asarray(labels, dtype=np.float32)
 
         if len(vectors) == 1 or test_size <= 0.0:
@@ -283,6 +299,8 @@ class QNNNucleus:
             "predicted_probability": float(test_prob[-1] if len(test_prob) else train_prob[-1]),
             "feature_vector": vectors[-1].tolist(),
             "bundle_summary": self.adapter.build_bundle(samples[-1]).summary,
+            "state_basis": state_basis,
+            "puncture_delta": puncture_delta,
         }
 
         self._surrogate = model
@@ -296,11 +314,18 @@ class QNNNucleus:
         labels: Sequence[int],
         max_epochs: int = 18,
         test_size: float = 0.25,
+        state_basis: str = "binary",
+        puncture_delta: Optional[float] = None,
     ) -> Dict[str, Any]:
         if not QISKIT_AVAILABLE:
             raise RuntimeError("Qiskit Machine Learning is not installed in this environment")
 
-        vectors = self._vectorize_samples(samples, target_dim=self.QISKIT_QUBITS)
+        vectors = self._vectorize_samples(
+            samples,
+            target_dim=self.QISKIT_QUBITS,
+            state_basis=state_basis,
+            puncture_delta=puncture_delta,
+        )
         y = np.asarray(labels, dtype=np.float32)
 
         if len(vectors) == 1 or test_size <= 0.0:
@@ -346,14 +371,21 @@ class QNNNucleus:
             "bundle_summary": self.adapter.build_bundle(samples[-1]).summary,
             "initial_weights": initial_weights.detach().cpu().numpy().tolist(),
             "qiskit_num_weights": int(qnn.num_weights),
+            "state_basis": state_basis,
+            "puncture_delta": puncture_delta,
         }
         self._qiskit_model = model
         return result
 
-    def encode_sample(self, raw_events: Sequence[Any]) -> np.ndarray:
+    def encode_sample(
+        self,
+        raw_events: Sequence[Any],
+        state_basis: str = "binary",
+        puncture_delta: Optional[float] = None,
+    ) -> np.ndarray:
         bundle = self.adapter.build_bundle(raw_events)
         base_vector = self.adapter.bundle_to_vector(bundle)
-        return self._quantum_style_encoding(base_vector)
+        return self._quantum_style_encoding(base_vector, state_basis=state_basis, puncture_delta=puncture_delta)
 
     def _benchmark_surrogate(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> QNNBenchmarkResult:
         outcome = self.fit_surrogate(samples, labels, max_epochs=36, test_size=0.25)
@@ -438,8 +470,17 @@ class QNNNucleus:
             self._surrogate = _SurrogateQuantumNet(input_dim=input_dim)
         return self._surrogate
 
-    def _vectorize_samples(self, samples: Sequence[Sequence[Any]], target_dim: Optional[int] = None) -> np.ndarray:
-        vectors = [self.encode_sample(sample) for sample in samples]
+    def _vectorize_samples(
+        self,
+        samples: Sequence[Sequence[Any]],
+        target_dim: Optional[int] = None,
+        state_basis: str = "binary",
+        puncture_delta: Optional[float] = None,
+    ) -> np.ndarray:
+        vectors = [
+            self.encode_sample(sample, state_basis=state_basis, puncture_delta=puncture_delta)
+            for sample in samples
+        ]
         matrix = np.asarray(vectors, dtype=np.float32)
         if target_dim is None:
             return matrix
@@ -461,14 +502,25 @@ class QNNNucleus:
         compact = [float(chunk.mean()) if chunk.size else 0.0 for chunk in chunks]
         return np.asarray(compact, dtype=np.float32)
 
-    def _quantum_style_encoding(self, vector: np.ndarray) -> np.ndarray:
+    def _quantum_style_encoding(
+        self,
+        vector: np.ndarray,
+        state_basis: str = "binary",
+        puncture_delta: Optional[float] = None,
+    ) -> np.ndarray:
         vector = np.asarray(vector, dtype=np.float32)
         if vector.size == 0:
             return np.zeros(1, dtype=np.float32)
         base = np.tanh(vector)
         fourier = np.sin(np.pi * vector)
         envelope = np.cos(np.pi * vector)
-        return np.concatenate([base, fourier, envelope]).astype(np.float32)
+        encoded = np.concatenate([base, fourier, envelope]).astype(np.float32)
+        if state_basis == "binary":
+            return encoded
+        if state_basis != "neutrobit":
+            raise ValueError("state_basis must be 'binary' or 'neutrobit'")
+        neutrobit_features = neutrobit_features_from_vector(encoded, puncture_delta=puncture_delta)
+        return np.concatenate([encoded, neutrobit_features]).astype(np.float32)
 
     def _module_available(self, module_name: str) -> bool:
         try:

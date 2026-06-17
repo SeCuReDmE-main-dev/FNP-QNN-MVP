@@ -110,6 +110,8 @@ def _neurobit_profile_from_request(payload: NeuroBitProfileRequest | None = None
         indeterminacy=payload.indeterminacy,
         falsity=payload.falsity,
         delta_falsity=payload.delta_falsity,
+        state_basis=payload.state_basis,
+        puncture_delta=payload.puncture_delta,
     )
 
 
@@ -196,6 +198,8 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         qnn_nucleus=qnn_nucleus if run_qnn else None,
         label=float((payload or {}).get("label", 1.0)),
         max_epochs=int((payload or {}).get("epochs", 12)),
+        state_basis=str((payload or {}).get("state_basis", "binary")),
+        puncture_delta=(payload or {}).get("puncture_delta"),
     )
     result = state.to_dict()
     if run_qnn:
@@ -362,6 +366,8 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         label=float(labels[0]) if labels else 1.0,
         max_epochs=payload.epochs,
         test_size=payload.test_size,
+        state_basis=payload.state_basis,
+        puncture_delta=payload.puncture_delta,
     ))
     return {
         "status": "ok",
@@ -382,6 +388,7 @@ async def neurobit_status() -> Dict[str, Any]:
         "available_gates": ["hadamard", "w", "x", "y", "z"],
         "research_boundary": result["research_boundary"],
         "hierarchy": result["hierarchy"],
+        "state_basis": result["state_basis"],
     }
 
 
@@ -449,7 +456,14 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
         labels = qnn_request.labels
         if not samples or not labels:
             samples, labels = build_demo_samples()
-        result = _json_safe_qnn_result(qnn_nucleus.smoke_run(samples[0], label=float(labels[0]), max_epochs=qnn_request.epochs, test_size=qnn_request.test_size))
+        result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
+            samples[0],
+            label=float(labels[0]),
+            max_epochs=qnn_request.epochs,
+            test_size=qnn_request.test_size,
+            state_basis=qnn_request.state_basis,
+            puncture_delta=qnn_request.puncture_delta,
+        ))
         return CommandResponse(
             success=True,
             output=(

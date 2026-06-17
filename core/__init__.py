@@ -22,6 +22,15 @@ from .quantum_feature_transforms import (
     complex_wavefunction_to_amplitude_phase_features,
     structure_vector_to_phi_scaled_state,
 )
+from .neutrosophic_quantum_primitives import (
+    CoherentNeutroState,
+    DecoherentNeutroState,
+    NeutrobitState,
+    neutrobit_features_from_vector,
+    neutrosophic_measurement,
+    partial_entanglement_profile,
+    punctured_wave_state,
+)
 from .runtime_state_store import RuntimeStateStore
 
 __version__ = "1.2.0-research"
@@ -52,5 +61,12 @@ __all__ = [
     "ExperimentSeedManager",
     "complex_wavefunction_to_amplitude_phase_features",
     "structure_vector_to_phi_scaled_state",
+    "CoherentNeutroState",
+    "DecoherentNeutroState",
+    "NeutrobitState",
+    "neutrobit_features_from_vector",
+    "neutrosophic_measurement",
+    "partial_entanglement_profile",
+    "punctured_wave_state",
     "RuntimeStateStore",
 ]

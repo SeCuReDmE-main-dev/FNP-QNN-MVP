@@ -224,6 +224,8 @@ class CerebrumRuntimeBridge:
         qnn_nucleus: Optional[QNNNucleus] = None,
         label: float = 1.0,
         max_epochs: int = 12,
+        state_basis: str = "binary",
+        puncture_delta: Optional[float] = None,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
@@ -232,7 +234,14 @@ class CerebrumRuntimeBridge:
         lvfm = self._build_lvfm_snapshot(events, pairs)
         qnn_result = None
         if qnn_nucleus is not None:
-            qnn_result = qnn_nucleus.smoke_run(observations, label=label, max_epochs=max_epochs, test_size=0.0)
+            qnn_result = qnn_nucleus.smoke_run(
+                observations,
+                label=label,
+                max_epochs=max_epochs,
+                test_size=0.0,
+                state_basis=state_basis,
+                puncture_delta=puncture_delta,
+            )
             qnn_result.pop("bundle", None)
         return CerebrumRuntimeState(
             events=events,

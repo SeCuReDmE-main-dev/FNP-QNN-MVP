@@ -63,6 +63,8 @@ class RuntimeRunRequest(BaseModel):
     label: float = 1.0
     epochs: int = Field(default=12, ge=0, le=256)
     run_qnn: bool = True
+    state_basis: Literal["binary", "neutrobit"] = "binary"
+    puncture_delta: Optional[float] = Field(default=None, gt=0.0)
 
     @field_validator("memories", "events", "observations")
     @classmethod
@@ -77,7 +79,13 @@ class RuntimeRunRequest(BaseModel):
         return _finite(value, "label")
 
     def to_runtime_payload(self) -> Dict[str, Any]:
-        payload: Dict[str, Any] = {"label": self.label, "epochs": self.epochs}
+        payload: Dict[str, Any] = {
+            "label": self.label,
+            "epochs": self.epochs,
+            "state_basis": self.state_basis,
+        }
+        if self.puncture_delta is not None:
+            payload["puncture_delta"] = self.puncture_delta
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:
@@ -105,6 +113,8 @@ class QNNSmokeRequest(BaseModel):
     labels: Optional[List[int]] = None
     epochs: int = Field(default=24, ge=0, le=256)
     test_size: float = Field(default=0.25, ge=0.0, le=0.9)
+    state_basis: Literal["binary", "neutrobit"] = "binary"
+    puncture_delta: Optional[float] = Field(default=None, gt=0.0)
 
     @model_validator(mode="after")
     def validate_samples_and_labels(self):
@@ -130,6 +140,8 @@ class NeuroBitProfileRequest(BaseModel):
     falsity: float = Field(default=0.15, ge=0.0)
     delta_falsity: float = 0.0
     n_qubits: int = Field(default=4, ge=1, le=12)
+    state_basis: Literal["binary", "neutrobit"] = "binary"
+    puncture_delta: Optional[float] = Field(default=None, gt=0.0)
 
     @model_validator(mode="before")
     @classmethod
@@ -150,6 +162,8 @@ class NeuroBitProfileRequest(BaseModel):
             "indeterminacy": self.indeterminacy,
             "falsity": self.falsity,
             "delta_falsity": self.delta_falsity,
+            "state_basis": self.state_basis,
+            "puncture_delta": self.puncture_delta,
         }
 
 

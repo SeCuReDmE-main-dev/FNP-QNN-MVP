@@ -13,6 +13,13 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
+from .neutrosophic_quantum_primitives import (
+    NeutrobitState,
+    neutrosophic_measurement,
+    partial_entanglement_profile,
+    punctured_wave_state,
+)
+
 try:  # pragma: no cover - optional runtime path.
     from qiskit import Aer, QuantumCircuit, execute
     from qiskit.circuit.library import UnitaryGate
@@ -34,11 +41,15 @@ class NeuroBitProfile:
     indeterminacy: float = 0.30
     falsity: float = 0.15
     delta_falsity: float = 0.0
+    state_basis: str = "binary"
+    puncture_delta: Optional[float] = None
 
     def normalized(self) -> "NeuroBitProfile":
         truth = max(float(self.truth), 0.0)
         indeterminacy = max(float(self.indeterminacy), 0.0)
         falsity = max(float(self.falsity), 0.0)
+        state_basis = self.state_basis if self.state_basis in {"binary", "neutrobit"} else "binary"
+        puncture_delta = None if self.puncture_delta is None else max(float(self.puncture_delta), 0.0)
         total = truth + indeterminacy + falsity
         if total <= 0.0:
             return NeuroBitProfile(
@@ -46,12 +57,16 @@ class NeuroBitProfile:
                 indeterminacy=1.0 / 3.0,
                 falsity=1.0 / 3.0,
                 delta_falsity=float(self.delta_falsity),
+                state_basis=state_basis,
+                puncture_delta=puncture_delta,
             )
         return NeuroBitProfile(
             truth=truth / total,
             indeterminacy=indeterminacy / total,
             falsity=falsity / total,
             delta_falsity=float(self.delta_falsity),
+            state_basis=state_basis,
+            puncture_delta=puncture_delta,
         )
 
     @property
@@ -62,6 +77,7 @@ class NeuroBitProfile:
             "indeterminacy": float(normalized.indeterminacy),
             "falsity": float(normalized.falsity),
             "delta_falsity": float(normalized.delta_falsity),
+            "puncture_delta": float(normalized.puncture_delta or 0.0),
         }
 
 
@@ -72,6 +88,8 @@ def profile_from_mapping(payload: Optional[Mapping[str, Any]]) -> NeuroBitProfil
         indeterminacy=float(payload.get("indeterminacy", payload.get("i", 0.30))),
         falsity=float(payload.get("falsity", 0.15)),
         delta_falsity=float(payload.get("delta_falsity", payload.get("dF", 0.0))),
+        state_basis=str(payload.get("state_basis", "binary")),
+        puncture_delta=payload.get("puncture_delta"),
     )
 
 
@@ -115,6 +133,7 @@ def build_neurobit_gate_sequence(profile: Optional[NeuroBitProfile] = None) -> L
     normalized = (profile or NeuroBitProfile()).normalized()
     sequence = ["hadamard"]
     if normalized.indeterminacy > 0.05:
+        # W is the explicit local marker for the |I> basis contribution.
         sequence.append("w")
     if normalized.truth > 0.15:
         sequence.append("x")
@@ -133,6 +152,7 @@ def build_gate_parameters(profile: Optional[NeuroBitProfile] = None) -> Dict[str
         "theta_z": float(math.pi * normalized.falsity),
         "phase": float(math.pi * (normalized.truth + normalized.indeterminacy) / 2.0),
         "delta_falsity": float(normalized.delta_falsity),
+        "indeterminate_basis_weight": float(normalized.indeterminacy),
     }
 
 
@@ -219,6 +239,24 @@ def run_neurobit_gates(profile: Optional[NeuroBitProfile] = None, n_qubits: int 
         raise ValueError("n_qubits must be positive")
     normalized = (profile or NeuroBitProfile()).normalized()
     sequence = build_neurobit_gate_sequence(normalized)
+    neutro_state = NeutrobitState.from_tif(
+        truth=normalized.truth,
+        indeterminacy=normalized.indeterminacy,
+        falsity=normalized.falsity,
+    )
+    measurement = neutrosophic_measurement(neutro_state)
+    entanglement = partial_entanglement_profile(
+        correlation=normalized.truth,
+        separability=normalized.falsity,
+        decoherence=normalized.indeterminacy,
+        delta_falsity=normalized.delta_falsity,
+    )
+    punctured_wave = None
+    if normalized.puncture_delta is not None and normalized.puncture_delta > 0.0:
+        punctured_wave = punctured_wave_state(
+            delta=normalized.puncture_delta,
+            length=max(float(normalized.puncture_delta), float(n_qubits) * float(normalized.puncture_delta)),
+        )
     backend = "deterministic_fallback"
     try:
         trace, counts = _apply_gate_sequence_qiskit(normalized, n_qubits)
@@ -242,9 +280,13 @@ def run_neurobit_gates(profile: Optional[NeuroBitProfile] = None, n_qubits: int 
         "qiskit_available": QISKIT_GATE_AVAILABLE,
         "research_boundary": "local deterministic non-clinical simulation; not a security or clinical proof",
         "profile": normalized.metadata,
+        "state_basis": normalized.state_basis,
         "hierarchy": "I -> I_system^S -> D_f -> dF -> i_fractal",
         "sequence": sequence,
         "parameters": build_gate_parameters(normalized),
+        "neutrobit_measurement": measurement,
+        "partial_entanglement": entanglement,
+        "punctured_wave": punctured_wave,
         "trace": trace,
         "counts": counts,
         "expectation_vector": [round(float(value), 6) for value in expectation.tolist()],
