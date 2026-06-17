@@ -12,6 +12,17 @@ python -m compileall api core examples tests scripts
 git status --short --branch
 ```
 
+## Results
+
+- `python -m unittest discover -s tests -p "test_*.py"` -> PASS, 69 tests OK.
+- `python scripts\validate_alpha_readiness.py` -> PASS.
+- `python -m py_compile panel_app.py ui/network_designer.py ui/network_canvas.py` -> PASS.
+- `python -m compileall api core examples tests scripts` -> PASS.
+- Asset dimension check -> PASS:
+  - panel-ready assets: `1280x720`
+  - screenshots: `1440x1200` or larger
+- `git status --short --branch` -> clean at final check.
+
 ## Browser and endpoint evidence
 
 - Local Panel server launched with `python -m panel serve panel_app.py`.
