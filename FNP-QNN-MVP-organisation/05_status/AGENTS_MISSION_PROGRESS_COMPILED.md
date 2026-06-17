@@ -39,6 +39,16 @@ Répertoire: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FN
 - [x] Pack de preuve institutionnelle préparé:
   - `docs/outreach/README_EVIDENCE.md`
   - `reports/mission_smoke_2026-06-16.md`
+- [x] Pack de preuve institutionnelle finalisé:
+  - `docs/outreach/screenshots/panel-app-overview.png`
+  - `docs/outreach/screenshots/network-designer-view.png`
+  - `docs/outreach/screenshots/evidence-status-view.png`
+  - `docs/outreach/INSTITUTIONAL_DEMO_SCRIPT.md`
+  - `reports/mission_smoke_2026-06-17.md`
+- [x] Actifs Panel-ready générés depuis les assets locaux:
+  - `assets/panel/network-designer-panel.png`
+  - `assets/panel/qbit-operator-panel.png`
+  - `assets/panel/evidence-dashboard-panel.png`
 - [x] OpenClaw / FFED / Datadog / Google Drive / mémoire : intégrations vérifiées dans `C:\Users\jeans\.openclaw\openclaw.json`.
 
 ### Validation technique confirmée
@@ -50,12 +60,15 @@ Répertoire: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FN
 - HTTP Panel endpoint checks en tête:
   - `GET /` => `302`
   - `GET /panel_app` => `200` (marqueur `FNP-QNN` observé)
+- Capture navigateur Panel:
+  - Playwright headless capture terminée pour `/panel_app`.
+  - DOM proof et HTTP proof conservés dans `docs/outreach/screenshots`.
 - `git status --short --branch` vérifié régulièrement pendant le bloc de trace.
 
-## 2) En cours (reste AGENTS)
-- [ ] Capture navigateur `/panel_app` pour preuve visuelle institutionnelle.
-- [ ] Validation opérationnelle finale des actifs `*-panel.png` (format/crop/frame/chute DESIGN).
-- [ ] Finalisation du paquet de démonstration institutionnelle (captures + script de présentation).
+## 2) Mission AGENTS restante
+- [x] Capture navigateur `/panel_app` pour preuve visuelle institutionnelle.
+- [x] Validation opérationnelle finale des actifs `*-panel.png` (format/crop/frame/panel-ready).
+- [x] Finalisation du paquet de démonstration institutionnelle (captures + script de présentation).
 
 ## 3) Sources consolidées
 Ce document regroupe l’ensemble des rapports `AGENTS_MISSION_PROGRESS_*.md` de `05_status`.

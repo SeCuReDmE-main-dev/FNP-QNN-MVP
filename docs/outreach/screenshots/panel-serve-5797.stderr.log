@@ -1,5 +1,0 @@
-2026-06-16 23:46:48,942 Starting Bokeh server version 3.9.1 (running on Tornado 6.5.2)
-2026-06-16 23:46:48,948 Host wildcard '*' will allow connections originating from multiple (or possibly all) hostnames or IPs. Use non-wildcard values to restrict access explicitly
-2026-06-16 23:46:48,950 User authentication hooks NOT provided (default user enabled)
-2026-06-16 23:46:48,965 Bokeh app running at: http://127.0.0.1:5797/panel_app
-2026-06-16 23:46:48,966 Starting Bokeh server with process id: 38208
