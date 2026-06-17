@@ -179,6 +179,45 @@ Notes:
   - `ui/network_canvas.py` palette now exposes `id="fnp-network-designer-palette"`.
   - `web/network_designer/network_canvas.js` now resolves palette selectors robustly.
   - DnD palette hover and canvas state sync update path was hardened.
-  - `web/network_designer/network_canvas.css` gained palette drag-over visual feedback.
+- `web/network_designer/network_canvas.css` gained palette drag-over visual feedback.
 - `BLOCKERS_LOCAL.md` and mission sweep files now show this task as completed.
 - Remaining tasks are still evidence/screenshot packaging follow-up (headless environment).
+
+## Run at 2026-06-17T10:48:00-04:00
+
+```text
+python -m py_compile ui/network_canvas.py
+python -m py_compile panel_app.py ui/network_designer.py
+python scripts/validate_alpha_readiness.py
+python -m unittest discover -s tests -p "test_*.py"
+python -m compileall api core examples tests scripts
+```
+
+Result:
+
+```text
+PASS (all commands)
+```
+
+Notes:
+- Runtime smoke validation:
+  - `/panel_app` endpoint reachable and returns HTTP 200 in this environment when exercised through `curl`.
+  - `/` redirect remains expected (302).
+- Task-flow checkpoint retained:
+  - Front-end Network Designer bootstrap now marked complete in mission progression logs.
+  - Remaining non-blocking tasks are still visual capture asset formalization and outreach/demo packaging.
+### 2026-06-17T10:55:00-04:00 — Outreach packaging plan
+
+```text
+# Evidence plan generated for mission continuity and institutional handoff
+python -m unittest discover -s tests -p "test_*.py"
+python scripts/validate_alpha_readiness.py
+python -m py_compile panel_app.py ui/network_designer.py ui/network_canvas.py
+python -m compileall api core examples tests scripts
+curl http://127.0.0.1:5702/
+curl http://127.0.0.1:5702/panel_app
+```
+
+Result notes:
+- This mission artifact file was added: FNP-QNN-MVP-organisation/05_status/OUTREACH_DEMO_PACKAGING_PLAN_2026-06-17.md
+- Remaining blocker remains visual screenshot bundle execution (browser-required).
