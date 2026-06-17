@@ -60,6 +60,8 @@ class AuditSummary:
     ended_at: str
     duration_ms: int
     results: List[Dict[str, Any]]
+    extra_tags: Dict[str, str]
+    metadata: Dict[str, Any]
 
 
 def _utc_now_iso() -> str:
@@ -160,15 +162,15 @@ class DatadogEmitter:
 
     def _build_datadog_payload(self, summary: AuditSummary) -> Tuple[List[str], Dict[str, Any]]:
         checks_failed = [entry["name"] for entry in summary.results if not entry.get("passed", False)]
-        datadog_tags = self._tag_dict_to_datadog_tags(
-            {
-                "service": self.service,
-                "env": summary.env,
-                "sandbox_id": summary.sandbox_id or "n/a",
-                "template_id": summary.template_id or "n/a",
-                "audit_status": summary.audit_status,
-            }
-        )
+        base_tags = {
+            "service": self.service,
+            "env": summary.env,
+            "sandbox_id": summary.sandbox_id or "n/a",
+            "template_id": summary.template_id or "n/a",
+            "audit_status": summary.audit_status,
+        }
+        base_tags.update(summary.extra_tags)
+        datadog_tags = self._tag_dict_to_datadog_tags(base_tags)
         details = asdict(summary)
         details["checks_failures"] = checks_failed
         message = (
@@ -511,6 +513,8 @@ def _build_payload(
         "template_id": summary.template_id,
         "environment": args.dd_env,
         "tags": tags,
+        "extra_tags": summary.extra_tags,
+        "metadata": summary.metadata,
         "checks": [],
     }
     for result in summary.results:
@@ -521,6 +525,20 @@ def _build_payload(
                 {key: result[key] for key in ("name", "command", "exit_code", "passed", "duration_ms", "error")}
             )
     return payload
+
+
+def _parse_key_value_pairs(values: Optional[Sequence[str]], field_name: str) -> Dict[str, str]:
+    parsed: Dict[str, str] = {}
+    for raw in values or []:
+        if "=" not in raw:
+            raise ValueError(f"{field_name} entries must use key=value format: {raw}")
+        key, value = raw.split("=", 1)
+        key = key.strip()
+        value = value.strip()
+        if not key:
+            raise ValueError(f"{field_name} key cannot be empty: {raw}")
+        parsed[key] = value
+    return parsed
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -557,6 +575,18 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="Do not redact env values for local debugging (not recommended)",
     )
+    parser.add_argument(
+        "--extra-tag",
+        action="append",
+        default=[],
+        help="Additional Datadog tag in key=value format. Can be repeated.",
+    )
+    parser.add_argument(
+        "--metadata",
+        action="append",
+        default=[],
+        help="Additional audit metadata in key=value format. Can be repeated.",
+    )
     return parser.parse_args(argv)
 
 
@@ -570,6 +600,8 @@ def run_audit(args: argparse.Namespace) -> AuditSummary:
     start_time = time.perf_counter()
     started_at = _utc_now_iso()
     run_id = uuid.uuid4().hex
+    extra_tags = _parse_key_value_pairs(args.extra_tag, "extra-tag")
+    metadata = _parse_key_value_pairs(args.metadata, "metadata")
     passed = 0
     results: List[Dict[str, Any]] = []
     sandbox_id: Optional[str] = None
@@ -622,6 +654,8 @@ def run_audit(args: argparse.Namespace) -> AuditSummary:
         ended_at=end_time,
         duration_ms=duration_ms,
         results=results,
+        extra_tags=extra_tags,
+        metadata=metadata,
     )
 
 

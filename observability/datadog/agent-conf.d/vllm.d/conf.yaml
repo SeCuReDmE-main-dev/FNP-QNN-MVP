@@ -1,0 +1,13 @@
+init_config:
+
+instances:
+  - openmetrics_endpoint: http://vllm:8000/metrics
+    namespace: vllm
+    metrics:
+      - vllm: .*
+    tag_by_endpoint: false
+    tags:
+      - env:local
+      - service:fnp-qnn-vllm
+      - component:vllm
+      - stack:docker-compose

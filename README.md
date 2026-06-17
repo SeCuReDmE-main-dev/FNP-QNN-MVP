@@ -187,6 +187,64 @@ The Panel dashboard is the primary local operator panel. It runs the same
 runtime, encoding, QNN smoke, benchmark, and legacy fixture paths as the API
 without adding a Node/React build chain.
 
+## Docker stack
+
+The repository now includes a Docker Compose stack for:
+
+- `simulator-api`: FastAPI runtime
+- `simulator-panel`: HoloViz Panel control room
+- `vllm`: optional `vLLM` OpenAI-compatible server
+- `etcd`: optional single-node local state service
+- `datadog-agent`: optional Datadog Agent scraping the `vLLM` metrics endpoint
+- `e2b-auditor`: optional E2B sandbox auditor emitting Datadog logs tied to the same stack
+
+Prepare environment values:
+
+```bash
+copy .env.docker.example .env
+```
+
+Base stack:
+
+```bash
+docker compose up --build simulator-api simulator-panel
+```
+
+Add the `vLLM` lane:
+
+```bash
+docker compose --profile llm up --build vllm
+```
+
+Add the `etcd` lane:
+
+```bash
+docker compose --profile state up --build etcd
+```
+
+Add Datadog Agent + E2B audit services:
+
+```bash
+docker compose --profile llm --profile state --profile observability --profile audit up --build
+```
+
+Datadog Agent uses:
+
+- `observability/datadog/agent-conf.d/vllm.d/conf.yaml`
+- `observability/datadog/agent-conf.d/etcd.d/conf.yaml`
+- `http://vllm:8000/metrics` inside the Compose network
+- `http://etcd:2379/metrics` inside the Compose network
+
+For `etcd`, the Datadog check is configured as a containerized integration with:
+
+- integration name: `etcd`
+- instance config: `{"prometheus_url": "http://etcd:2379/metrics"}`
+- log source/service tags attached on the container through Docker labels
+
+The `e2b-auditor` service reuses `scripts/e2b_datadog_audit/audit_e2b.py` and
+adds stack-level tags/metadata so E2B audit logs can be correlated with the
+same Docker `vLLM` lane in Datadog.
+
 ## Evidence And Reports
 
 - `docs/alpha-readiness.md`: alpha-local evidence matrix.

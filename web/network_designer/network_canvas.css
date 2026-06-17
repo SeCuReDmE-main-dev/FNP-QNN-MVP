@@ -33,6 +33,19 @@
   color: #0d4d7f;
 }
 
+.fnp-palette-item {
+  list-style: none;
+  cursor: grab;
+  padding: 4px 6px;
+  border-radius: 8px;
+  margin: 3px 0;
+  border: 1px dashed rgba(13, 24, 61, 0.2);
+}
+
+.fnp-palette-item:active {
+  cursor: grabbing;
+}
+
 .fnp-palette {
   border: 1px solid rgba(13, 24, 61, 0.14);
   border-radius: 12px;
@@ -73,4 +86,9 @@
   place-items: center;
   border: 1px dashed rgba(13, 24, 61, 0.25);
   border-radius: 12px;
+}
+
+.fnp-network-canvas.drag-target {
+  box-shadow: 0 0 0 2px rgba(30, 58, 186, 0.4) inset;
+  border-color: rgba(30, 58, 186, 0.45);
 }

@@ -1,0 +1,156 @@
+services:
+  simulator-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fnp-qnn-simulator-api
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "${SIMULATOR_API_PORT:-8000}:8000"
+    environment:
+      DD_SERVICE: ${DD_SERVICE_SIMULATOR_API:-fnp-qnn-simulator-api}
+      DD_ENV: ${DD_ENV:-local}
+      DD_VERSION: ${DD_VERSION:-local-dev}
+    labels:
+      com.datadoghq.tags.env: "${DD_ENV:-local}"
+      com.datadoghq.tags.service: "${DD_SERVICE_SIMULATOR_API:-fnp-qnn-simulator-api}"
+      com.datadoghq.tags.version: "${DD_VERSION:-local-dev}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  simulator-panel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fnp-qnn-simulator-panel
+    command: panel serve panel_app.py --address 0.0.0.0 --port 5006 --allow-websocket-origin=*
+    ports:
+      - "${SIMULATOR_PANEL_PORT:-5006}:5006"
+    environment:
+      DD_SERVICE: ${DD_SERVICE_SIMULATOR_PANEL:-fnp-qnn-simulator-panel}
+      DD_ENV: ${DD_ENV:-local}
+      DD_VERSION: ${DD_VERSION:-local-dev}
+    labels:
+      com.datadoghq.tags.env: "${DD_ENV:-local}"
+      com.datadoghq.tags.service: "${DD_SERVICE_SIMULATOR_PANEL:-fnp-qnn-simulator-panel}"
+      com.datadoghq.tags.version: "${DD_VERSION:-local-dev}"
+    depends_on:
+      simulator-api:
+        condition: service_healthy
+
+  vllm:
+    image: "${VLLM_IMAGE:-vllm/vllm-openai:latest}"
+    container_name: fnp-qnn-vllm
+    command:
+      - --model
+      - ${VLLM_MODEL:-unsloth/Llama-3.2-1B-Instruct}
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --disable-uvicorn-access-log
+    ports:
+      - "${VLLM_PORT:-8001}:8000"
+    environment:
+      HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN:-}
+      VLLM_API_KEY: ${VLLM_API_KEY:-}
+    labels:
+      com.datadoghq.tags.env: "${DD_ENV:-local}"
+      com.datadoghq.tags.service: "${DD_SERVICE_VLLM:-fnp-qnn-vllm}"
+      com.datadoghq.tags.version: "${DD_VERSION:-local-dev}"
+    profiles: ["llm"]
+
+  etcd:
+    image: "${ETCD_IMAGE:-quay.io/coreos/etcd:v3.5.18}"
+    container_name: fnp-qnn-etcd
+    command:
+      - /usr/local/bin/etcd
+      - --name
+      - fnp-qnn-etcd
+      - --data-dir
+      - /etcd-data
+      - --listen-client-urls
+      - http://0.0.0.0:2379
+      - --advertise-client-urls
+      - http://etcd:2379
+      - --listen-peer-urls
+      - http://0.0.0.0:2380
+      - --initial-advertise-peer-urls
+      - http://etcd:2380
+      - --initial-cluster
+      - fnp-qnn-etcd=http://etcd:2380
+      - --initial-cluster-state
+      - new
+    ports:
+      - "${ETCD_CLIENT_PORT:-2379}:2379"
+      - "${ETCD_PEER_PORT:-2380}:2380"
+    volumes:
+      - etcd-data:/etcd-data
+    labels:
+      com.datadoghq.tags.env: "${DD_ENV:-local}"
+      com.datadoghq.tags.service: "${DD_SERVICE_ETCD:-fnp-qnn-etcd}"
+      com.datadoghq.tags.version: "${DD_VERSION:-local-dev}"
+      com.datadoghq.ad.logs: >-
+        [{"source":"etcd","service":"${DD_SERVICE_ETCD:-fnp-qnn-etcd}"}]
+    profiles: ["state", "observability"]
+
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:7
+    container_name: fnp-qnn-datadog-agent
+    environment:
+      DD_API_KEY: ${DATADOG_API_KEY:-}
+      DD_SITE: ${DATADOG_SITE:-datadoghq.com}
+      DD_ENV: ${DD_ENV:-local}
+      DD_LOGS_ENABLED: ${DD_LOGS_ENABLED:-true}
+      DD_APM_ENABLED: ${DD_APM_ENABLED:-true}
+      DD_PROCESS_AGENT_ENABLED: ${DD_PROCESS_AGENT_ENABLED:-true}
+      DD_CONTAINER_EXCLUDE_LOGS: ${DD_CONTAINER_EXCLUDE_LOGS:-name:fnp-qnn-datadog-agent}
+      DD_AC_EXCLUDE: ${DD_AC_EXCLUDE:-name:fnp-qnn-datadog-agent}
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: "true"
+    volumes:
+      - //var/run/docker.sock:/var/run/docker.sock:ro
+      - ./observability/datadog/agent-conf.d:/conf.d:ro
+    depends_on:
+      simulator-api:
+        condition: service_healthy
+    profiles: ["observability"]
+
+  e2b-auditor:
+    build:
+      context: .
+      dockerfile: scripts/e2b_datadog_audit/Dockerfile
+    container_name: fnp-qnn-e2b-auditor
+    environment:
+      E2B_API_KEY: ${E2B_API_KEY:-}
+      DATADOG_API_KEY: ${DATADOG_API_KEY:-}
+      DATADOG_SITE: ${DATADOG_SITE:-datadoghq.com}
+      DD_ENV: ${DD_ENV:-local}
+      E2B_TEMPLATE_ID: ${E2B_TEMPLATE_ID:-python}
+      AUDIT_TARGET_URL: ${AUDIT_TARGET_URL:-http://vllm:8000/metrics}
+      AUDIT_STACK: docker-compose
+    command:
+      - python
+      - audit_e2b.py
+      - --service
+      - ${DD_SERVICE_E2B_AUDITOR:-e2b-vm-auditor}
+      - --dd-env
+      - ${DD_ENV:-local}
+      - --extra-tag
+      - component=vllm
+      - --extra-tag
+      - stack=docker-compose
+      - --metadata
+      - target_url=${AUDIT_TARGET_URL:-http://vllm:8000/metrics}
+      - --metadata
+      - linked_service=${DD_SERVICE_VLLM:-fnp-qnn-vllm}
+    profiles: ["observability", "audit"]
+
+networks:
+  default:
+    name: fnp-qnn-simulator-net
+
+volumes:
+  etcd-data:

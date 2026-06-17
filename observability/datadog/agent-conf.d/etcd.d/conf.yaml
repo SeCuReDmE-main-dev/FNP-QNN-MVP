@@ -1,0 +1,9 @@
+init_config:
+
+instances:
+  - prometheus_url: http://etcd:2379/metrics
+    tags:
+      - env:local
+      - service:fnp-qnn-etcd
+      - component:etcd
+      - stack:docker-compose

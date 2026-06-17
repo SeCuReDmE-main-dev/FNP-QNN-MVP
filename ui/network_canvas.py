@@ -151,12 +151,16 @@ def _refresh_canvas(graph_json_pane: pn.pane.JSON, canvas: pn.pane.HTML, preset_
 def _render_canvas(graph: NetworkGraph, outputs: Dict[str, float]) -> str:
     payload = _build_render_payload(graph, outputs)
     payload_json = json.dumps(payload, sort_keys=True).replace("</script>", "<\\/script>")
+    state_json = json.dumps(payload, sort_keys=True).replace("</script>", "<\\/script>")
     return "".join(
         [
             _canvas_asset_bundle(),
             '<div id="',
             CANVAS_TARGET_ID,
             '" class="fnp-network-canvas"></div>',
+            '<textarea class="fnp-canvas-state" style="display:none;" aria-hidden="true">'
+            f"{state_json}"
+            "</textarea>",
             "<script>(function(){",
             f"var payload = {payload_json};",
             f'if (window.fnpNetworkCanvasRender) {{ window.fnpNetworkCanvasRender("{CANVAS_TARGET_ID}", payload); }}',
@@ -194,12 +198,16 @@ def _empty_canvas_markup() -> str:
         "empty": True,
     }
     payload_json = json.dumps(payload).replace("</script>", "<\\/script>")
+    state_json = json.dumps(payload).replace("</script>", "<\\/script>")
     return "".join(
         [
             _canvas_asset_bundle(),
             '<div id="',
             CANVAS_TARGET_ID,
             '" class="fnp-network-canvas"><div class="placeholder">Sélectionnez un preset pour voir le graphe.</div></div>',
+            '<textarea class="fnp-canvas-state" style="display:none;" aria-hidden="true">'
+            f"{state_json}"
+            "</textarea>",
             "<script>(function(){",
             f"var payload = {payload_json};",
             f'if (window.fnpNetworkCanvasRender) {{ window.fnpNetworkCanvasRender("{CANVAS_TARGET_ID}", payload); }}',
@@ -211,11 +219,30 @@ def _empty_canvas_markup() -> str:
 def _build_palette(presets: Any) -> pn.pane.HTML:
     family_buckets = {}
     for preset in presets:
-        family_buckets.setdefault(preset.family.value, []).append(preset.name)
+        family_buckets.setdefault(preset.family.value, []).append((preset.preset_id, preset.name))
+
     items = []
     for family in sorted(family_buckets):
-        entries = "".join(f"<li>{item}</li>" for item in family_buckets[family])
-        items.append(f"<details><summary>{family}</summary><ul>{entries}</ul></details>")
+        family_items = family_buckets[family]
+        entries = [
+            (
+                f"<li class=\"fnp-palette-item\" "
+                f"draggable=\"true\" "
+                f"data-node-type=\"{preset_id}\" "
+                f"data-family=\"{family}\" "
+                f"data-label=\"{item_name}\">"
+                f"{item_name}"
+                "</li>"
+            )
+            for preset_id, item_name in family_items
+        ]
+        items.append(
+            "<details><summary>"
+            + family
+            + "</summary><ul>"
+            + "".join(entries)
+            + "</ul></details>"
+        )
     return pn.pane.HTML("<div class=\"fnp-palette\">" + "".join(items) + "</div>", height=170)
 
 
