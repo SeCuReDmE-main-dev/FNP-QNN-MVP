@@ -31,3 +31,14 @@ Repository: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP
 - [terminé] Vérification de traçage MCP (ffed/datadog/google-drive/codex bridge) documentée.
 - [en cours] Préparer captures navigateur pour le pack de démo institutionnelle.
 - [en cours] Finaliser la preuve opérationnelle des actifs `*-panel.png` dans le flux de redesign.
+
+## 2026-06-16T22:00:44-04:00 — checkpoint
+
+- [terminé] Pack d’évidence institutionnelle créé :
+  - `docs/outreach/README_EVIDENCE.md`
+  - `reports/mission_smoke_2026-06-16.md`
+- [terminé] Vérification compilation UI/API exécutée :
+  - `python -m py_compile panel_app.py ui/network_designer.py ui/network_canvas.py` (PASS)
+  - `python -m compileall api core examples tests scripts` (PASS)
+- [en cours] Finaliser la preuve navigateur (`/panel_app` screenshot/HTML capture) en environnement navigateur.
+- [en cours] Finaliser la validation opérationnelle des actifs `*-panel.png` avant substitution finale.
