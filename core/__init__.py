@@ -22,6 +22,7 @@ from .quantum_feature_transforms import (
     complex_wavefunction_to_amplitude_phase_features,
     structure_vector_to_phi_scaled_state,
 )
+from .runtime_state_store import RuntimeStateStore
 
 __version__ = "1.2.0-research"
 __author__ = "SeCuReDmE Innovation Lab"
@@ -51,4 +52,5 @@ __all__ = [
     "ExperimentSeedManager",
     "complex_wavefunction_to_amplitude_phase_features",
     "structure_vector_to_phi_scaled_state",
+    "RuntimeStateStore",
 ]

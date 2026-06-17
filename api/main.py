@@ -35,6 +35,7 @@ from core import (
     NeuroBitProfile,
     PhiFramework,
     QNNNucleus,
+    RuntimeStateStore,
     run_neurobit_gates,
     run_neurobit_tunnel_demo,
 )
@@ -82,6 +83,23 @@ cerebrum_adapter = CerebrumAdapter()
 qnn_nucleus = QNNNucleus(adapter=cerebrum_adapter)
 cerebrum_runtime_bridge = CerebrumRuntimeBridge(adapter=cerebrum_adapter)
 life_science_port = LifeScienceObservationPort()
+runtime_state_store = RuntimeStateStore()
+
+STATE_KEYS = {
+    "health": "/api/health/latest",
+    "runtime_status": "/runtime/status/latest",
+    "runtime_ingest": "/runtime/ingest/latest",
+    "runtime_pairs": "/runtime/pairs/latest",
+    "runtime_run": "/runtime/run/latest",
+}
+
+
+def _persist_runtime_state(key: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    return runtime_state_store.put_json(key, payload)
+
+
+def _state_store_status() -> Dict[str, Any]:
+    return runtime_state_store.status()
 
 
 def _neurobit_profile_from_request(payload: NeuroBitProfileRequest | None = None) -> NeuroBitProfile:
@@ -223,7 +241,7 @@ async def root() -> Dict[str, Any]:
 @app.get("/health")
 async def health_check() -> Dict[str, Any]:
     backend = cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus)["qnn_backend"]
-    return {
+    response = {
         "status": "healthy",
         "mode": "alpha-local-research",
         "clinical_use": False,
@@ -232,7 +250,10 @@ async def health_check() -> Dict[str, Any]:
         "qnn_backend": backend,
         "golden_ratio": phi_engine.phi,
         "quantum_particles": len(phi_engine.quantum_states),
+        "state_store": _state_store_status(),
     }
+    response["persistence"] = _persist_runtime_state(STATE_KEYS["health"], response)
+    return response
 
 
 @app.get("/cerebrum/status")
@@ -253,34 +274,59 @@ async def cerebrum_encode(payload: EncodeRequest) -> Dict[str, Any]:
 
 @app.get("/cerebrum/runtime/status")
 async def cerebrum_runtime_status() -> Dict[str, Any]:
-    return cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus)
+    response = cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus)
+    response["state_store"] = _state_store_status()
+    response["persistence"] = _persist_runtime_state(STATE_KEYS["runtime_status"], response)
+    return response
 
 
 @app.post("/cerebrum/runtime/ingest")
 async def cerebrum_runtime_ingest(payload: RuntimeRunRequest) -> Dict[str, Any]:
     events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
-    return {
+    response = {
         "status": "ok",
         "events": [event.to_dict() for event in events],
         "pairs": [pair.to_dict() for pair in pairs],
         "warnings": warnings,
+        "state_store": _state_store_status(),
     }
+    response["persistence"] = _persist_runtime_state(STATE_KEYS["runtime_ingest"], response)
+    return response
 
 
 @app.post("/cerebrum/runtime/pairs")
 async def cerebrum_runtime_pairs(payload: RuntimeRunRequest) -> Dict[str, Any]:
     events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
-    return {
+    response = {
         "status": "ok",
         "event_count": len(events),
         "pairs": [pair.to_dict() for pair in pairs],
         "warnings": warnings,
+        "state_store": _state_store_status(),
     }
+    response["persistence"] = _persist_runtime_state(STATE_KEYS["runtime_pairs"], response)
+    return response
 
 
 @app.post("/cerebrum/runtime/run")
 async def cerebrum_runtime_run(payload: RuntimeRunRequest) -> Dict[str, Any]:
-    return {"status": "ok", "runtime": _runtime_result(payload.to_runtime_payload(), run_qnn=payload.run_qnn)}
+    response = {
+        "status": "ok",
+        "runtime": _runtime_result(payload.to_runtime_payload(), run_qnn=payload.run_qnn),
+        "state_store": _state_store_status(),
+    }
+    response["persistence"] = _persist_runtime_state(STATE_KEYS["runtime_run"], response)
+    return response
+
+
+@app.get("/cerebrum/runtime/state/latest")
+async def cerebrum_runtime_state_latest() -> Dict[str, Any]:
+    record = runtime_state_store.get_json(STATE_KEYS["runtime_run"])
+    return {
+        "status": "ok",
+        "record": record,
+        "state_store": _state_store_status(),
+    }
 
 
 @app.get("/cerebrum/runtime/legacy-demo")

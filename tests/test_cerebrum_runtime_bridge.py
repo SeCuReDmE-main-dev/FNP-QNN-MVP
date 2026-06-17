@@ -206,6 +206,8 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         payload = response.json()
         self.assertEqual(payload["status"], "ok")
         self.assertEqual(payload["bridge"], "operational")
+        self.assertIn("state_store", payload)
+        self.assertIn("persistence", payload)
 
     def test_runtime_ingest_endpoint(self):
         response = self.client.post("/cerebrum/runtime/ingest", json={})
@@ -214,11 +216,13 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertEqual(payload["status"], "ok")
         self.assertGreaterEqual(len(payload["events"]), 4)
         self.assertGreaterEqual(len(payload["pairs"]), 4)
+        self.assertIn("persistence", payload)
 
     def test_runtime_run_endpoint(self):
         response = self.client.post("/cerebrum/runtime/run", json={"epochs": 4})
         self.assertEqual(response.status_code, 200)
-        runtime = response.json()["runtime"]
+        body = response.json()
+        runtime = body["runtime"]
         self.assertIn("bundle", runtime)
         self.assertIn("qnn_result", runtime)
         self.assertIn("benchmark", runtime)
@@ -226,6 +230,19 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("lvfm", runtime)
         self.assertIn("snapshot", runtime["lvfm"])
         self.assertIn("decision", runtime["lvfm"])
+        self.assertIn("persistence", body)
+
+    def test_runtime_latest_state_endpoint(self):
+        run_response = self.client.post("/cerebrum/runtime/run", json={"epochs": 3})
+        self.assertEqual(run_response.status_code, 200)
+
+        latest_response = self.client.get("/cerebrum/runtime/state/latest")
+        self.assertEqual(latest_response.status_code, 200)
+        payload = latest_response.json()
+        self.assertEqual(payload["status"], "ok")
+        self.assertIsNotNone(payload["record"])
+        self.assertEqual(payload["record"]["key"], "/runtime/run/latest")
+        self.assertEqual(payload["record"]["payload"]["status"], "ok")
 
     def test_legacy_runtime_demo_endpoint(self):
         response = self.client.get("/cerebrum/runtime/legacy-demo")
