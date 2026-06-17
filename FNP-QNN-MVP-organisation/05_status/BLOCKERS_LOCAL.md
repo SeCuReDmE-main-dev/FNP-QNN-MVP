@@ -21,3 +21,13 @@ Repository: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP
 - Complete UI/Panel sequencing from `panel_app.py` layout → Network Designer front-end hooks.
 - Finalize and document panel-ready asset set for visible operators.
 - Update mission progress log with every completed task + timestamp.
+
+## 2026-06-16T21:55:19-04:00 — checkpoint
+
+- [terminé] `core/network_designer/*` backend contract + tests maintenu en état complet.
+- [terminé] AGENTS sweep de validation principale exécutée :
+  - `python -m unittest discover -s tests -p "test_*.py"` (69 OK)
+  - `python scripts\\validate_alpha_readiness.py` (PASS)
+- [terminé] Vérification de traçage MCP (ffed/datadog/google-drive/codex bridge) documentée.
+- [en cours] Préparer captures navigateur pour le pack de démo institutionnelle.
+- [en cours] Finaliser la preuve opérationnelle des actifs `*-panel.png` dans le flux de redesign.
