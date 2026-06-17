@@ -157,3 +157,28 @@ CONTROL_ROOM_MARKER_PRESENT: 1
 Notes:
 - Panel endpoint runtime smoke is passing at this checkpoint with Control Room marker present.
 - Visual screenshot capture remains pending due headless environment.
+
+## Run at 2026-06-17T10:24:00-04:00
+
+```text
+python -m py_compile ui/network_canvas.py
+python -m py_compile panel_app.py ui/network_designer.py
+python -m unittest discover -s tests -p "test_*.py"
+python scripts/validate_alpha_readiness.py
+python -m compileall api core examples tests scripts
+```
+
+Result:
+
+```text
+PASS (all 4 validation commands + compileall)
+```
+
+Notes:
+- Network Designer front-end bootstrap path updated:
+  - `ui/network_canvas.py` palette now exposes `id="fnp-network-designer-palette"`.
+  - `web/network_designer/network_canvas.js` now resolves palette selectors robustly.
+  - DnD palette hover and canvas state sync update path was hardened.
+  - `web/network_designer/network_canvas.css` gained palette drag-over visual feedback.
+- `BLOCKERS_LOCAL.md` and mission sweep files now show this task as completed.
+- Remaining tasks are still evidence/screenshot packaging follow-up (headless environment).

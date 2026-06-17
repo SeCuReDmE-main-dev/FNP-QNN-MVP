@@ -46,6 +46,11 @@
   cursor: grabbing;
 }
 
+.fnp-palette.drag-over {
+  box-shadow: 0 0 0 2px rgba(30, 58, 186, 0.28) inset;
+  border-color: rgba(30, 58, 186, 0.38);
+}
+
 .fnp-palette {
   border: 1px solid rgba(13, 24, 61, 0.14);
   border-radius: 12px;

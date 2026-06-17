@@ -74,7 +74,10 @@ function ensureDragAndDrop(targetId, payload) {
   const container = document.getElementById(targetId);
   if (!container) return;
 
-  const palette = document.querySelector("#fnp-network-designer-palette");
+  const palette =
+    document.getElementById("fnp-network-designer-palette") ||
+    container.querySelector(".fnp-palette") ||
+    document.querySelector(".fnp-palette");
   const state = container.querySelector(".fnp-canvas-state");
   if (!palette || !state) return;
 
@@ -83,10 +86,13 @@ function ensureDragAndDrop(targetId, payload) {
     palette.addEventListener("dragover", function (event) {
       event.preventDefault();
       event.stopPropagation();
-      palette.classList.remove("drag-over");
+      palette.classList.add("drag-over");
       if (container) {
         container.classList.add("drag-target");
       }
+    });
+    palette.addEventListener("dragleave", function () {
+      palette.classList.remove("drag-over");
     });
   }
 
@@ -95,18 +101,6 @@ function ensureDragAndDrop(targetId, payload) {
 
   const updateState = function () {
     const parsed = safeParseJson(state.value || "{}") || {};
-    container.innerHTML = "";
-    const nodes = Array.isArray(parsed.nodes) ? parsed.nodes : [];
-    const outputs = (parsed.outputs && typeof parsed.outputs === "object") ? parsed.outputs : {};
-    const lines = [];
-    nodes.forEach(function (node) {
-      const value = outputs[node.node_id];
-      lines.push(createNodeCard(node, typeof value === "number" ? value : undefined));
-    });
-    container.innerHTML = lines.join("");
-    if (nodes.length === 0) {
-      container.innerHTML = '<div class="placeholder">Drag a preset from the palette to populate the canvas.</div>';
-    }
     renderCanvasFallback(targetId, payload);
   };
 
@@ -144,7 +138,6 @@ function ensureDragAndDrop(targetId, payload) {
 
     const parsed = safeParseJson(state.value || "{}") || {};
     const nodes = Array.isArray(parsed.nodes) ? parsed.nodes : [];
-    const nodeId = `${data.nodeType}-${nodes.length + 1}`;
     const count = nodes.filter(function (entry) {
       return String(entry.node_id || "").startsWith(`${data.nodeType}-`);
     }).length;
@@ -168,6 +161,8 @@ function ensureDragAndDrop(targetId, payload) {
       outputs: parsed.outputs || {},
       metadata: parsed.metadata || {},
     });
+    payload.nodes = nodes;
+    payload.outputs = parsed.outputs || {};
     updateState();
   });
 }

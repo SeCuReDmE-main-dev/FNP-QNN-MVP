@@ -4,10 +4,10 @@ Repository: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP
 
 ## Current blockers (maintainer-safe, non-blocking to project continuity)
 
-- Full `panel_app.py` redesign to final `DESIGN.md` control-room hierarchy is not complete.
-- Front-end Network Designer stack (`ui/network_designer.py`, `ui/network_canvas.py`, `network_canvas.js`, `network_canvas.css`) remains partially implemented; backend contract is complete.
+- Full `panel_app.py` redesign to final `DESIGN.md` control-room hierarchy is complete; the remaining UI follow-up is capture/visual verification only.
+- Front-end Network Designer stack (`ui/network_designer.py`, `ui/network_canvas.py`, `network_canvas.js`, `network_canvas.css`) is completed for drag-and-drop bootstrap and palette-driven node rendering; remaining follow-up is optional visual capture.
 - No dedicated `*-panel.png` asset review/production workflow has been fully formalized.
-- Outreach/demo packaging artifacts (clean screenshots, institutional package script, public-safe run demo docs) remain pending.
+- Outreach/demo packaging artifacts (clean screenshot capture bundle, institutional package script, public-safe run demo docs) remain pending.
 
 ## Public-safety constraints to preserve
 

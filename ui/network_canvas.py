@@ -243,7 +243,10 @@ def _build_palette(presets: Any) -> pn.pane.HTML:
             + "".join(entries)
             + "</ul></details>"
         )
-    return pn.pane.HTML("<div class=\"fnp-palette\">" + "".join(items) + "</div>", height=170)
+    return pn.pane.HTML(
+        '<div id="fnp-network-designer-palette" class="fnp-palette">' + "".join(items) + "</div>",
+        height=170,
+    )
 
 
 def _build_render_payload(graph: NetworkGraph, outputs: Dict[str, float]) -> Dict[str, Any]:
