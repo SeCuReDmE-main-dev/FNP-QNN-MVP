@@ -32,13 +32,48 @@ Repository: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP
 - [en cours] Préparer captures navigateur pour le pack de démo institutionnelle.
 - [en cours] Finaliser la preuve opérationnelle des actifs `*-panel.png` dans le flux de redesign.
 
-## 2026-06-16T22:00:44-04:00 — checkpoint
+- [2026-06-16T22:00:44-04:00] **reloaded checkpoint**
+  - [terminé] Pack d’évidence institutionnelle créé
+    - `docs/outreach/README_EVIDENCE.md`
+    - `reports/mission_smoke_2026-06-16.md`
+  - [terminé] Vérification compilation UI/API exécutée
+    - `python -m py_compile panel_app.py ui/network_designer.py ui/network_canvas.py` (PASS)
+    - `python -m compileall api core examples tests scripts` (PASS)
+  - [en cours] Finaliser la preuve navigateur (`/panel_app` screenshot/HTML capture) en environnement navigateur.
+  - [en cours] Finaliser la validation opérationnelle des actifs `*-panel.png` avant substitution finale.
 
-- [terminé] Pack d’évidence institutionnelle créé :
-  - `docs/outreach/README_EVIDENCE.md`
-  - `reports/mission_smoke_2026-06-16.md`
-- [terminé] Vérification compilation UI/API exécutée :
+## 2026-06-16T22:25:15-04:00 — checkpoint
+
+- [terminé] Revalidation complète de la mission AGENTS exécutée :
+  - `python -m unittest discover -s tests -p "test_*.py"` (69 OK)
+  - `python scripts\\validate_alpha_readiness.py` (PASS)
   - `python -m py_compile panel_app.py ui/network_designer.py ui/network_canvas.py` (PASS)
   - `python -m compileall api core examples tests scripts` (PASS)
-- [en cours] Finaliser la preuve navigateur (`/panel_app` screenshot/HTML capture) en environnement navigateur.
-- [en cours] Finaliser la validation opérationnelle des actifs `*-panel.png` avant substitution finale.
+- [terminé] Validation endpoint Panel en runtime local :
+  - `GET /` -> 302
+  - `GET /panel_app` -> 200
+  - `panel_app` content length: 114199
+- [en cours] Capture navigateur de `/panel_app` et bundle visuel institutionnel final.
+- [en cours] Finalisation des actifs `*-panel.png` selon checklist DESIGN/AGENTS (workflow formel).
+
+## 2026-06-17T12:45:00-04:00 — checkpoint reprise
+
+- [terminé] OpenClaw MCP audit path revalidé (openclaw.json) pour:
+  - fed-agent-memory-pack
+  - datadog-mcp
+  - openclaw-google-drive-limited
+  - codex-memory-systeme-bridge
+- [terminé] Mémoire bridge Codex Spark confirmée (openclaw_ensure_codex_spark) = succès.
+- [terminé] Tâches Network Designer backend + tests marquées terminées dans le suivi, avec horodatage.
+- [en cours] panel_app screenshot/browser capture final encore pending.
+- [en cours] finalisation active des preuves *-panel.png et packaging institutionnel encore pending.
+
+## 2026-06-16T22:37:05-04:00 — continuation
+- [terminé] Reprise de la vérification des tâches AGENTS de base terminée, avec traçabilité timestampée (Network Designer backend + tests + MCP bridge + codex bridge).
+- [en cours] capture navigateur /panel_app et preuve visuelle institutionnelle finale.
+- [en cours] formalisation *-panel.png pour le flux de panel assets.
+
+## 2026-06-16T22:38:36-04:00 — reprise tracée
+- [terminé] Revalidation AGENTS et MCP tracée (Network Designer backend, tests, MCP OpenClaw, bridge Codex-memory).
+- [en cours] Capture navigateur /panel_app et formalisation finale des assets visuels institutionnels.
+
