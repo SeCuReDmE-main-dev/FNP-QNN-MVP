@@ -1,0 +1,8 @@
+2026-06-16 23:47:58,079 Starting Bokeh server version 3.9.1 (running on Tornado 6.5.2)
+2026-06-16 23:47:58,084 Host wildcard '*' will allow connections originating from multiple (or possibly all) hostnames or IPs. Use non-wildcard values to restrict access explicitly
+2026-06-16 23:47:58,086 User authentication hooks NOT provided (default user enabled)
+2026-06-16 23:47:58,103 Bokeh app running at: http://127.0.0.1:5803/panel_app
+2026-06-16 23:47:58,105 Starting Bokeh server with process id: 13500
+2026-06-16 23:48:41,460 WebSocket connection opened
+2026-06-16 23:48:41,463 ServerConnection created
+2026-06-16 23:48:57,174 WebSocket connection closed: code=1001, reason=None
