@@ -77,3 +77,12 @@ Repository: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP
 - [terminé] Revalidation AGENTS et MCP tracée (Network Designer backend, tests, MCP OpenClaw, bridge Codex-memory).
 - [en cours] Capture navigateur /panel_app et formalisation finale des assets visuels institutionnels.
 
+## 2026-06-16T22:42:30-04:00 — reprise propre
+- [terminé] OpenClaw MCP audit path revalidé (openclaw.json) pour: ffed-agent-memory-pack, datadog-mcp, openclaw-google-drive-limited, codex-memory-systeme-bridge.
+- [terminé] Revalidation Codex-memory bridge confirmée (openclaw_ensure_codex_spark) = succès.
+- [en cours] Capture navigateur /panel_app et preuve visuelle institutionnelle finale.
+- [en cours] Formalisation finale *-panel.png + packaging institutionnel.
+
+## 2026-06-16T22:48:47-04:00 — consolidation
+- [terminé] Les rapports AGENTS_MISSION_PROGRESS_*.md ont été consolidés dans un seul document nettoyé : AGENTS_MISSION_PROGRESS_COMPILED.md.
+
