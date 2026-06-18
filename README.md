@@ -81,6 +81,20 @@ Accepted inputs are optional `fractal_dimension`, `fractal_dimension_min`, and
 by the API. `D_f_hat` is calculated by the simulator and should not be supplied
 as an asserted input value.
 
+## CeLeBrUm CPAI/YOLO Bridge
+
+CeLeBrUm can act as a local router between CodeProject.AI/YOLO and this
+simulator's LVFM runtime API. The bridge sends sanitized `vision` observations
+to `POST /cerebrum/runtime/run`; this repository still owns graph construction,
+LVFM snapshots, plugin traces, and `T/I/dF/F` interpretation.
+
+YOLO is a perception tool only. A detection can contribute local `T`,
+`I_system_component`, `F`, and `dF` provenance, but it must not replace global
+`I` or claim that ambiguity was solved.
+
+Detailed operator notes live in
+`FNP-QNN-MVP-organisation/05_status/CELEBRUM_CPAI_YOLO_LVFM_BRIDGE.md`.
+
 ## FFeD MVP5 Plugin Hook
 
 The QNN can optionally call the local Codex pluginpack through
