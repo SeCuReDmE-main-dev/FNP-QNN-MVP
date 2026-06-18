@@ -44,6 +44,8 @@ class FfeDPluginBridgeTests(unittest.TestCase):
         self.assertLessEqual(payload["plugin_fractal_carrier"]["D_f_hat_plugin"], 1.0)
         self.assertIn("I -> I_system^S -> D_f -> dF -> i_fractal", payload["plugin_fractal_carrier"]["hierarchy"])
         self.assertIn("I_system_component", payload["plugin_gate_profile"])
+        self.assertEqual(payload["cpai_mesh_profile"]["base"], "CPAI mesh")
+        self.assertIn("cpai.mesh.nodes_active", payload["cpai_mesh_profile"]["datadog_metrics"])
 
     def test_missing_pluginpack_is_non_blocking(self):
         bridge = FfeDPluginBridge(pluginpack_path=Path("__missing_pluginpack_for_test__"))
@@ -53,6 +55,15 @@ class FfeDPluginBridgeTests(unittest.TestCase):
         self.assertEqual(payload["plugin_fractal_signals"], [])
         self.assertTrue(payload["plugin_errors"])
         self.assertFalse(payload["plugin_hook_status"]["enabled"])
+        self.assertEqual(payload["impact_verification"]["cpai_mesh_base"]["base"], "CPAI mesh")
+
+    def test_status_reports_datadog_cpai_contract_without_secrets(self):
+        status = FfeDPluginBridge().status()
+
+        self.assertIn("cpai_mesh_profile", status)
+        self.assertEqual(status["cpai_mesh_profile"]["datadog_dashboard_id"], "4i9-v3n-pe7")
+        self.assertEqual(status["observability"]["datadog_mesh_notebook_id"], "293549")
+        self.assertFalse(status["observability"]["secrets_exposed"])
 
 
 if __name__ == "__main__":
