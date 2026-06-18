@@ -146,6 +146,51 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertEqual(tunnel_response.status_code, 200)
         self.assertTrue(tunnel_response.json()["success"])
 
+    def test_nidus_idearum_endpoints_return_bounded_payloads(self):
+        client = TestClient(app)
+
+        status_response = client.get("/fnp-qnn/nidus/status")
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["feature"], "nidus-idearum-ii-math-layer")
+
+        triplet_response = client.post(
+            "/fnp-qnn/nidus/triplet/profile",
+            json={"T": 0.6, "I": 0.3, "F": 0.2},
+        )
+        self.assertEqual(triplet_response.status_code, 200)
+        triplet = triplet_response.json()["profile"]
+        self.assertGreaterEqual(triplet["score"], -1.0)
+        self.assertLessEqual(triplet["score"], 1.0)
+        self.assertIn("dynamic triplet", triplet["interpretation"])
+
+        fusion_response = client.post(
+            "/fnp-qnn/nidus/fusion/profile",
+            json={
+                "sources": [
+                    {"T": 0.5, "I": 0.1, "F": 0.1, "beta": 2.0},
+                    {"T": 0.1, "I": 0.2, "F": 0.6, "intersection_indeterminacy": 0.3},
+                ]
+            },
+        )
+        self.assertEqual(fusion_response.status_code, 200)
+        components = fusion_response.json()["fusion"]["components"]
+        self.assertGreater(
+            components["I_system_component"],
+            components["base_indeterminacy"],
+        )
+
+        mean_response = client.post(
+            "/fnp-qnn/nidus/partial-membership/mean",
+            json={
+                "values": [2.0, 8.0, 5.0, 11.0],
+                "memberships": [1.1, 0.4, 1.0, 0.3],
+            },
+        )
+        self.assertEqual(mean_response.status_code, 200)
+        mean_payload = mean_response.json()["mean"]
+        self.assertTrue(mean_payload["has_overset_membership"])
+        self.assertTrue(mean_payload["has_underset_membership"])
+
 
 if __name__ == "__main__":
     unittest.main()

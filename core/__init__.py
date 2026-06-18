@@ -39,6 +39,11 @@ from .neutrosophic_quantum_primitives import (
     punctured_surface_state,
     punctured_wave_state,
 )
+from .nidus_idearum_math import (
+    partial_membership_mean,
+    source_weighted_triplet_fusion,
+    triplet_quality_profile,
+)
 from .runtime_state_store import RuntimeStateStore
 
 __version__ = "1.2.0-research"
@@ -87,5 +92,8 @@ __all__ = [
     "partial_entanglement_profile",
     "punctured_surface_state",
     "punctured_wave_state",
+    "partial_membership_mean",
+    "source_weighted_triplet_fusion",
+    "triplet_quality_profile",
     "RuntimeStateStore",
 ]

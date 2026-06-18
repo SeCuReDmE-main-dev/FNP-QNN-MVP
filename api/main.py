@@ -23,6 +23,9 @@ from api.schemas import (
     CommandRequest,
     CommandResponse,
     EncodeRequest,
+    NidusFusionProfileRequest,
+    NidusPartialMembershipMeanRequest,
+    NidusTripletProfileRequest,
     NeuroBitProfileRequest,
     NeuroBitTunnelRequest,
     QNNSmokeRequest,
@@ -37,8 +40,11 @@ from core import (
     PhiFramework,
     QNNNucleus,
     RuntimeStateStore,
+    partial_membership_mean,
     run_neurobit_gates,
     run_neurobit_tunnel_demo,
+    source_weighted_triplet_fusion,
+    triplet_quality_profile,
 )
 from core.cerebrum_adapter import MODALITIES
 
@@ -447,6 +453,59 @@ async def neurobit_gates_run(payload: NeuroBitProfileRequest) -> Dict[str, Any]:
 async def neurobit_tunnel_demo(payload: NeuroBitTunnelRequest) -> Dict[str, Any]:
     profile = _neurobit_profile_from_request(payload)
     return run_neurobit_tunnel_demo(profile, data=payload.data)
+
+
+@app.get("/fnp-qnn/nidus/status")
+async def nidus_status() -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "mode": "alpha-local-research",
+        "feature": "nidus-idearum-ii-math-layer",
+        "source": "Nidus Idearum II, 2nd ed.",
+        "available_primitives": [
+            "triplet_quality_profile",
+            "source_weighted_triplet_fusion",
+            "partial_membership_mean",
+        ],
+        "endpoints": [
+            "POST /fnp-qnn/nidus/triplet/profile",
+            "POST /fnp-qnn/nidus/fusion/profile",
+            "POST /fnp-qnn/nidus/partial-membership/mean",
+        ],
+        "hierarchy": "I -> I_system^S -> D_f -> dF -> i_fractal",
+        "research_boundary": (
+            "alpha-local educational simulation only; not clinical, diagnostic, "
+            "therapeutic, security, production-public, or validated physical behavior"
+        ),
+    }
+
+
+@app.post("/fnp-qnn/nidus/triplet/profile")
+async def nidus_triplet_profile(payload: NidusTripletProfileRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": triplet_quality_profile(
+            payload.truth,
+            payload.indeterminacy,
+            payload.falsity,
+        ),
+    }
+
+
+@app.post("/fnp-qnn/nidus/fusion/profile")
+async def nidus_fusion_profile(payload: NidusFusionProfileRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "fusion": source_weighted_triplet_fusion(payload.dump_sources()),
+    }
+
+
+@app.post("/fnp-qnn/nidus/partial-membership/mean")
+async def nidus_partial_membership_mean(payload: NidusPartialMembershipMeanRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "mean": partial_membership_mean(payload.values, payload.memberships),
+    }
 
 
 def _command_response(command_name: str, request: Optional[CommandRequest] = None) -> CommandResponse:

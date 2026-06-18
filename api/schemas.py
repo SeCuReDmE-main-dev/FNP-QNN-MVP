@@ -301,6 +301,119 @@ class NeuroBitTunnelRequest(NeuroBitProfileRequest):
     data: str = Field(default="neurobit-demo", max_length=4096)
 
 
+class NidusTripletProfileRequest(BaseModel):
+    truth: float = Field(default=0.55, ge=0.0)
+    indeterminacy: float = Field(default=0.30, ge=0.0)
+    falsity: float = Field(default=0.15, ge=0.0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_tif_aliases(cls, values):
+        if not isinstance(values, dict):
+            return values
+        updated = dict(values)
+        aliases = {
+            "T": "truth",
+            "I": "indeterminacy",
+            "F": "falsity",
+        }
+        for alias, field_name in aliases.items():
+            if alias in updated and field_name not in updated:
+                updated[field_name] = updated[alias]
+        return updated
+
+    @field_validator("truth", "indeterminacy", "falsity")
+    @classmethod
+    def validate_triplet_numbers(cls, value: float, info):
+        return _finite(value, info.field_name)
+
+
+class NidusFusionSource(BaseModel):
+    truth: float = Field(default=0.0, ge=0.0)
+    indeterminacy: float = Field(default=0.0, ge=0.0)
+    falsity: float = Field(default=0.0, ge=0.0)
+    weight: float = Field(default=1.0, ge=0.0)
+    intersection_indeterminacy: float = Field(default=0.0, ge=0.0)
+    label: str = Field(default="", max_length=MAX_LABEL_LENGTH)
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_source_aliases(cls, values):
+        if not isinstance(values, dict):
+            return values
+        updated = dict(values)
+        aliases = {
+            "T": "truth",
+            "I": "indeterminacy",
+            "F": "falsity",
+            "beta": "weight",
+            "source_importance": "weight",
+            "indeterminate_intersection": "intersection_indeterminacy",
+            "intersection_unknown": "intersection_indeterminacy",
+        }
+        for alias, field_name in aliases.items():
+            if alias in updated and field_name not in updated:
+                updated[field_name] = updated[alias]
+        return updated
+
+    @field_validator("truth", "indeterminacy", "falsity", "weight", "intersection_indeterminacy")
+    @classmethod
+    def validate_source_numbers(cls, value: float, info):
+        return _finite(value, info.field_name)
+
+    def to_fusion_payload(self) -> Dict[str, Any]:
+        payload = {
+            "truth": self.truth,
+            "indeterminacy": self.indeterminacy,
+            "falsity": self.falsity,
+            "weight": self.weight,
+            "intersection_indeterminacy": self.intersection_indeterminacy,
+        }
+        if self.label:
+            payload["label"] = self.label
+        return payload
+
+
+class NidusFusionProfileRequest(BaseModel):
+    sources: List[NidusFusionSource] = Field(default_factory=list)
+
+    @field_validator("sources")
+    @classmethod
+    def validate_sources(cls, value: List[NidusFusionSource]):
+        if not value:
+            raise ValueError("sources must contain at least one source")
+        if len(value) > MAX_EVENTS:
+            raise ValueError(f"At most {MAX_EVENTS} sources are accepted")
+        return value
+
+    def dump_sources(self) -> List[Dict[str, Any]]:
+        return [source.to_fusion_payload() for source in self.sources]
+
+
+class NidusPartialMembershipMeanRequest(BaseModel):
+    values: List[float] = Field(default_factory=list)
+    memberships: List[float] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_lengths(self):
+        if not self.values:
+            raise ValueError("values must not be empty")
+        if len(self.values) != len(self.memberships):
+            raise ValueError("values and memberships must have the same length")
+        if len(self.values) > MAX_EVENTS:
+            raise ValueError(f"At most {MAX_EVENTS} values are accepted")
+        return self
+
+    @field_validator("values", "memberships")
+    @classmethod
+    def validate_numeric_lists(cls, value: List[float], info):
+        for item in value:
+            _finite(item, info.field_name)
+        if info.field_name == "memberships" and any(float(item) < 0.0 for item in value):
+            raise ValueError("memberships must be non-negative")
+        return value
+
+
 class CommandRequest(BaseModel):
     payload: Optional[RuntimeRunRequest] = None
     observations: Optional[List[Observation]] = None

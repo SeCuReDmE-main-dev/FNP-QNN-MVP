@@ -274,6 +274,10 @@ Core HTTP endpoints:
 - `GET /fnp-qnn/neurobit/status`
 - `POST /fnp-qnn/neurobit/gates/run`
 - `POST /fnp-qnn/neurobit/tunnel/demo`
+- `GET /fnp-qnn/nidus/status`
+- `POST /fnp-qnn/nidus/triplet/profile`
+- `POST /fnp-qnn/nidus/fusion/profile`
+- `POST /fnp-qnn/nidus/partial-membership/mean`
 - `POST /commands/{command_name}`
 
 Compatibility endpoint:
@@ -607,6 +611,26 @@ Current Mechanism Layer v2 validation:
 These additions are local educational simulation primitives only. They do not
 claim a physical neutrosophic quantum computer, clinical system, security
 system, production system, quantum advantage, or validated physics engine.
+
+### Nidus Idearum II math layer
+
+`core/nidus_idearum_math.py` adds an opt-in educational layer based on
+*Nidus Idearum. Scilogs, II: de rerum consectatione*, 2nd edition. It keeps
+`T/I/F` as a dynamic triplet, preserves incomplete/intersection uncertainty as
+local `I_system_component`, and supports partial-membership sample means where
+membership can be below, equal to, or above 1.
+
+The layer is available through:
+
+- `GET /fnp-qnn/nidus/status`
+- `POST /fnp-qnn/nidus/triplet/profile`
+- `POST /fnp-qnn/nidus/fusion/profile`
+- `POST /fnp-qnn/nidus/partial-membership/mean`
+
+The implementation report lives at
+`FNP-QNN-MVP-organisation/04_implementation_planning/NIDUS_IDEARUM_II_MATH_IMPLANTATION.md`.
+These endpoints are opt-in and do not change default QNN, NeuroBit, runtime,
+or Panel behavior.
 
 Start with:
 
