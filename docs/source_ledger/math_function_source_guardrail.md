@@ -24,6 +24,7 @@ Boundary: alpha-local educational research simulator only. No clinical, diagnost
 | `NIDUS_II` | `https://fs.unm.edu/NidusIdearum2-ed2.pdf` | Later FS PDF primary source |
 | `PLITHOGENIC_2021` | `https://fs.unm.edu/NSS/IntroductionPlithogenicLogic1.pdf` | Later FS PDF primary source |
 | `REVOLUTIONARY_TOPOLOGIES` | `https://fs.unm.edu/TT/RevolutionaryTopologies.pdf` | Later FS PDF primary source |
+| `PLITHOGENIC_PROB_STATS_2021` | `C:\Users\jeans\Desktop\livre pdf\PlithogenicProbabilityStatistics20.pdf` | Local FS PDF primary source |
 | `FRACTAL_LOCAL` | `C:\Users\jeans\Desktop\livre pdf\Fractal_NeutroGeometry_Livre_V2_chapters_1_to_7.pdf` | Local manuscript source |
 | `NODE734_LOCAL` | `C:\Users\jeans\Desktop\Docs\pdf\livre\complain of quantum node #734\Complain-of-Quantum-Node-734{{ final }} .pdf` | Local manuscript source |
 | `LOCAL_RUNTIME` | Repository runtime contract | Local clean-room implementation source |
@@ -65,6 +66,8 @@ Boundary: alpha-local educational research simulator only. No clinical, diagnost
 | `nonstandard_neighborhood_profile()` | `core/revolutionary_topologies.py` | `REVOLUTIONARY_TOPOLOGIES` | Left/right/binad local neighborhood tolerance | `tests/test_revolutionary_topologies.py` |
 | `refined_topology_components()` | `core/revolutionary_topologies.py` | `REVOLUTIONARY_TOPOLOGIES` | Refined `T/I/F` topology components preserving `I -> I_system^S -> D_f -> dF -> i_fractal` | `tests/test_revolutionary_topologies.py` |
 | `revolutionary_topology_runtime_profile()` | `core/revolutionary_topologies.py` | `REVOLUTIONARY_TOPOLOGIES` | `POST /fnp-qnn/revolutionary-topology/runtime/profile`, `RuntimeRunRequest.revolutionary_topology_enabled`, LVFM/QNN opt-in metadata | `tests/test_revolutionary_topologies.py`, `tests/test_cerebrum_runtime_bridge.py` |
+| `plithogenic_variate_sample_profile()`, `plithogenic_probability_family_profile()`, `refined_plithogenic_statistical_components()`, `plithogenic_multi_to_uni_decision()` | `core/plithogenic_probability_statistics.py` | `PLITHOGENIC_PROB_STATS_2021`, `PLITHOGENIC_2021`, `REVOLUTIONARY_TOPOLOGIES` | Pure empirical probability/statistics primitives for plithogenic-to-topology wiring | `tests/test_plithogenic_probability_statistics.py` |
+| `plithogenic_topology_wiring_profile()` | `core/plithogenic_probability_statistics.py` | `PLITHOGENIC_PROB_STATS_2021`, `PLITHOGENIC_2021`, `REVOLUTIONARY_TOPOLOGIES` | `POST /fnp-qnn/plithogenic-topology/runtime/profile`; automatic LVFM/QNN opt-in metadata when `plithogenic_enabled=true` and `revolutionary_topology_enabled=true` | `tests/test_plithogenic_probability_statistics.py`, `tests/test_cerebrum_runtime_bridge.py` |
 | `CerebrumRuntimeBridge.ingest()` | `core/cerebrum_runtime_bridge.py` | `LOCAL_RUNTIME` | `/cerebrum/runtime/ingest`, `/cerebrum/runtime/pairs` | `tests/test_cerebrum_runtime_bridge.py` |
 | `CerebrumRuntimeBridge.build_state()` | `core/cerebrum_runtime_bridge.py` | `LOCAL_RUNTIME`, `FRACTAL_LOCAL`, `PLITHOGENIC_2021`, `REVOLUTIONARY_TOPOLOGIES` | Runtime event, pair, LVFM, QNN, plugin, plithogenic, and topology integration point | `tests/test_cerebrum_runtime_bridge.py` |
 | `LVFMRuntimeGraph` | `core/lvfm_runtime_graph.py` | `LOCAL_RUNTIME` | Runtime LVFM snapshot with T/dF/F register bits | `tests/test_lvfm_runtime_graph.py` |

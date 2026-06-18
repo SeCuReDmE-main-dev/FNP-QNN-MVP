@@ -242,6 +242,7 @@ core/
   experiment_seed.py           # deterministic experiment seed provenance
   ffed_plugin_bridge.py        # optional FFeD MVP5 plugin router and D_f mapper
   plithogenic_logic.py         # opt-in plithogenic runtime fusion profile
+  plithogenic_probability_statistics.py # plithogenic statistics -> topology bridge
   revolutionary_topologies.py  # opt-in topology-style deformation profile
   quantum_feature_transforms.py # pure amplitude/phase feature transforms
   qnn_nucleus.py               # QNN candidate matrix and Torch fallback
@@ -282,6 +283,7 @@ Core HTTP endpoints:
 - `POST /fnp-qnn/nidus/partial-membership/mean`
 - `POST /fnp-qnn/plithogenic/runtime/profile`
 - `POST /fnp-qnn/revolutionary-topology/runtime/profile`
+- `POST /fnp-qnn/plithogenic-topology/runtime/profile`
 - `POST /commands/{command_name}`
 
 Compatibility endpoint:
@@ -695,6 +697,34 @@ The implementation report lives at
 `FNP-QNN-MVP-organisation/04_implementation_planning/REVOLUTIONARY_TOPOLOGIES_RUNTIME_LAYER.md`.
 This layer is disabled by default and does not change QNN, NeuroBit, Nidus,
 Plithogenic, runtime, or Panel behavior unless requested.
+
+### Plithogenic probability/statistics to topology wiring
+
+`core/plithogenic_probability_statistics.py` adds a deterministic bridge based
+on local source
+`C:\Users\jeans\Desktop\livre pdf\PlithogenicProbabilityStatistics20.pdf`.
+It qualifies plithogenic/topology runtime metadata as empirical sample,
+probability family, refined `T/I/F` statistics, multi-variable to uni-variable
+decision, and topology variable completion.
+
+The bridge is automatic only when both runtime flags are enabled:
+
+```json
+{
+  "plithogenic_enabled": true,
+  "revolutionary_topology_enabled": true
+}
+```
+
+The same combined profile is available through:
+
+- `POST /fnp-qnn/plithogenic-topology/runtime/profile`
+
+The implementation report lives at
+`FNP-QNN-MVP-organisation/04_implementation_planning/PLITHOGENIC_PROBABILITY_STATISTICS_TO_TOPOLOGY_WIRING.md`.
+This bridge is disabled by default and does not change QNN, NeuroBit, Nidus,
+standalone Plithogenic, standalone Revolutionary Topology, runtime, or Panel
+behavior unless both source layers are active.
 
 ### Math source guardrail baseline
 

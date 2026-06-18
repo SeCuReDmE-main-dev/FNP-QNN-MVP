@@ -51,6 +51,13 @@ from .plithogenic_logic import (
     plithogenic_runtime_fusion_profile,
     plithogenic_weighted_cumulative_truth,
 )
+from .plithogenic_probability_statistics import (
+    plithogenic_multi_to_uni_decision,
+    plithogenic_probability_family_profile,
+    plithogenic_topology_wiring_profile,
+    plithogenic_variate_sample_profile,
+    refined_plithogenic_statistical_components,
+)
 from .revolutionary_topologies import (
     deformation_invariant_signature,
     nonstandard_neighborhood_profile,
@@ -114,6 +121,11 @@ __all__ = [
     "plithogenic_neutrosophic_conjunction",
     "plithogenic_runtime_fusion_profile",
     "plithogenic_weighted_cumulative_truth",
+    "plithogenic_multi_to_uni_decision",
+    "plithogenic_probability_family_profile",
+    "plithogenic_topology_wiring_profile",
+    "plithogenic_variate_sample_profile",
+    "refined_plithogenic_statistical_components",
     "deformation_invariant_signature",
     "nonstandard_neighborhood_profile",
     "refined_topology_components",

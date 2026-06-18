@@ -23,6 +23,7 @@ from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, MODALITIES
 from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
 from .neutrosophic_quantum_primitives import fractal_carrier_profile
 from .plithogenic_logic import plithogenic_runtime_fusion_profile
+from .plithogenic_probability_statistics import plithogenic_topology_wiring_profile
 from .qnn_nucleus import QNNNucleus
 from .revolutionary_topologies import revolutionary_topology_runtime_profile
 
@@ -154,6 +155,7 @@ class CerebrumRuntimeState:
     lvfm: Optional[Dict[str, Any]] = None
     plithogenic: Optional[Dict[str, Any]] = None
     revolutionary_topology: Optional[Dict[str, Any]] = None
+    plithogenic_topology: Optional[Dict[str, Any]] = None
 
     def to_dict(self, include_bundle: bool = True) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -171,6 +173,8 @@ class CerebrumRuntimeState:
             payload["plithogenic"] = self.plithogenic
         if self.revolutionary_topology is not None:
             payload["revolutionary_topology"] = self.revolutionary_topology
+        if self.plithogenic_topology is not None:
+            payload["plithogenic_topology"] = self.plithogenic_topology
         if include_bundle:
             payload["bundle"] = {
                 "sequence_length": self.feature_bundle.sequence_length,
@@ -268,6 +272,19 @@ class CerebrumRuntimeBridge:
                 float(item) for item in revolutionary_topology_profile["feature_vector"]
             ]
             vector = np.concatenate([vector, np.asarray(revolutionary_topology_features, dtype=np.float32)]).astype(np.float32)
+        plithogenic_topology_profile = None
+        plithogenic_topology_features: Optional[List[float]] = None
+        if plithogenic_profile is not None and revolutionary_topology_profile is not None:
+            plithogenic_topology_profile = plithogenic_topology_wiring_profile(
+                events,
+                pairs,
+                plithogenic_profile,
+                revolutionary_topology_profile,
+            )
+            plithogenic_topology_features = [
+                float(item) for item in plithogenic_topology_profile["feature_vector"]
+            ]
+            vector = np.concatenate([vector, np.asarray(plithogenic_topology_features, dtype=np.float32)]).astype(np.float32)
         lvfm = self._build_lvfm_snapshot(events, pairs)
         if plithogenic_profile is not None:
             lvfm["plithogenic_fusion_profile"] = {
@@ -287,6 +304,17 @@ class CerebrumRuntimeBridge:
                 "topological_axiom_profile": revolutionary_topology_profile["topological_axiom_profile"],
                 "deformation_signature": revolutionary_topology_profile["deformation_signature"],
                 "hierarchy": revolutionary_topology_profile["hierarchy"],
+            }
+        if plithogenic_topology_profile is not None:
+            lvfm["plithogenic_topology_profile"] = {
+                "model": plithogenic_topology_profile["model"],
+                "feature_vector": plithogenic_topology_profile["feature_vector"],
+                "feature_dimension": plithogenic_topology_profile["feature_dimension"],
+                "deterministic_decision": plithogenic_topology_profile["deterministic_decision"],
+                "deterministic_confidence": plithogenic_topology_profile["deterministic_confidence"],
+                "statistical_confidence": plithogenic_topology_profile["statistical_confidence"],
+                "topology_variable_completion": plithogenic_topology_profile["topology_variable_completion"],
+                "hierarchy": plithogenic_topology_profile["hierarchy"],
             }
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
@@ -325,6 +353,8 @@ class CerebrumRuntimeBridge:
                 plithogenic_payload=plithogenic_profile,
                 revolutionary_topology_features=revolutionary_topology_features,
                 revolutionary_topology_payload=revolutionary_topology_profile,
+                plithogenic_topology_features=plithogenic_topology_features,
+                plithogenic_topology_payload=plithogenic_topology_profile,
             )
             qnn_result.pop("bundle", None)
             if qnn_result.get("plugin_fractal_carrier") is not None:
@@ -342,6 +372,7 @@ class CerebrumRuntimeBridge:
             lvfm=lvfm,
             plithogenic=plithogenic_profile,
             revolutionary_topology=revolutionary_topology_profile,
+            plithogenic_topology=plithogenic_topology_profile,
         )
 
     def _fractal_carrier_payload(

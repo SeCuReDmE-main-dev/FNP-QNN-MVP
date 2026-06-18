@@ -216,6 +216,42 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
             state.revolutionary_topology["feature_dimension"],
         )
 
+    def test_plithogenic_topology_bridge_requires_both_flags(self):
+        default_state = self.bridge.build_state(self.bridge.default_payload())
+        plithogenic_only = self.bridge.build_state(self.bridge.default_payload(), plithogenic_enabled=True)
+        topology_only = self.bridge.build_state(self.bridge.default_payload(), revolutionary_topology_enabled=True)
+        enabled_state = self.bridge.build_state(
+            self.bridge.default_payload(),
+            plithogenic_enabled=True,
+            revolutionary_topology_enabled=True,
+        )
+
+        self.assertIsNone(default_state.plithogenic_topology)
+        self.assertIsNone(plithogenic_only.plithogenic_topology)
+        self.assertIsNone(topology_only.plithogenic_topology)
+        self.assertIsNotNone(enabled_state.plithogenic_topology)
+        self.assertIn("plithogenic_topology", enabled_state.to_dict())
+        self.assertIn("plithogenic_topology_profile", enabled_state.lvfm)
+        self.assertGreater(enabled_state.feature_vector.shape[0], plithogenic_only.feature_vector.shape[0])
+        self.assertGreater(enabled_state.feature_vector.shape[0], topology_only.feature_vector.shape[0])
+
+    def test_plithogenic_topology_features_reach_qnn_when_both_flags_enabled(self):
+        nucleus = QNNNucleus(adapter=self.bridge.adapter)
+        state = self.bridge.build_state(
+            self.bridge.default_payload(),
+            qnn_nucleus=nucleus,
+            max_epochs=2,
+            plithogenic_enabled=True,
+            revolutionary_topology_enabled=True,
+        )
+
+        self.assertIsNotNone(state.qnn_result)
+        self.assertIn("plithogenic_topology_profile", state.qnn_result)
+        self.assertEqual(
+            state.qnn_result["plithogenic_topology_profile"]["feature_dimension"],
+            state.plithogenic_topology["feature_dimension"],
+        )
+
     def test_life_science_statefield_port_is_opt_in(self):
         port = LifeScienceObservationPort()
         observations = port.statefield_to_observations({"mu": [0.2, 0.7], "nu": [0.1, 0.2], "pi": [0.7, 0.1]})
@@ -340,6 +376,38 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         profile = response.json()["profile"]
         self.assertEqual(profile["model"], "revolutionary_topology_runtime_v1")
         self.assertIn("deformation_signature", profile)
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in profile["feature_vector"]))
+
+    def test_runtime_run_endpoint_accepts_plithogenic_topology_bridge(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            json={
+                "epochs": 2,
+                "plithogenic_enabled": True,
+                "revolutionary_topology_enabled": True,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        self.assertIn("plithogenic_topology", runtime)
+        self.assertIn("plithogenic_topology_profile", runtime["lvfm"])
+        self.assertIn("plithogenic_topology_profile", runtime["qnn_result"])
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in runtime["plithogenic_topology"]["feature_vector"]))
+
+    def test_plithogenic_topology_runtime_profile_endpoint(self):
+        response = self.client.post(
+            "/fnp-qnn/plithogenic-topology/runtime/profile",
+            json={
+                "memories": [
+                    {"modality": "audio", "starting_time": 0.0, "ending_time": 1.0, "value": 0.2},
+                    {"modality": "video", "starting_time": 0.2, "ending_time": 1.2, "value": 0.8},
+                ]
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        profile = response.json()["profile"]
+        self.assertEqual(profile["model"], "plithogenic_probability_statistics_topology_wiring_v1")
+        self.assertIn("topology_variable_completion", profile)
         self.assertTrue(all(0.0 <= item <= 1.0 for item in profile["feature_vector"]))
 
     def test_runtime_latest_state_endpoint(self):
