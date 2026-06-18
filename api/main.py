@@ -41,6 +41,7 @@ from core import (
     QNNNucleus,
     RuntimeStateStore,
     partial_membership_mean,
+    plithogenic_runtime_fusion_profile,
     run_neurobit_gates,
     run_neurobit_tunnel_demo,
     source_weighted_triplet_fusion,
@@ -233,6 +234,7 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         plugin_context=(payload or {}).get("plugin_context") or {},
         cpai_context=(payload or {}).get("cpai_context") or {},
         include_plugin_trace=bool((payload or {}).get("include_plugin_trace", True)),
+        plithogenic_enabled=bool((payload or {}).get("plithogenic_enabled", False)),
     )
     result = state.to_dict()
     if run_qnn:
@@ -505,6 +507,16 @@ async def nidus_partial_membership_mean(payload: NidusPartialMembershipMeanReque
     return {
         "status": "ok",
         "mean": partial_membership_mean(payload.values, payload.memberships),
+    }
+
+
+@app.post("/fnp-qnn/plithogenic/runtime/profile")
+async def plithogenic_runtime_profile(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
+    return {
+        "status": "ok",
+        "profile": plithogenic_runtime_fusion_profile(events, pairs),
+        "warnings": warnings,
     }
 
 

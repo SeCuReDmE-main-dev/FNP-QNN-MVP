@@ -22,6 +22,7 @@ import numpy as np
 from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, MODALITIES
 from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
 from .neutrosophic_quantum_primitives import fractal_carrier_profile
+from .plithogenic_logic import plithogenic_runtime_fusion_profile
 from .qnn_nucleus import QNNNucleus
 
 
@@ -150,6 +151,7 @@ class CerebrumRuntimeState:
     qnn_result: Optional[Dict[str, Any]] = None
     warnings: List[str] = field(default_factory=list)
     lvfm: Optional[Dict[str, Any]] = None
+    plithogenic: Optional[Dict[str, Any]] = None
 
     def to_dict(self, include_bundle: bool = True) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -163,6 +165,8 @@ class CerebrumRuntimeState:
         }
         if self.lvfm is not None:
             payload["lvfm"] = self.lvfm
+        if self.plithogenic is not None:
+            payload["plithogenic"] = self.plithogenic
         if include_bundle:
             payload["bundle"] = {
                 "sequence_length": self.feature_bundle.sequence_length,
@@ -239,12 +243,29 @@ class CerebrumRuntimeBridge:
         plugin_context: Optional[Mapping[str, Any]] = None,
         cpai_context: Optional[Mapping[str, Any]] = None,
         include_plugin_trace: bool = True,
+        plithogenic_enabled: bool = False,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
         bundle = self.adapter.build_bundle(observations)
         vector = self.adapter.bundle_to_vector(bundle)
+        plithogenic_profile = None
+        plithogenic_features: Optional[List[float]] = None
+        if plithogenic_enabled:
+            plithogenic_profile = plithogenic_runtime_fusion_profile(events, pairs)
+            plithogenic_features = [float(item) for item in plithogenic_profile["feature_vector"]]
+            vector = np.concatenate([vector, np.asarray(plithogenic_features, dtype=np.float32)]).astype(np.float32)
         lvfm = self._build_lvfm_snapshot(events, pairs)
+        if plithogenic_profile is not None:
+            lvfm["plithogenic_fusion_profile"] = {
+                "model": plithogenic_profile["model"],
+                "feature_vector": plithogenic_profile["feature_vector"],
+                "feature_dimension": plithogenic_profile["feature_dimension"],
+                "cumulative_truth": plithogenic_profile["cumulative_truth"],
+                "weighted_cumulative_truth": plithogenic_profile["weighted_cumulative_truth"],
+                "contradiction_summary": plithogenic_profile["contradiction_summary"],
+                "hierarchy": plithogenic_profile["hierarchy"],
+            }
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
             fractal_dimension_min,
@@ -278,6 +299,8 @@ class CerebrumRuntimeBridge:
                 plugin_context=dict(plugin_context or {}),
                 cpai_context=dict(cpai_context or {}),
                 include_plugin_trace=include_plugin_trace,
+                plithogenic_features=plithogenic_features,
+                plithogenic_payload=plithogenic_profile,
             )
             qnn_result.pop("bundle", None)
             if qnn_result.get("plugin_fractal_carrier") is not None:
@@ -293,6 +316,7 @@ class CerebrumRuntimeBridge:
             qnn_result=qnn_result,
             warnings=warnings,
             lvfm=lvfm,
+            plithogenic=plithogenic_profile,
         )
 
     def _fractal_carrier_payload(

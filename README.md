@@ -241,6 +241,7 @@ core/
   neurobit_gate_tunnel.py      # NeuroBit gate + tunnel-noise demo runtime
   experiment_seed.py           # deterministic experiment seed provenance
   ffed_plugin_bridge.py        # optional FFeD MVP5 plugin router and D_f mapper
+  plithogenic_logic.py         # opt-in plithogenic runtime fusion profile
   quantum_feature_transforms.py # pure amplitude/phase feature transforms
   qnn_nucleus.py               # QNN candidate matrix and Torch fallback
   phi_framework.py             # synthetic phi-framework simulation primitives
@@ -278,6 +279,7 @@ Core HTTP endpoints:
 - `POST /fnp-qnn/nidus/triplet/profile`
 - `POST /fnp-qnn/nidus/fusion/profile`
 - `POST /fnp-qnn/nidus/partial-membership/mean`
+- `POST /fnp-qnn/plithogenic/runtime/profile`
 - `POST /commands/{command_name}`
 
 Compatibility endpoint:
@@ -577,6 +579,9 @@ Recent quantum-neutrosophic learning additions:
 - `api/schemas.py` and `api/main.py` expose the compatible optional fields
   `state_basis`, `puncture_delta`, and `observer_strength` for QNN smoke,
   runtime runs, and NeuroBit gate demos, plus NeuroBit-only surface dimensions.
+- `core/plithogenic_logic.py` adds opt-in runtime fusion metadata for
+  multi-attribute plithogenic truth variables, weights, dependence/contradiction,
+  and cumulative truth before LVFM/QNN feature encoding.
 - `docs/source_ledger/quantum_neutrosophic_sources.md` maps each source PDF
   to the exact simulator mechanism, accepted educational claim, and forbidden
   public claim.
@@ -595,6 +600,8 @@ Source-backed topics now available for education and code reading:
 - neutrosophic `not`, `and`, `or`, and `if_then` gate algebra;
 - partial entanglement and partial observer effect represented as bounded
   T/I/F metadata.
+- plithogenic runtime fusion for weighted multi-attribute event truth,
+  dependence/contradiction metadata, and cumulative neutrosophic truth.
 
 Current Mechanism Layer v2 validation:
 
@@ -605,7 +612,7 @@ Current Mechanism Layer v2 validation:
 - `observer_effect_profile()` adds an optional partial-observer T/I/F profile;
 - NeuroBit gate runs now include optional gate semantics, reversibility-risk
   metadata, surface puncture metadata, and observer-effect metadata;
-- the full local test suite currently passes with 88 tests, and the
+- the full local test suite currently passes with 117 tests, and the
   alpha-local readiness validator passes.
 
 These additions are local educational simulation primitives only. They do not
@@ -631,6 +638,33 @@ The implementation report lives at
 `FNP-QNN-MVP-organisation/04_implementation_planning/NIDUS_IDEARUM_II_MATH_IMPLANTATION.md`.
 These endpoints are opt-in and do not change default QNN, NeuroBit, runtime,
 or Panel behavior.
+
+### Plithogenic runtime fusion layer
+
+`core/plithogenic_logic.py` adds an opt-in runtime fusion layer based on
+*Introduction to Plithogenic Logic as generalization of MultiVariate Logic*.
+The simulator now has a concrete place to use plithogenic logic: Cerebrum
+runtime event fusion before LVFM/QNN feature encoding.
+
+Enable it on runtime runs with:
+
+```json
+{
+  "plithogenic_enabled": true
+}
+```
+
+The layer maps events to `P(V1, V2, ..., Vn)` attribute truth variables,
+preserves bounded `T/I/F` triplets, applies event/source weights, surfaces
+pair dependence and contradiction load, and reports cumulative neutrosophic
+truth using `min(T), max(I), max(F)`. The same profile is available through:
+
+- `POST /fnp-qnn/plithogenic/runtime/profile`
+
+The implementation report lives at
+`FNP-QNN-MVP-organisation/04_implementation_planning/PLITHOGENIC_LOGIC_RUNTIME_FUSION.md`.
+This layer is disabled by default and does not change QNN, NeuroBit, Nidus,
+runtime, or Panel behavior unless requested.
 
 Start with:
 

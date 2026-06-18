@@ -93,6 +93,7 @@ class RuntimeRunRequest(BaseModel):
     plugin_context: Dict[str, Any] = Field(default_factory=dict)
     cpai_context: Dict[str, Any] = Field(default_factory=dict)
     include_plugin_trace: bool = True
+    plithogenic_enabled: bool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -130,6 +131,7 @@ class RuntimeRunRequest(BaseModel):
             payload["observer_strength"] = self.observer_strength
         payload.update(self.fractal_payload())
         payload.update(self.plugin_payload())
+        payload["plithogenic_enabled"] = self.plithogenic_enabled
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:

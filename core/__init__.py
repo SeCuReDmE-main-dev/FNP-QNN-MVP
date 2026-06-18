@@ -44,6 +44,13 @@ from .nidus_idearum_math import (
     source_weighted_triplet_fusion,
     triplet_quality_profile,
 )
+from .plithogenic_logic import (
+    plithogenic_attribute_profile,
+    plithogenic_contradiction_degree,
+    plithogenic_neutrosophic_conjunction,
+    plithogenic_runtime_fusion_profile,
+    plithogenic_weighted_cumulative_truth,
+)
 from .runtime_state_store import RuntimeStateStore
 
 __version__ = "1.2.0-research"
@@ -95,5 +102,10 @@ __all__ = [
     "partial_membership_mean",
     "source_weighted_triplet_fusion",
     "triplet_quality_profile",
+    "plithogenic_attribute_profile",
+    "plithogenic_contradiction_degree",
+    "plithogenic_neutrosophic_conjunction",
+    "plithogenic_runtime_fusion_profile",
+    "plithogenic_weighted_cumulative_truth",
     "RuntimeStateStore",
 ]

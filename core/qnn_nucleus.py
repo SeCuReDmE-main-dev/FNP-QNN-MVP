@@ -141,6 +141,8 @@ class QNNNucleus:
         plugin_context: Optional[Dict[str, Any]] = None,
         cpai_context: Optional[Dict[str, Any]] = None,
         include_plugin_trace: bool = True,
+        plithogenic_features: Optional[Sequence[float]] = None,
+        plithogenic_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
         plugin_payload = self._plugin_hook_payload(
@@ -151,8 +153,10 @@ class QNNNucleus:
             cpai_context=cpai_context,
             include_plugin_trace=include_plugin_trace,
         )
+        external_features = list(plugin_payload.get("feature_vector", [])) if plugin_payload is not None else []
+        external_features.extend(list(plithogenic_features or []))
         plugin_kwargs = {
-            "plugin_features": None if plugin_payload is None else plugin_payload.get("feature_vector", []),
+            "plugin_features": external_features or None,
             "plugin_payload": plugin_payload,
         }
         fractal_kwargs = {
@@ -165,7 +169,7 @@ class QNNNucleus:
         }
         if QISKIT_AVAILABLE:
             try:
-                return self.fit_qiskit_hybrid(
+                result = self.fit_qiskit_hybrid(
                     [raw_events],
                     [int(label)],
                     max_epochs=max_epochs,
@@ -176,6 +180,8 @@ class QNNNucleus:
                     **plugin_kwargs,
                     **fractal_kwargs,
                 )
+                self._attach_plithogenic_payload(result, plithogenic_payload)
+                return result
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
                     [raw_events],
@@ -191,8 +197,9 @@ class QNNNucleus:
                 )
                 fallback["qiskit_error"] = str(exc)
                 fallback["backend"] = "torch_surrogate_fallback_after_qiskit_error"
+                self._attach_plithogenic_payload(fallback, plithogenic_payload)
                 return fallback
-        return self.fit_surrogate(
+        result = self.fit_surrogate(
             [raw_events],
             [label],
             max_epochs=max_epochs if max_epochs > 0 else 32,
@@ -204,6 +211,8 @@ class QNNNucleus:
             **plugin_kwargs,
             **fractal_kwargs,
         )
+        self._attach_plithogenic_payload(result, plithogenic_payload)
+        return result
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
         candidate_results: List[QNNBenchmarkResult] = []
@@ -727,6 +736,19 @@ class QNNNucleus:
             "impact_verification",
         ):
             result[key] = plugin_payload.get(key)
+
+    def _attach_plithogenic_payload(self, result: Dict[str, Any], plithogenic_payload: Optional[Dict[str, Any]]) -> None:
+        if not plithogenic_payload:
+            return
+        result["plithogenic_fusion_profile"] = {
+            "model": plithogenic_payload["model"],
+            "feature_vector": plithogenic_payload["feature_vector"],
+            "feature_dimension": plithogenic_payload["feature_dimension"],
+            "cumulative_truth": plithogenic_payload["cumulative_truth"],
+            "weighted_cumulative_truth": plithogenic_payload["weighted_cumulative_truth"],
+            "contradiction_summary": plithogenic_payload["contradiction_summary"],
+            "hierarchy": plithogenic_payload["hierarchy"],
+        }
 
     def _fractal_carrier_payload(
         self,
