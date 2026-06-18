@@ -73,6 +73,7 @@ class QNNSmokeApiTests(unittest.TestCase):
         if result["impact_verification"]["activated"]:
             self.assertTrue(result["impact_verification"]["all_expected_plugins_seen"])
             self.assertIsNotNone(result["plugin_fractal_carrier"])
+            self.assertEqual(result["cpai_mesh_profile"]["base"], "CPAI mesh")
             self.assertFalse(result["impact_verification"]["secrets_exposed"])
             self.assertEqual(
                 result["plugin_hook_status"]["effective_configs"]["p046_rossler_beaulieu_cubic_framework"]["steps"],
