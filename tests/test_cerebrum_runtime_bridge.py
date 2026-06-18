@@ -281,6 +281,47 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
             all(0.0 <= item <= 1.0 for item in state.plithogenic_topology["stabilized_feature_vector"])
         )
 
+    def test_neutro_algebra_runtime_layer_is_opt_in(self):
+        default_state = self.bridge.build_state(self.bridge.default_payload())
+        enabled_state = self.bridge.build_state(self.bridge.default_payload(), neutro_algebra_enabled=True)
+
+        self.assertIsNone(default_state.neutro_algebra)
+        self.assertNotIn("neutro_algebra", default_state.to_dict())
+        self.assertIsNotNone(enabled_state.neutro_algebra)
+        self.assertIn("neutro_algebra", enabled_state.to_dict())
+        self.assertIn("structure_system_profile", enabled_state.neutro_algebra)
+        self.assertIn("neutro_algebra_profile", enabled_state.lvfm)
+        self.assertIn("neutro_structure_profile", enabled_state.lvfm)
+        self.assertGreater(enabled_state.feature_vector.shape[0], default_state.feature_vector.shape[0])
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in enabled_state.neutro_algebra["feature_vector"]))
+        self.assertTrue(
+            all(0.0 <= item <= 1.0 for item in enabled_state.neutro_algebra["structure_system_profile"]["feature_vector"])
+        )
+
+    def test_neutro_algebra_features_reach_qnn_when_enabled(self):
+        nucleus = QNNNucleus(adapter=self.bridge.adapter)
+        state = self.bridge.build_state(
+            self.bridge.default_payload(),
+            qnn_nucleus=nucleus,
+            max_epochs=2,
+            plithogenic_enabled=True,
+            revolutionary_topology_enabled=True,
+            neutro_algebra_enabled=True,
+        )
+
+        self.assertIsNotNone(state.qnn_result)
+        self.assertIn("neutro_algebra_profile", state.qnn_result)
+        self.assertIn("neutro_structure_profile", state.qnn_result)
+        self.assertIn("plithogenic_topology_profile", state.qnn_result)
+        self.assertEqual(
+            state.qnn_result["neutro_algebra_profile"]["feature_dimension"],
+            state.neutro_algebra["feature_dimension"],
+        )
+        self.assertEqual(
+            state.qnn_result["neutro_structure_profile"]["feature_dimension"],
+            state.neutro_algebra["structure_system_profile"]["feature_dimension"],
+        )
+
     def test_life_science_statefield_port_is_opt_in(self):
         port = LifeScienceObservationPort()
         observations = port.statefield_to_observations({"mu": [0.2, 0.7], "nu": [0.1, 0.2], "pi": [0.7, 0.1]})
@@ -475,6 +516,48 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("plugin_stabilization_profile", profile)
         self.assertIn("plithogenic_topology_load_profile", profile)
         self.assertFalse(profile["plithogenic_topology_load_profile"]["offload_performed"])
+
+    def test_runtime_run_endpoint_accepts_neutro_algebra_opt_in(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            json={
+                "epochs": 2,
+                "plithogenic_enabled": True,
+                "revolutionary_topology_enabled": True,
+                "neutro_algebra_enabled": True,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        self.assertIn("neutro_algebra", runtime)
+        self.assertIn("structure_system_profile", runtime["neutro_algebra"])
+        self.assertIn("neutro_algebra_profile", runtime["lvfm"])
+        self.assertIn("neutro_structure_profile", runtime["lvfm"])
+        self.assertIn("neutro_algebra_profile", runtime["qnn_result"])
+        self.assertIn("neutro_structure_profile", runtime["qnn_result"])
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in runtime["neutro_algebra"]["feature_vector"]))
+
+    def test_neutro_algebra_profile_endpoint(self):
+        response = self.client.post(
+            "/fnp-qnn/neutro-algebra/profile",
+            json={
+                "plithogenic_enabled": True,
+                "revolutionary_topology_enabled": True,
+                "memories": [
+                    {"modality": "audio", "starting_time": 0.0, "ending_time": 1.0, "value": 0.2},
+                    {"modality": "video", "starting_time": 0.2, "ending_time": 1.2, "value": 0.8},
+                ],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        profile = response.json()["profile"]
+        self.assertEqual(profile["model"], "neutroalgebra_structure_profile_v1")
+        self.assertIn("operation_profiles", profile)
+        self.assertIn("structure_system_profile", profile)
+        self.assertIn("T_system", profile["structure_system_profile"])
+        self.assertIn("I_system", profile["structure_system_profile"])
+        self.assertIn("F_system", profile["structure_system_profile"])
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in profile["feature_vector"]))
 
     def test_runtime_latest_state_endpoint(self):
         run_response = self.client.post("/cerebrum/runtime/run", json={"epochs": 3})

@@ -95,6 +95,7 @@ class RuntimeRunRequest(BaseModel):
     include_plugin_trace: bool = True
     plithogenic_enabled: bool = False
     revolutionary_topology_enabled: bool = False
+    neutro_algebra_enabled: bool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -134,6 +135,7 @@ class RuntimeRunRequest(BaseModel):
         payload.update(self.plugin_payload())
         payload["plithogenic_enabled"] = self.plithogenic_enabled
         payload["revolutionary_topology_enabled"] = self.revolutionary_topology_enabled
+        payload["neutro_algebra_enabled"] = self.neutro_algebra_enabled
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:

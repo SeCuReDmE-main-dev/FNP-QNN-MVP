@@ -147,6 +147,8 @@ class QNNNucleus:
         revolutionary_topology_payload: Optional[Dict[str, Any]] = None,
         plithogenic_topology_features: Optional[Sequence[float]] = None,
         plithogenic_topology_payload: Optional[Dict[str, Any]] = None,
+        neutro_algebra_features: Optional[Sequence[float]] = None,
+        neutro_algebra_payload: Optional[Dict[str, Any]] = None,
         precomputed_plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
@@ -164,6 +166,7 @@ class QNNNucleus:
         external_features.extend(list(plithogenic_features or []))
         external_features.extend(list(revolutionary_topology_features or []))
         external_features.extend(list(plithogenic_topology_features or []))
+        external_features.extend(list(neutro_algebra_features or []))
         plugin_kwargs = {
             "plugin_features": external_features or None,
             "plugin_payload": plugin_payload,
@@ -192,6 +195,7 @@ class QNNNucleus:
                 self._attach_plithogenic_payload(result, plithogenic_payload)
                 self._attach_revolutionary_topology_payload(result, revolutionary_topology_payload)
                 self._attach_plithogenic_topology_payload(result, plithogenic_topology_payload)
+                self._attach_neutro_algebra_payload(result, neutro_algebra_payload)
                 return result
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -211,6 +215,7 @@ class QNNNucleus:
                 self._attach_plithogenic_payload(fallback, plithogenic_payload)
                 self._attach_revolutionary_topology_payload(fallback, revolutionary_topology_payload)
                 self._attach_plithogenic_topology_payload(fallback, plithogenic_topology_payload)
+                self._attach_neutro_algebra_payload(fallback, neutro_algebra_payload)
                 return fallback
         result = self.fit_surrogate(
             [raw_events],
@@ -227,6 +232,7 @@ class QNNNucleus:
         self._attach_plithogenic_payload(result, plithogenic_payload)
         self._attach_revolutionary_topology_payload(result, revolutionary_topology_payload)
         self._attach_plithogenic_topology_payload(result, plithogenic_topology_payload)
+        self._attach_neutro_algebra_payload(result, neutro_algebra_payload)
         return result
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -811,6 +817,36 @@ class QNNNucleus:
             result["plithogenic_topology_profile"]["stabilized_feature_dimension"] = plithogenic_topology_payload[
                 "stabilized_feature_dimension"
             ]
+
+    def _attach_neutro_algebra_payload(
+        self,
+        result: Dict[str, Any],
+        neutro_algebra_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not neutro_algebra_payload:
+            return
+        result["neutro_algebra_profile"] = {
+            "model": neutro_algebra_payload["model"],
+            "classification": neutro_algebra_payload["classification"],
+            "feature_vector": neutro_algebra_payload["feature_vector"],
+            "feature_dimension": neutro_algebra_payload["feature_dimension"],
+            "runtime_mapping": neutro_algebra_payload["runtime_mapping"],
+            "hierarchy": neutro_algebra_payload["hierarchy"],
+        }
+        neutro_structure_payload = neutro_algebra_payload.get("structure_system_profile")
+        if neutro_structure_payload:
+            result["neutro_algebra_profile"]["structure_system_profile"] = neutro_structure_payload
+            result["neutro_structure_profile"] = {
+                "model": neutro_structure_payload["model"],
+                "T_system": neutro_structure_payload["T_system"],
+                "I_system": neutro_structure_payload["I_system"],
+                "F_system": neutro_structure_payload["F_system"],
+                "system_classification": neutro_structure_payload["system_classification"],
+                "feature_vector": neutro_structure_payload["feature_vector"],
+                "feature_dimension": neutro_structure_payload["feature_dimension"],
+                "runtime_mapping": neutro_structure_payload["runtime_mapping"],
+                "hierarchy": neutro_structure_payload["hierarchy"],
+            }
 
     def _fractal_carrier_payload(
         self,

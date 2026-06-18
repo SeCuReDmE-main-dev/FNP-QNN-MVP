@@ -39,6 +39,20 @@ from .neutrosophic_quantum_primitives import (
     punctured_surface_state,
     punctured_wave_state,
 )
+from .neutro_algebra import (
+    neutro_axiom_profile,
+    neutro_function_profile,
+    neutro_operation_table_profile,
+    neutroalgebra_runtime_profile,
+    neutroalgebra_structure_profile,
+    tri_section_space_profile,
+)
+from .neutro_structure import (
+    neutro_attribute_profile,
+    neutro_relation_profile,
+    neutrostructure_profile,
+    runtime_neutrostructure_profile,
+)
 from .nidus_idearum_math import (
     partial_membership_mean,
     source_weighted_triplet_fusion,
@@ -115,6 +129,16 @@ __all__ = [
     "partial_entanglement_profile",
     "punctured_surface_state",
     "punctured_wave_state",
+    "neutro_axiom_profile",
+    "neutro_function_profile",
+    "neutro_operation_table_profile",
+    "neutroalgebra_runtime_profile",
+    "neutroalgebra_structure_profile",
+    "tri_section_space_profile",
+    "neutro_attribute_profile",
+    "neutro_relation_profile",
+    "neutrostructure_profile",
+    "runtime_neutrostructure_profile",
     "partial_membership_mean",
     "source_weighted_triplet_fusion",
     "triplet_quality_profile",

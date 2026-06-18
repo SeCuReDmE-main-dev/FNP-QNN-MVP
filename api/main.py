@@ -237,6 +237,7 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         include_plugin_trace=bool((payload or {}).get("include_plugin_trace", True)),
         plithogenic_enabled=bool((payload or {}).get("plithogenic_enabled", False)),
         revolutionary_topology_enabled=bool((payload or {}).get("revolutionary_topology_enabled", False)),
+        neutro_algebra_enabled=bool((payload or {}).get("neutro_algebra_enabled", False)),
     )
     result = state.to_dict()
     if run_qnn:
@@ -548,6 +549,27 @@ async def plithogenic_topology_runtime_profile_endpoint(payload: RuntimeRunReque
     return {
         "status": "ok",
         "profile": state.plithogenic_topology,
+        "warnings": state.warnings,
+    }
+
+
+@app.post("/fnp-qnn/neutro-algebra/profile")
+async def neutro_algebra_profile_endpoint(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    runtime_payload = _runtime_payload(payload.to_runtime_payload())
+    state = cerebrum_runtime_bridge.build_state(
+        runtime_payload,
+        plithogenic_enabled=payload.plithogenic_enabled,
+        revolutionary_topology_enabled=payload.revolutionary_topology_enabled,
+        plugin_hook_enabled=payload.plugin_hook_enabled,
+        plugin_set=payload.plugin_set,
+        plugin_context=payload.plugin_context,
+        cpai_context=payload.cpai_context,
+        include_plugin_trace=payload.include_plugin_trace,
+        neutro_algebra_enabled=True,
+    )
+    return {
+        "status": "ok",
+        "profile": state.neutro_algebra,
         "warnings": state.warnings,
     }
 

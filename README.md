@@ -743,6 +743,45 @@ This bridge is disabled by default and does not change QNN, NeuroBit, Nidus,
 standalone Plithogenic, standalone Revolutionary Topology, runtime, or Panel
 behavior unless both source layers are active.
 
+### NeutroAlgebra runtime integrity layer
+
+`core/neutro_algebra.py` adds an opt-in algebraic-integrity layer based on
+*NeutroAlgebra is a Generalization of Partial Algebra*. This is the simulator
+door for checking whether runtime transformations, plugin outputs, topology
+operations, and compact QNN feature operations are inner-defined,
+indeterminate, outer-defined, or axiom-breaking.
+
+Enable it on runtime runs with:
+
+```json
+{
+  "neutro_algebra_enabled": true
+}
+```
+
+When enabled, runtime can include `neutro_algebra`, LVFM can include
+`neutro_algebra_profile`, and QNN results can include the same bounded
+integrity metadata. The profile uses A/neutroA/antiA tri-sectioning,
+NeutroFunction, NeutroOperation, NeutroAxiom, and structure classification
+including Partial Algebra as a NeutroAlgebra generalization.
+
+The same flag also activates the NeutroStructure system metrics layer based on
+*Structure, NeutroStructure, and AntiStructure in Science*. It adds
+`structure_system_profile` under `neutro_algebra`, plus LVFM/QNN
+`neutro_structure_profile` metadata with bounded `T_system`, `I_system`, and
+`F_system` computed from runtime relations and attributes.
+
+The same profile is available through:
+
+- `POST /fnp-qnn/neutro-algebra/profile`
+
+The implementation report lives at
+`FNP-QNN-MVP-organisation/04_implementation_planning/NEUTROALGEBRA_RUNTIME_INTEGRITY_LAYER.md`.
+The NeutroStructure system metrics report lives at
+`FNP-QNN-MVP-organisation/04_implementation_planning/NEUTROSTRUCTURE_SYSTEM_METRICS_LAYER.md`.
+This layer is disabled by default and does not overwrite plithogenic,
+topology, plugin, QNN, NeuroBit, LVFM, `D_f`, `dF`, or `i_fractal` evidence.
+
 ### Math source guardrail baseline
 
 The current source-to-function baseline and professor-thread source-of-truth

@@ -23,6 +23,8 @@ from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, MODALITIES
 from .ffed_plugin_bridge import FfeDPluginBridge
 from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
 from .neutrosophic_quantum_primitives import fractal_carrier_profile
+from .neutro_algebra import neutroalgebra_runtime_profile
+from .neutro_structure import runtime_neutrostructure_profile
 from .plithogenic_logic import plithogenic_runtime_fusion_profile
 from .plithogenic_probability_statistics import plithogenic_topology_wiring_profile
 from .qnn_nucleus import QNNNucleus
@@ -157,6 +159,7 @@ class CerebrumRuntimeState:
     plithogenic: Optional[Dict[str, Any]] = None
     revolutionary_topology: Optional[Dict[str, Any]] = None
     plithogenic_topology: Optional[Dict[str, Any]] = None
+    neutro_algebra: Optional[Dict[str, Any]] = None
 
     def to_dict(self, include_bundle: bool = True) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -176,6 +179,8 @@ class CerebrumRuntimeState:
             payload["revolutionary_topology"] = self.revolutionary_topology
         if self.plithogenic_topology is not None:
             payload["plithogenic_topology"] = self.plithogenic_topology
+        if self.neutro_algebra is not None:
+            payload["neutro_algebra"] = self.neutro_algebra
         if include_bundle:
             payload["bundle"] = {
                 "sequence_length": self.feature_bundle.sequence_length,
@@ -254,6 +259,7 @@ class CerebrumRuntimeBridge:
         include_plugin_trace: bool = True,
         plithogenic_enabled: bool = False,
         revolutionary_topology_enabled: bool = False,
+        neutro_algebra_enabled: bool = False,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
@@ -305,6 +311,24 @@ class CerebrumRuntimeBridge:
                 )
             ]
             vector = np.concatenate([vector, np.asarray(plithogenic_topology_features, dtype=np.float32)]).astype(np.float32)
+        neutro_algebra_profile = None
+        neutro_algebra_features: Optional[List[float]] = None
+        if neutro_algebra_enabled:
+            neutro_algebra_profile = neutroalgebra_runtime_profile(events, pairs, plithogenic_topology_profile)
+            neutro_structure_profile = runtime_neutrostructure_profile(
+                events,
+                pairs,
+                neutro_algebra_profile,
+                plithogenic_topology_profile,
+            )
+            neutro_algebra_profile["structure_system_profile"] = neutro_structure_profile
+            neutro_algebra_features = [
+                float(item) for item in (
+                    list(neutro_algebra_profile["feature_vector"])
+                    + list(neutro_structure_profile["feature_vector"])
+                )
+            ]
+            vector = np.concatenate([vector, np.asarray(neutro_algebra_features, dtype=np.float32)]).astype(np.float32)
         lvfm = self._build_lvfm_snapshot(events, pairs)
         if plithogenic_profile is not None:
             lvfm["plithogenic_fusion_profile"] = {
@@ -349,6 +373,28 @@ class CerebrumRuntimeBridge:
                 lvfm["plithogenic_topology_profile"]["stabilized_feature_dimension"] = plithogenic_topology_profile[
                     "stabilized_feature_dimension"
                 ]
+        if neutro_algebra_profile is not None:
+            neutro_structure_profile = neutro_algebra_profile.get("structure_system_profile")
+            lvfm["neutro_algebra_profile"] = {
+                "model": neutro_algebra_profile["model"],
+                "classification": neutro_algebra_profile["classification"],
+                "feature_vector": neutro_algebra_profile["feature_vector"],
+                "feature_dimension": neutro_algebra_profile["feature_dimension"],
+                "runtime_mapping": neutro_algebra_profile["runtime_mapping"],
+                "hierarchy": neutro_algebra_profile["hierarchy"],
+            }
+            if neutro_structure_profile is not None:
+                lvfm["neutro_structure_profile"] = {
+                    "model": neutro_structure_profile["model"],
+                    "T_system": neutro_structure_profile["T_system"],
+                    "I_system": neutro_structure_profile["I_system"],
+                    "F_system": neutro_structure_profile["F_system"],
+                    "system_classification": neutro_structure_profile["system_classification"],
+                    "feature_vector": neutro_structure_profile["feature_vector"],
+                    "feature_dimension": neutro_structure_profile["feature_dimension"],
+                    "runtime_mapping": neutro_structure_profile["runtime_mapping"],
+                    "hierarchy": neutro_structure_profile["hierarchy"],
+                }
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
             fractal_dimension_min,
@@ -388,6 +434,8 @@ class CerebrumRuntimeBridge:
                 revolutionary_topology_payload=revolutionary_topology_profile,
                 plithogenic_topology_features=plithogenic_topology_features,
                 plithogenic_topology_payload=plithogenic_topology_profile,
+                neutro_algebra_features=neutro_algebra_features,
+                neutro_algebra_payload=neutro_algebra_profile,
                 precomputed_plugin_payload=plithogenic_topology_plugin_payload,
             )
             qnn_result.pop("bundle", None)
@@ -407,6 +455,7 @@ class CerebrumRuntimeBridge:
             plithogenic=plithogenic_profile,
             revolutionary_topology=revolutionary_topology_profile,
             plithogenic_topology=plithogenic_topology_profile,
+            neutro_algebra=neutro_algebra_profile,
         )
 
     def _fractal_carrier_payload(
