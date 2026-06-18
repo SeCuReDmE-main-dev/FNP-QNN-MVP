@@ -194,6 +194,31 @@ If a command cannot run, report:
 
 Keep the base runtime lightweight.
 
+Strict Python environment rule:
+
+```text
+Use the repository-local `.venv` for all installs, tests, demos, API runs, and
+Panel runs. Do not install packages into the user/global Python site-packages
+for this repository unless the maintainer explicitly asks for a global install.
+```
+
+Required local setup pattern:
+
+```powershell
+py -3.10 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+```
+
+Optional backend installs must also stay inside `.venv`:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[qiskit]"
+```
+
+If a dependency was accidentally installed into global Python, stop and report
+the exact package/version impact before doing more installs.
+
 Base runtime should remain close to:
 
 ```text
