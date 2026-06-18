@@ -15,6 +15,7 @@ import numpy as np
 
 from .neutrosophic_quantum_primitives import (
     NeutrobitState,
+    fractal_carrier_profile,
     neutrosophic_gate_algebra,
     neutrosophic_measurement,
     observer_effect_profile,
@@ -49,6 +50,12 @@ class NeuroBitProfile:
     observer_strength: Optional[float] = None
     surface_width: Optional[float] = None
     surface_height: Optional[float] = None
+    fractal_dimension: Optional[float] = None
+    fractal_dimension_min: Optional[float] = None
+    fractal_dimension_max: Optional[float] = None
+    fractal_admissible: bool = True
+    fractal_measurement_method: Optional[str] = None
+    fractal_scale: Optional[str] = None
 
     def normalized(self) -> "NeuroBitProfile":
         truth = max(float(self.truth), 0.0)
@@ -59,6 +66,9 @@ class NeuroBitProfile:
         observer_strength = None if self.observer_strength is None else min(1.0, max(float(self.observer_strength), 0.0))
         surface_width = None if self.surface_width is None else max(float(self.surface_width), 0.0)
         surface_height = None if self.surface_height is None else max(float(self.surface_height), 0.0)
+        fractal_dimension = None if self.fractal_dimension is None else float(self.fractal_dimension)
+        fractal_dimension_min = None if self.fractal_dimension_min is None else float(self.fractal_dimension_min)
+        fractal_dimension_max = None if self.fractal_dimension_max is None else float(self.fractal_dimension_max)
         total = truth + indeterminacy + falsity
         if total <= 0.0:
             return NeuroBitProfile(
@@ -71,6 +81,12 @@ class NeuroBitProfile:
                 observer_strength=observer_strength,
                 surface_width=surface_width,
                 surface_height=surface_height,
+                fractal_dimension=fractal_dimension,
+                fractal_dimension_min=fractal_dimension_min,
+                fractal_dimension_max=fractal_dimension_max,
+                fractal_admissible=bool(self.fractal_admissible),
+                fractal_measurement_method=self.fractal_measurement_method,
+                fractal_scale=self.fractal_scale,
             )
         return NeuroBitProfile(
             truth=truth / total,
@@ -82,10 +98,16 @@ class NeuroBitProfile:
             observer_strength=observer_strength,
             surface_width=surface_width,
             surface_height=surface_height,
+            fractal_dimension=fractal_dimension,
+            fractal_dimension_min=fractal_dimension_min,
+            fractal_dimension_max=fractal_dimension_max,
+            fractal_admissible=bool(self.fractal_admissible),
+            fractal_measurement_method=self.fractal_measurement_method,
+            fractal_scale=self.fractal_scale,
         )
 
     @property
-    def metadata(self) -> Dict[str, float]:
+    def metadata(self) -> Dict[str, Any]:
         normalized = self.normalized()
         payload = {
             "truth": float(normalized.truth),
@@ -100,6 +122,17 @@ class NeuroBitProfile:
             payload["surface_width"] = float(normalized.surface_width)
         if normalized.surface_height is not None:
             payload["surface_height"] = float(normalized.surface_height)
+        if normalized.fractal_dimension is not None:
+            payload["fractal_dimension"] = float(normalized.fractal_dimension)
+        if normalized.fractal_dimension_min is not None:
+            payload["fractal_dimension_min"] = float(normalized.fractal_dimension_min)
+        if normalized.fractal_dimension_max is not None:
+            payload["fractal_dimension_max"] = float(normalized.fractal_dimension_max)
+        payload["fractal_admissible"] = bool(normalized.fractal_admissible)
+        if normalized.fractal_measurement_method is not None:
+            payload["fractal_measurement_method"] = str(normalized.fractal_measurement_method)
+        if normalized.fractal_scale is not None:
+            payload["fractal_scale"] = str(normalized.fractal_scale)
         return payload
 
 
@@ -115,6 +148,31 @@ def profile_from_mapping(payload: Optional[Mapping[str, Any]]) -> NeuroBitProfil
         observer_strength=payload.get("observer_strength"),
         surface_width=payload.get("surface_width"),
         surface_height=payload.get("surface_height"),
+        fractal_dimension=payload.get("fractal_dimension", payload.get("D_f")),
+        fractal_dimension_min=payload.get("fractal_dimension_min", payload.get("D_min")),
+        fractal_dimension_max=payload.get("fractal_dimension_max", payload.get("D_max")),
+        fractal_admissible=bool(payload.get("fractal_admissible", True)),
+        fractal_measurement_method=payload.get("fractal_measurement_method"),
+        fractal_scale=payload.get("fractal_scale"),
+    )
+
+
+def fractal_carrier_for_profile(profile: NeuroBitProfile) -> Optional[Dict[str, Any]]:
+    normalized = profile.normalized()
+    if (
+        normalized.fractal_dimension is None
+        or normalized.fractal_dimension_min is None
+        or normalized.fractal_dimension_max is None
+    ):
+        return None
+    return fractal_carrier_profile(
+        normalized.fractal_dimension,
+        normalized.fractal_dimension_min,
+        normalized.fractal_dimension_max,
+        measurement_method=normalized.fractal_measurement_method or "provided-fractal-dimension",
+        scale=normalized.fractal_scale,
+        domain="neurobit-profile",
+        admissible=normalized.fractal_admissible,
     )
 
 
@@ -336,6 +394,7 @@ def run_neurobit_gates(profile: Optional[NeuroBitProfile] = None, n_qubits: int 
             width=normalized.surface_width,
             height=normalized.surface_height,
         )
+    fractal_carrier = fractal_carrier_for_profile(normalized)
     backend = "deterministic_fallback"
     try:
         trace, counts = _apply_gate_sequence_qiskit(normalized, n_qubits)
@@ -369,6 +428,8 @@ def run_neurobit_gates(profile: Optional[NeuroBitProfile] = None, n_qubits: int 
         "neutrobit_measurement": measurement,
         "observer_effect": observer_effect,
         "partial_entanglement": entanglement,
+        "fractal_carrier": fractal_carrier,
+        "i_fractal_candidate": None if fractal_carrier is None else fractal_carrier["i_fractal_candidate"],
         "punctured_wave": punctured_wave,
         "punctured_surface": punctured_surface,
         "trace": trace,
@@ -416,6 +477,8 @@ def run_neurobit_tunnel_demo(
         "backend": gates["backend"],
         "research_boundary": "deterministic Fibonacci/noise simulation only; not encryption and not a security guarantee",
         "profile": normalized.metadata,
+        "fractal_carrier": gates.get("fractal_carrier"),
+        "i_fractal_candidate": gates.get("i_fractal_candidate"),
         "sequence_id": sequence_id,
         "gate_trace": gates["trace"],
         "quantum_state": counts,

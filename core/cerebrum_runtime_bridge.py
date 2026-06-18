@@ -21,6 +21,7 @@ import numpy as np
 
 from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, MODALITIES
 from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
+from .neutrosophic_quantum_primitives import fractal_carrier_profile
 from .qnn_nucleus import QNNNucleus
 
 
@@ -227,12 +228,30 @@ class CerebrumRuntimeBridge:
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
         observer_strength: Optional[float] = None,
+        fractal_dimension: Optional[float] = None,
+        fractal_dimension_min: Optional[float] = None,
+        fractal_dimension_max: Optional[float] = None,
+        fractal_admissible: bool = True,
+        fractal_measurement_method: Optional[str] = None,
+        fractal_scale: Optional[str] = None,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
         bundle = self.adapter.build_bundle(observations)
         vector = self.adapter.bundle_to_vector(bundle)
         lvfm = self._build_lvfm_snapshot(events, pairs)
+        fractal_carrier = self._fractal_carrier_payload(
+            fractal_dimension,
+            fractal_dimension_min,
+            fractal_dimension_max,
+            fractal_admissible,
+            fractal_measurement_method,
+            fractal_scale,
+            domain="lvfm-runtime-snapshot",
+        )
+        if fractal_carrier is not None:
+            lvfm["fractal_carrier"] = fractal_carrier
+            lvfm["i_fractal_candidate"] = fractal_carrier["i_fractal_candidate"]
         qnn_result = None
         if qnn_nucleus is not None:
             qnn_result = qnn_nucleus.smoke_run(
@@ -243,6 +262,12 @@ class CerebrumRuntimeBridge:
                 state_basis=state_basis,
                 puncture_delta=puncture_delta,
                 observer_strength=observer_strength,
+                fractal_dimension=fractal_dimension,
+                fractal_dimension_min=fractal_dimension_min,
+                fractal_dimension_max=fractal_dimension_max,
+                fractal_admissible=fractal_admissible,
+                fractal_measurement_method=fractal_measurement_method,
+                fractal_scale=fractal_scale,
             )
             qnn_result.pop("bundle", None)
         return CerebrumRuntimeState(
@@ -254,6 +279,28 @@ class CerebrumRuntimeBridge:
             qnn_result=qnn_result,
             warnings=warnings,
             lvfm=lvfm,
+        )
+
+    def _fractal_carrier_payload(
+        self,
+        fractal_dimension: Optional[float],
+        fractal_dimension_min: Optional[float],
+        fractal_dimension_max: Optional[float],
+        fractal_admissible: bool,
+        fractal_measurement_method: Optional[str],
+        fractal_scale: Optional[str],
+        domain: str,
+    ) -> Optional[Dict[str, Any]]:
+        if fractal_dimension is None or fractal_dimension_min is None or fractal_dimension_max is None:
+            return None
+        return fractal_carrier_profile(
+            fractal_dimension,
+            fractal_dimension_min,
+            fractal_dimension_max,
+            measurement_method=fractal_measurement_method or "provided-fractal-dimension",
+            scale=fractal_scale,
+            domain=domain,
+            admissible=fractal_admissible,
         )
 
     def _build_lvfm_snapshot(

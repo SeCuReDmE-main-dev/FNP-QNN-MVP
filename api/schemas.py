@@ -18,6 +18,21 @@ def _finite(value: float, field_name: str) -> float:
     return float(value)
 
 
+def _copy_fractal_aliases(values):
+    if not isinstance(values, dict):
+        return values
+    updated = dict(values)
+    aliases = {
+        "D_f": "fractal_dimension",
+        "D_min": "fractal_dimension_min",
+        "D_max": "fractal_dimension_max",
+    }
+    for alias, field_name in aliases.items():
+        if alias in updated and field_name not in updated:
+            updated[field_name] = updated[alias]
+    return updated
+
+
 class Observation(BaseModel):
     modality: str = Field(default="stimuli", max_length=32)
     value: Any = 0.0
@@ -66,6 +81,17 @@ class RuntimeRunRequest(BaseModel):
     state_basis: Literal["binary", "neutrobit"] = "binary"
     puncture_delta: Optional[float] = Field(default=None, gt=0.0)
     observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    fractal_dimension: Optional[float] = None
+    fractal_dimension_min: Optional[float] = None
+    fractal_dimension_max: Optional[float] = None
+    fractal_admissible: bool = True
+    fractal_measurement_method: Optional[str] = Field(default=None, max_length=120)
+    fractal_scale: Optional[str] = Field(default=None, max_length=120)
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_fractal_aliases(cls, values):
+        return _copy_fractal_aliases(values)
 
     @field_validator("memories", "events", "observations")
     @classmethod
@@ -79,6 +105,13 @@ class RuntimeRunRequest(BaseModel):
     def validate_label(cls, value: float) -> float:
         return _finite(value, "label")
 
+    @field_validator("fractal_dimension", "fractal_dimension_min", "fractal_dimension_max")
+    @classmethod
+    def validate_fractal_numbers(cls, value: Optional[float], info):
+        if value is None:
+            return value
+        return _finite(value, info.field_name)
+
     def to_runtime_payload(self) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
             "label": self.label,
@@ -89,6 +122,7 @@ class RuntimeRunRequest(BaseModel):
             payload["puncture_delta"] = self.puncture_delta
         if self.observer_strength is not None:
             payload["observer_strength"] = self.observer_strength
+        payload.update(self.fractal_payload())
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:
@@ -97,6 +131,20 @@ class RuntimeRunRequest(BaseModel):
             payload["observations"] = [item.model_dump(exclude_none=True) for item in self.observations]
         if self.statefield is not None:
             payload["statefield"] = self.statefield
+        return payload
+
+    def fractal_payload(self) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {"fractal_admissible": self.fractal_admissible}
+        if self.fractal_dimension is not None:
+            payload["fractal_dimension"] = self.fractal_dimension
+        if self.fractal_dimension_min is not None:
+            payload["fractal_dimension_min"] = self.fractal_dimension_min
+        if self.fractal_dimension_max is not None:
+            payload["fractal_dimension_max"] = self.fractal_dimension_max
+        if self.fractal_measurement_method is not None:
+            payload["fractal_measurement_method"] = self.fractal_measurement_method
+        if self.fractal_scale is not None:
+            payload["fractal_scale"] = self.fractal_scale
         return payload
 
 
@@ -119,6 +167,17 @@ class QNNSmokeRequest(BaseModel):
     state_basis: Literal["binary", "neutrobit"] = "binary"
     puncture_delta: Optional[float] = Field(default=None, gt=0.0)
     observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    fractal_dimension: Optional[float] = None
+    fractal_dimension_min: Optional[float] = None
+    fractal_dimension_max: Optional[float] = None
+    fractal_admissible: bool = True
+    fractal_measurement_method: Optional[str] = Field(default=None, max_length=120)
+    fractal_scale: Optional[str] = Field(default=None, max_length=120)
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_fractal_aliases(cls, values):
+        return _copy_fractal_aliases(values)
 
     @model_validator(mode="after")
     def validate_samples_and_labels(self):
@@ -131,6 +190,13 @@ class QNNSmokeRequest(BaseModel):
         if len(self.samples) > MAX_EVENTS:
             raise ValueError(f"At most {MAX_EVENTS} samples are accepted")
         return self
+
+    @field_validator("fractal_dimension", "fractal_dimension_min", "fractal_dimension_max")
+    @classmethod
+    def validate_fractal_numbers(cls, value: Optional[float], info):
+        if value is None:
+            return value
+        return _finite(value, info.field_name)
 
     def dump_samples(self) -> Optional[List[List[Dict[str, Any]]]]:
         if self.samples is None:
@@ -149,6 +215,12 @@ class NeuroBitProfileRequest(BaseModel):
     observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     surface_width: Optional[float] = Field(default=None, gt=0.0, le=256.0)
     surface_height: Optional[float] = Field(default=None, gt=0.0, le=256.0)
+    fractal_dimension: Optional[float] = None
+    fractal_dimension_min: Optional[float] = None
+    fractal_dimension_max: Optional[float] = None
+    fractal_admissible: bool = True
+    fractal_measurement_method: Optional[str] = Field(default=None, max_length=120)
+    fractal_scale: Optional[str] = Field(default=None, max_length=120)
 
     @model_validator(mode="before")
     @classmethod
@@ -156,11 +228,22 @@ class NeuroBitProfileRequest(BaseModel):
         if isinstance(values, dict) and "dF" in values and "delta_falsity" not in values:
             values = dict(values)
             values["delta_falsity"] = values.pop("dF")
+        values = _copy_fractal_aliases(values)
         return values
 
-    @field_validator("truth", "indeterminacy", "falsity", "delta_falsity")
+    @field_validator(
+        "truth",
+        "indeterminacy",
+        "falsity",
+        "delta_falsity",
+        "fractal_dimension",
+        "fractal_dimension_min",
+        "fractal_dimension_max",
+    )
     @classmethod
-    def validate_neurobit_numbers(cls, value: float, info):
+    def validate_neurobit_numbers(cls, value: Optional[float], info):
+        if value is None:
+            return value
         return _finite(value, info.field_name)
 
     def to_profile_payload(self) -> Dict[str, Any]:
@@ -174,6 +257,12 @@ class NeuroBitProfileRequest(BaseModel):
             "observer_strength": self.observer_strength,
             "surface_width": self.surface_width,
             "surface_height": self.surface_height,
+            "fractal_dimension": self.fractal_dimension,
+            "fractal_dimension_min": self.fractal_dimension_min,
+            "fractal_dimension_max": self.fractal_dimension_max,
+            "fractal_admissible": self.fractal_admissible,
+            "fractal_measurement_method": self.fractal_measurement_method,
+            "fractal_scale": self.fractal_scale,
         }
 
 
@@ -191,7 +280,18 @@ class CommandRequest(BaseModel):
     state_basis: Literal["binary", "neutrobit"] = "binary"
     puncture_delta: Optional[float] = Field(default=None, gt=0.0)
     observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    fractal_dimension: Optional[float] = None
+    fractal_dimension_min: Optional[float] = None
+    fractal_dimension_max: Optional[float] = None
+    fractal_admissible: bool = True
+    fractal_measurement_method: Optional[str] = Field(default=None, max_length=120)
+    fractal_scale: Optional[str] = Field(default=None, max_length=120)
     neurobit: Optional[NeuroBitTunnelRequest] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_fractal_aliases(cls, values):
+        return _copy_fractal_aliases(values)
 
 
 class CommandResponse(BaseModel):

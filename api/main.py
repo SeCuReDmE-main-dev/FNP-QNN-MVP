@@ -115,6 +115,12 @@ def _neurobit_profile_from_request(payload: NeuroBitProfileRequest | None = None
         observer_strength=payload.observer_strength,
         surface_width=payload.surface_width,
         surface_height=payload.surface_height,
+        fractal_dimension=payload.fractal_dimension,
+        fractal_dimension_min=payload.fractal_dimension_min,
+        fractal_dimension_max=payload.fractal_dimension_max,
+        fractal_admissible=payload.fractal_admissible,
+        fractal_measurement_method=payload.fractal_measurement_method,
+        fractal_scale=payload.fractal_scale,
     )
 
 
@@ -204,6 +210,12 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         state_basis=str((payload or {}).get("state_basis", "binary")),
         puncture_delta=(payload or {}).get("puncture_delta"),
         observer_strength=(payload or {}).get("observer_strength"),
+        fractal_dimension=(payload or {}).get("fractal_dimension"),
+        fractal_dimension_min=(payload or {}).get("fractal_dimension_min"),
+        fractal_dimension_max=(payload or {}).get("fractal_dimension_max"),
+        fractal_admissible=bool((payload or {}).get("fractal_admissible", True)),
+        fractal_measurement_method=(payload or {}).get("fractal_measurement_method"),
+        fractal_scale=(payload or {}).get("fractal_scale"),
     )
     result = state.to_dict()
     if run_qnn:
@@ -373,6 +385,12 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         state_basis=payload.state_basis,
         puncture_delta=payload.puncture_delta,
         observer_strength=payload.observer_strength,
+        fractal_dimension=payload.fractal_dimension,
+        fractal_dimension_min=payload.fractal_dimension_min,
+        fractal_dimension_max=payload.fractal_dimension_max,
+        fractal_admissible=payload.fractal_admissible,
+        fractal_measurement_method=payload.fractal_measurement_method,
+        fractal_scale=payload.fractal_scale,
     ))
     return {
         "status": "ok",
@@ -394,6 +412,7 @@ async def neurobit_status() -> Dict[str, Any]:
         "research_boundary": result["research_boundary"],
         "hierarchy": result["hierarchy"],
         "state_basis": result["state_basis"],
+        "fractal_carrier_supported": True,
     }
 
 
@@ -459,6 +478,12 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             state_basis=request.state_basis,
             puncture_delta=request.puncture_delta,
             observer_strength=request.observer_strength,
+            fractal_dimension=request.fractal_dimension,
+            fractal_dimension_min=request.fractal_dimension_min,
+            fractal_dimension_max=request.fractal_dimension_max,
+            fractal_admissible=request.fractal_admissible,
+            fractal_measurement_method=request.fractal_measurement_method,
+            fractal_scale=request.fractal_scale,
         )
         samples = qnn_request.dump_samples()
         labels = qnn_request.labels
@@ -472,6 +497,12 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             state_basis=qnn_request.state_basis,
             puncture_delta=qnn_request.puncture_delta,
             observer_strength=qnn_request.observer_strength,
+            fractal_dimension=qnn_request.fractal_dimension,
+            fractal_dimension_min=qnn_request.fractal_dimension_min,
+            fractal_dimension_max=qnn_request.fractal_dimension_max,
+            fractal_admissible=qnn_request.fractal_admissible,
+            fractal_measurement_method=qnn_request.fractal_measurement_method,
+            fractal_scale=qnn_request.fractal_scale,
         ))
         return CommandResponse(
             success=True,

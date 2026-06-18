@@ -53,6 +53,7 @@ class NeuroBitGateTunnelTests(unittest.TestCase):
         self.assertIn("gate_semantics", result)
         self.assertIn("reversibility_profile", result)
         self.assertIn("gate_algebra_preview", result)
+        self.assertIsNone(result["fractal_carrier"])
 
     def test_neutrobit_basis_can_emit_punctured_wave_metadata(self):
         profile = NeuroBitProfile(
@@ -73,6 +74,25 @@ class NeuroBitGateTunnelTests(unittest.TestCase):
         self.assertEqual(result["punctured_surface"]["count"], 9)
         self.assertIsNotNone(result["observer_effect"])
         self.assertGreater(result["observer_effect"]["I"], result["neutrobit_measurement"]["I"])
+
+    def test_fractal_carrier_metadata_is_optional_and_bounded(self):
+        profile = NeuroBitProfile(
+            truth=0.55,
+            indeterminacy=0.30,
+            falsity=0.15,
+            fractal_dimension=1.5,
+            fractal_dimension_min=1.0,
+            fractal_dimension_max=2.0,
+            fractal_measurement_method="box-counting-provided",
+            fractal_scale="unit-test",
+        )
+        result = run_neurobit_gates(profile, n_qubits=4)
+        carrier = result["fractal_carrier"]
+        self.assertIsNotNone(carrier)
+        self.assertAlmostEqual(carrier["D_f_hat"], 0.5)
+        self.assertEqual(result["i_fractal_candidate"], 0.5)
+        self.assertEqual(carrier["hierarchy"], "I -> I_system^S -> D_f -> dF -> i_fractal")
+        self.assertIn("not identical to I", carrier["interpretation"])
 
     def test_tunnel_demo_is_research_bounded(self):
         result = run_neurobit_tunnel_demo(NeuroBitProfile(), data="abc")

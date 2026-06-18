@@ -18,6 +18,9 @@ RESEARCH_BOUNDARY = (
     "alpha-local educational simulation only; not a physical quantum proof, "
     "clinical system, security system, or production-public claim"
 )
+FRACTAL_CARRIER_INTERPRETATION = (
+    "D_f_hat is a bounded local admissible carrier; it is not identical to I."
+)
 
 
 def _finite_float(value: Any, label: str) -> float:
@@ -73,6 +76,88 @@ def _state_to_tif(state: Any, label: str = "state") -> tuple[float, float, float
         falsity = _bounded_nonnegative(state.get("F", state.get("falsity", 0.0)), f"{label}.F")
         return _normalize_triplet(truth, indeterminacy, falsity)
     raise TypeError(f"{label} must be a neutrobit state, coherent/decoherent wrapper, or T/I/F mapping")
+
+
+@dataclass(frozen=True)
+class FractalCarrierContext:
+    """Context for a provided fractal dimension before local normalization."""
+
+    system: str = "local-fractal-carrier"
+    measurement_method: str = "provided-fractal-dimension"
+    scale: Optional[str] = None
+    domain: Optional[str] = None
+    admissible: bool = True
+
+    def payload(self) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "system": str(self.system),
+            "measurement_method": str(self.measurement_method),
+            "admissible": bool(self.admissible),
+        }
+        if self.scale:
+            payload["scale"] = str(self.scale)
+        if self.domain:
+            payload["domain"] = str(self.domain)
+        return payload
+
+
+def normalize_fractal_dimension(d_f: Any, d_min: Any, d_max: Any) -> float:
+    """Normalize a provided fractal dimension into a bounded [0, 1] carrier."""
+    d_f_value = _finite_float(d_f, "D_f")
+    d_min_value = _finite_float(d_min, "D_min")
+    d_max_value = _finite_float(d_max, "D_max")
+    if d_max_value <= d_min_value:
+        raise ValueError("D_max must be greater than D_min")
+    raw = (d_f_value - d_min_value) / (d_max_value - d_min_value)
+    return float(min(1.0, max(0.0, raw)))
+
+
+def fractal_carrier_profile(
+    d_f: Any,
+    d_min: Any,
+    d_max: Any,
+    context: Optional[FractalCarrierContext] = None,
+    *,
+    system: str = "local-fractal-carrier",
+    measurement_method: str = "provided-fractal-dimension",
+    scale: Optional[str] = None,
+    domain: Optional[str] = None,
+    admissible: bool = True,
+) -> Dict[str, Any]:
+    """Return the public-safe D_f_hat carrier profile without collapsing it into I."""
+    d_f_value = _finite_float(d_f, "D_f")
+    d_min_value = _finite_float(d_min, "D_min")
+    d_max_value = _finite_float(d_max, "D_max")
+    if d_max_value <= d_min_value:
+        raise ValueError("D_max must be greater than D_min")
+    carrier_context = context or FractalCarrierContext(
+        system=system,
+        measurement_method=measurement_method,
+        scale=scale,
+        domain=domain,
+        admissible=admissible,
+    )
+    is_admissible = bool(carrier_context.admissible)
+    d_f_hat = normalize_fractal_dimension(d_f_value, d_min_value, d_max_value) if is_admissible else None
+    return {
+        "model": "fractal_dimension_carrier",
+        "D_f": d_f_value,
+        "D_min": d_min_value,
+        "D_max": d_max_value,
+        "D_f_hat": d_f_hat,
+        "admissible": is_admissible,
+        "dF_carrier": d_f_hat,
+        "i_fractal_candidate": d_f_hat,
+        "context": carrier_context.payload(),
+        "hierarchy": SOURCE_HIERARCHY,
+        "research_boundary": RESEARCH_BOUNDARY,
+        "interpretation": FRACTAL_CARRIER_INTERPRETATION,
+        "notes": [
+            "Preserve I -> I_system^S -> D_f -> dF -> i_fractal.",
+            "Use D_f_hat only as a local admissible carrier.",
+            "Do not treat the carrier as the full indeterminacy layer.",
+        ],
+    }
 
 
 @dataclass(frozen=True)
@@ -411,6 +496,12 @@ def neutrobit_features_from_vector(
     vector: Sequence[float],
     puncture_delta: Optional[float] = None,
     observer_strength: Optional[float] = None,
+    fractal_dimension: Optional[float] = None,
+    fractal_dimension_min: Optional[float] = None,
+    fractal_dimension_max: Optional[float] = None,
+    fractal_admissible: bool = True,
+    fractal_measurement_method: Optional[str] = None,
+    fractal_scale: Optional[str] = None,
 ) -> np.ndarray:
     """Create a compact neutrobit feature expansion from a real feature vector."""
     values = np.asarray(list(vector), dtype=np.float32).reshape(-1)
@@ -453,18 +544,38 @@ def neutrobit_features_from_vector(
             decoherence=indeterminacy,
         )
         features.extend([observer["T"], observer["I"], observer["F"]])
+    if (
+        fractal_dimension is not None
+        and fractal_dimension_min is not None
+        and fractal_dimension_max is not None
+    ):
+        carrier = fractal_carrier_profile(
+            fractal_dimension,
+            fractal_dimension_min,
+            fractal_dimension_max,
+            measurement_method=fractal_measurement_method or "provided-fractal-dimension",
+            scale=fractal_scale,
+            domain="neutrobit-feature-vector",
+            admissible=fractal_admissible,
+        )
+        if carrier["admissible"] and carrier["D_f_hat"] is not None:
+            features.extend([carrier["D_f_hat"], carrier["dF_carrier"], carrier["i_fractal_candidate"]])
     return np.asarray(features, dtype=np.float32)
 
 
 __all__ = [
     "CoherentNeutroState",
     "DecoherentNeutroState",
+    "FRACTAL_CARRIER_INTERPRETATION",
+    "FractalCarrierContext",
     "NeutrobitState",
     "RESEARCH_BOUNDARY",
     "SOURCE_HIERARCHY",
+    "fractal_carrier_profile",
     "neutrobit_features_from_vector",
     "neutrosophic_gate_algebra",
     "neutrosophic_measurement",
+    "normalize_fractal_dimension",
     "observer_effect_profile",
     "partial_entanglement_profile",
     "punctured_surface_state",

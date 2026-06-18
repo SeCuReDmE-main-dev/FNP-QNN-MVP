@@ -6,9 +6,11 @@ from core.neutrosophic_quantum_primitives import (
     CoherentNeutroState,
     DecoherentNeutroState,
     NeutrobitState,
+    fractal_carrier_profile,
     neutrobit_features_from_vector,
     neutrosophic_gate_algebra,
     neutrosophic_measurement,
+    normalize_fractal_dimension,
     observer_effect_profile,
     partial_entanglement_profile,
     punctured_surface_state,
@@ -69,6 +71,51 @@ class NeutrosophicQuantumPrimitiveTests(unittest.TestCase):
         features = neutrobit_features_from_vector([0.1, 0.5, 0.9], puncture_delta=0.1)
         self.assertGreaterEqual(features.shape[0], 11)
         self.assertTrue(np.isfinite(features).all())
+
+    def test_normalize_fractal_dimension_is_bounded(self):
+        self.assertAlmostEqual(normalize_fractal_dimension(1.5, 1.0, 2.0), 0.5)
+        self.assertAlmostEqual(normalize_fractal_dimension(1.0, 1.0, 2.0), 0.0)
+        self.assertAlmostEqual(normalize_fractal_dimension(2.0, 1.0, 2.0), 1.0)
+        self.assertAlmostEqual(normalize_fractal_dimension(0.5, 1.0, 2.0), 0.0)
+        self.assertAlmostEqual(normalize_fractal_dimension(2.5, 1.0, 2.0), 1.0)
+
+    def test_normalize_fractal_dimension_rejects_invalid_bounds(self):
+        with self.assertRaises(ValueError):
+            normalize_fractal_dimension(1.5, 1.0, 1.0)
+        with self.assertRaises(ValueError):
+            normalize_fractal_dimension(float("nan"), 1.0, 2.0)
+
+    def test_fractal_carrier_profile_preserves_hierarchy(self):
+        profile = fractal_carrier_profile(
+            1.5,
+            1.0,
+            2.0,
+            system="S",
+            measurement_method="box-counting-provided",
+            scale="alpha-local",
+            domain="unit-test",
+        )
+        self.assertAlmostEqual(profile["D_f_hat"], 0.5)
+        self.assertAlmostEqual(profile["i_fractal_candidate"], 0.5)
+        self.assertEqual(profile["hierarchy"], "I -> I_system^S -> D_f -> dF -> i_fractal")
+        self.assertIn("not identical to I", profile["interpretation"])
+
+    def test_fractal_carrier_profile_can_mark_context_inadmissible(self):
+        profile = fractal_carrier_profile(1.5, 1.0, 2.0, admissible=False)
+        self.assertFalse(profile["admissible"])
+        self.assertIsNone(profile["D_f_hat"])
+        self.assertIsNone(profile["i_fractal_candidate"])
+
+    def test_neutrobit_features_accept_fractal_carrier_without_replacing_legacy(self):
+        baseline = neutrobit_features_from_vector([0.1, 0.5, 0.9])
+        enriched = neutrobit_features_from_vector(
+            [0.1, 0.5, 0.9],
+            fractal_dimension=1.5,
+            fractal_dimension_min=1.0,
+            fractal_dimension_max=2.0,
+        )
+        self.assertEqual(enriched.shape[0], baseline.shape[0] + 3)
+        self.assertTrue(np.isfinite(enriched).all())
 
     def test_neutrosophic_gate_not_swaps_truth_and_falsity(self):
         result = neutrosophic_gate_algebra("not", {"T": 0.7, "I": 0.2, "F": 0.1})

@@ -59,6 +59,28 @@ Not validated by the default local runtime:
 - live historical Cerebrum database replay;
 - any clinical, diagnostic, therapeutic, safety, or production-public behavior.
 
+## Fractal Carrier Rules
+
+The simulator accepts an optional deterministic fractal carrier:
+
+```text
+D_f_hat(x) = (D_f(x) - D_min) / (D_max - D_min)
+```
+
+`D_f_hat` is a bounded local admissible carrier. It can be exposed as
+`fractal_carrier.D_f_hat` and, when admissible, as `i_fractal_candidate`
+metadata in NeuroBit, QNN smoke, and LVFM runtime snapshots. It does not
+replace `indeterminacy`, and the project must preserve this hierarchy:
+
+```text
+I -> I_system^S -> D_f -> dF -> i_fractal
+```
+
+Accepted inputs are optional `fractal_dimension`, `fractal_dimension_min`, and
+`fractal_dimension_max`; public aliases `D_f`, `D_min`, and `D_max` are accepted
+by the API. `D_f_hat` is calculated by the simulator and should not be supplied
+as an asserted input value.
+
 ## Architecture
 
 ```text

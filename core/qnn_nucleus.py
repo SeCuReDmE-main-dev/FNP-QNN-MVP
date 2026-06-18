@@ -18,7 +18,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 from .cerebrum_adapter import CerebrumAdapter
-from .neutrosophic_quantum_primitives import neutrobit_features_from_vector
+from .neutrosophic_quantum_primitives import fractal_carrier_profile, neutrobit_features_from_vector
 
 try:  # Optional Qiskit path. The repo should still run without it.
     from qiskit.circuit import QuantumCircuit
@@ -129,7 +129,21 @@ class QNNNucleus:
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
         observer_strength: Optional[float] = None,
+        fractal_dimension: Optional[float] = None,
+        fractal_dimension_min: Optional[float] = None,
+        fractal_dimension_max: Optional[float] = None,
+        fractal_admissible: bool = True,
+        fractal_measurement_method: Optional[str] = None,
+        fractal_scale: Optional[str] = None,
     ) -> Dict[str, Any]:
+        fractal_kwargs = {
+            "fractal_dimension": fractal_dimension,
+            "fractal_dimension_min": fractal_dimension_min,
+            "fractal_dimension_max": fractal_dimension_max,
+            "fractal_admissible": fractal_admissible,
+            "fractal_measurement_method": fractal_measurement_method,
+            "fractal_scale": fractal_scale,
+        }
         if QISKIT_AVAILABLE:
             try:
                 return self.fit_qiskit_hybrid(
@@ -140,6 +154,7 @@ class QNNNucleus:
                     state_basis=state_basis,
                     puncture_delta=puncture_delta,
                     observer_strength=observer_strength,
+                    **fractal_kwargs,
                 )
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -151,6 +166,7 @@ class QNNNucleus:
                     state_basis=state_basis,
                     puncture_delta=puncture_delta,
                     observer_strength=observer_strength,
+                    **fractal_kwargs,
                 )
                 fallback["qiskit_error"] = str(exc)
                 fallback["backend"] = "torch_surrogate_fallback_after_qiskit_error"
@@ -164,6 +180,7 @@ class QNNNucleus:
             state_basis=state_basis,
             puncture_delta=puncture_delta,
             observer_strength=observer_strength,
+            **fractal_kwargs,
         )
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -253,6 +270,12 @@ class QNNNucleus:
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
         observer_strength: Optional[float] = None,
+        fractal_dimension: Optional[float] = None,
+        fractal_dimension_min: Optional[float] = None,
+        fractal_dimension_max: Optional[float] = None,
+        fractal_admissible: bool = True,
+        fractal_measurement_method: Optional[str] = None,
+        fractal_scale: Optional[str] = None,
     ) -> Dict[str, Any]:
         np.random.seed(self.DEFAULT_SEED)
         torch.manual_seed(self.DEFAULT_SEED)
@@ -263,6 +286,21 @@ class QNNNucleus:
             state_basis=state_basis,
             puncture_delta=puncture_delta,
             observer_strength=observer_strength,
+            fractal_dimension=fractal_dimension,
+            fractal_dimension_min=fractal_dimension_min,
+            fractal_dimension_max=fractal_dimension_max,
+            fractal_admissible=fractal_admissible,
+            fractal_measurement_method=fractal_measurement_method,
+            fractal_scale=fractal_scale,
+        )
+        fractal_carrier = self._fractal_carrier_payload(
+            fractal_dimension,
+            fractal_dimension_min,
+            fractal_dimension_max,
+            fractal_admissible,
+            fractal_measurement_method,
+            fractal_scale,
+            domain="qnn-surrogate",
         )
         y = np.asarray(labels, dtype=np.float32)
 
@@ -312,6 +350,8 @@ class QNNNucleus:
             "state_basis": state_basis,
             "puncture_delta": puncture_delta,
             "observer_strength": observer_strength,
+            "fractal_carrier": fractal_carrier,
+            "i_fractal_candidate": None if fractal_carrier is None else fractal_carrier["i_fractal_candidate"],
         }
 
         self._surrogate = model
@@ -328,6 +368,12 @@ class QNNNucleus:
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
         observer_strength: Optional[float] = None,
+        fractal_dimension: Optional[float] = None,
+        fractal_dimension_min: Optional[float] = None,
+        fractal_dimension_max: Optional[float] = None,
+        fractal_admissible: bool = True,
+        fractal_measurement_method: Optional[str] = None,
+        fractal_scale: Optional[str] = None,
     ) -> Dict[str, Any]:
         if not QISKIT_AVAILABLE:
             raise RuntimeError("Qiskit Machine Learning is not installed in this environment")
@@ -338,6 +384,21 @@ class QNNNucleus:
             state_basis=state_basis,
             puncture_delta=puncture_delta,
             observer_strength=observer_strength,
+            fractal_dimension=fractal_dimension,
+            fractal_dimension_min=fractal_dimension_min,
+            fractal_dimension_max=fractal_dimension_max,
+            fractal_admissible=fractal_admissible,
+            fractal_measurement_method=fractal_measurement_method,
+            fractal_scale=fractal_scale,
+        )
+        fractal_carrier = self._fractal_carrier_payload(
+            fractal_dimension,
+            fractal_dimension_min,
+            fractal_dimension_max,
+            fractal_admissible,
+            fractal_measurement_method,
+            fractal_scale,
+            domain="qnn-qiskit-hybrid",
         )
         y = np.asarray(labels, dtype=np.float32)
 
@@ -387,6 +448,8 @@ class QNNNucleus:
             "state_basis": state_basis,
             "puncture_delta": puncture_delta,
             "observer_strength": observer_strength,
+            "fractal_carrier": fractal_carrier,
+            "i_fractal_candidate": None if fractal_carrier is None else fractal_carrier["i_fractal_candidate"],
         }
         self._qiskit_model = model
         return result
@@ -397,6 +460,12 @@ class QNNNucleus:
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
         observer_strength: Optional[float] = None,
+        fractal_dimension: Optional[float] = None,
+        fractal_dimension_min: Optional[float] = None,
+        fractal_dimension_max: Optional[float] = None,
+        fractal_admissible: bool = True,
+        fractal_measurement_method: Optional[str] = None,
+        fractal_scale: Optional[str] = None,
     ) -> np.ndarray:
         bundle = self.adapter.build_bundle(raw_events)
         base_vector = self.adapter.bundle_to_vector(bundle)
@@ -405,6 +474,12 @@ class QNNNucleus:
             state_basis=state_basis,
             puncture_delta=puncture_delta,
             observer_strength=observer_strength,
+            fractal_dimension=fractal_dimension,
+            fractal_dimension_min=fractal_dimension_min,
+            fractal_dimension_max=fractal_dimension_max,
+            fractal_admissible=fractal_admissible,
+            fractal_measurement_method=fractal_measurement_method,
+            fractal_scale=fractal_scale,
         )
 
     def _benchmark_surrogate(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> QNNBenchmarkResult:
@@ -497,6 +572,12 @@ class QNNNucleus:
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
         observer_strength: Optional[float] = None,
+        fractal_dimension: Optional[float] = None,
+        fractal_dimension_min: Optional[float] = None,
+        fractal_dimension_max: Optional[float] = None,
+        fractal_admissible: bool = True,
+        fractal_measurement_method: Optional[str] = None,
+        fractal_scale: Optional[str] = None,
     ) -> np.ndarray:
         vectors = [
             self.encode_sample(
@@ -504,6 +585,12 @@ class QNNNucleus:
                 state_basis=state_basis,
                 puncture_delta=puncture_delta,
                 observer_strength=observer_strength,
+                fractal_dimension=fractal_dimension,
+                fractal_dimension_min=fractal_dimension_min,
+                fractal_dimension_max=fractal_dimension_max,
+                fractal_admissible=fractal_admissible,
+                fractal_measurement_method=fractal_measurement_method,
+                fractal_scale=fractal_scale,
             )
             for sample in samples
         ]
@@ -534,6 +621,12 @@ class QNNNucleus:
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
         observer_strength: Optional[float] = None,
+        fractal_dimension: Optional[float] = None,
+        fractal_dimension_min: Optional[float] = None,
+        fractal_dimension_max: Optional[float] = None,
+        fractal_admissible: bool = True,
+        fractal_measurement_method: Optional[str] = None,
+        fractal_scale: Optional[str] = None,
     ) -> np.ndarray:
         vector = np.asarray(vector, dtype=np.float32)
         if vector.size == 0:
@@ -550,8 +643,36 @@ class QNNNucleus:
             encoded,
             puncture_delta=puncture_delta,
             observer_strength=observer_strength,
+            fractal_dimension=fractal_dimension,
+            fractal_dimension_min=fractal_dimension_min,
+            fractal_dimension_max=fractal_dimension_max,
+            fractal_admissible=fractal_admissible,
+            fractal_measurement_method=fractal_measurement_method,
+            fractal_scale=fractal_scale,
         )
         return np.concatenate([encoded, neutrobit_features]).astype(np.float32)
+
+    def _fractal_carrier_payload(
+        self,
+        fractal_dimension: Optional[float],
+        fractal_dimension_min: Optional[float],
+        fractal_dimension_max: Optional[float],
+        fractal_admissible: bool,
+        fractal_measurement_method: Optional[str],
+        fractal_scale: Optional[str],
+        domain: str,
+    ) -> Optional[Dict[str, Any]]:
+        if fractal_dimension is None or fractal_dimension_min is None or fractal_dimension_max is None:
+            return None
+        return fractal_carrier_profile(
+            fractal_dimension,
+            fractal_dimension_min,
+            fractal_dimension_max,
+            measurement_method=fractal_measurement_method or "provided-fractal-dimension",
+            scale=fractal_scale,
+            domain=domain,
+            admissible=fractal_admissible,
+        )
 
     def _module_available(self, module_name: str) -> bool:
         try:

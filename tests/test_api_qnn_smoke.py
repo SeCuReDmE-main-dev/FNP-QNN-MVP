@@ -30,6 +30,11 @@ class QNNSmokeApiTests(unittest.TestCase):
                 "state_basis": "neutrobit",
                 "puncture_delta": 0.25,
                 "observer_strength": 0.5,
+                "fractal_dimension": 1.5,
+                "fractal_dimension_min": 1.0,
+                "fractal_dimension_max": 2.0,
+                "fractal_measurement_method": "box-counting-provided",
+                "fractal_scale": "api-test",
             },
         )
 
@@ -38,6 +43,8 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertEqual(payload["result"]["state_basis"], "neutrobit")
         self.assertEqual(payload["result"]["puncture_delta"], 0.25)
         self.assertEqual(payload["result"]["observer_strength"], 0.5)
+        self.assertAlmostEqual(payload["result"]["fractal_carrier"]["D_f_hat"], 0.5)
+        self.assertIn("not identical to I", payload["result"]["fractal_carrier"]["interpretation"])
 
     def test_neurobit_api_endpoints_return_bounded_payloads(self):
         client = TestClient(app)
@@ -58,6 +65,9 @@ class QNNSmokeApiTests(unittest.TestCase):
                 "observer_strength": 0.5,
                 "surface_width": 0.5,
                 "surface_height": 0.5,
+                "D_f": 1.5,
+                "D_min": 1.0,
+                "D_max": 2.0,
             },
         )
         self.assertEqual(gates_response.status_code, 200)
@@ -69,6 +79,8 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertIsNotNone(gates_payload["punctured_wave"])
         self.assertIsNotNone(gates_payload["punctured_surface"])
         self.assertIsNotNone(gates_payload["observer_effect"])
+        self.assertAlmostEqual(gates_payload["fractal_carrier"]["D_f_hat"], 0.5)
+        self.assertIn("not identical to I", gates_payload["fractal_carrier"]["interpretation"])
 
         tunnel_response = client.post(
             "/fnp-qnn/neurobit/tunnel/demo",
