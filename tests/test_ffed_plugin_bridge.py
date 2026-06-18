@@ -35,6 +35,7 @@ class FfeDPluginBridgeTests(unittest.TestCase):
                 },
             },
             status={"effective_configs": {}},
+            cpai_state=None,
         )
 
         self.assertTrue(payload["impact_verification"]["all_expected_plugins_seen"])
@@ -45,6 +46,7 @@ class FfeDPluginBridgeTests(unittest.TestCase):
         self.assertIn("I -> I_system^S -> D_f -> dF -> i_fractal", payload["plugin_fractal_carrier"]["hierarchy"])
         self.assertIn("I_system_component", payload["plugin_gate_profile"])
         self.assertEqual(payload["cpai_mesh_profile"]["base"], "CPAI mesh")
+        self.assertTrue(payload["cpai_mesh_profile"]["native"])
         self.assertIn("cpai.mesh.nodes_active", payload["cpai_mesh_profile"]["datadog_metrics"])
 
     def test_missing_pluginpack_is_non_blocking(self):

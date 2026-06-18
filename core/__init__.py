@@ -2,6 +2,7 @@
 
 from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, CrossModalEvent
 from .cerebrum_runtime_bridge import CerebrumMemoryEvent, CerebrumRuntimeBridge, CerebrumRuntimeState, CrossModalPair
+from .cpai_mesh import CPAIMeshState, cpai_mesh_profile
 from .lvfm_runtime_graph import (
     LVFMRuntimeGraph,
     LVFMDecision,
@@ -12,7 +13,7 @@ from .lvfm_runtime_graph import (
 from .life_science_port import LifeScienceObservationPort
 from .phi_framework import PhiFramework, QuantumState
 from .qnn_nucleus import QNNBenchmarkResult, QNNCandidate, QNNNucleus
-from .ffed_plugin_bridge import FfeDPluginBridge, MVP5_PLUGIN_IDS, NEXT5_PLUGIN_IDS, cpai_mesh_profile
+from .ffed_plugin_bridge import FfeDPluginBridge, MVP5_PLUGIN_IDS, NEXT5_PLUGIN_IDS
 from .neurobit_gate_tunnel import (
     NeuroBitProfile,
     run_neurobit_gates,
@@ -53,6 +54,8 @@ __all__ = [
     "CrossModalPair",
     "CerebrumRuntimeState",
     "CerebrumRuntimeBridge",
+    "CPAIMeshState",
+    "cpai_mesh_profile",
     "RegisterBit",
     "RegisterKey",
     "LVFMDirection",
@@ -65,7 +68,6 @@ __all__ = [
     "FfeDPluginBridge",
     "MVP5_PLUGIN_IDS",
     "NEXT5_PLUGIN_IDS",
-    "cpai_mesh_profile",
     "NeuroBitProfile",
     "run_neurobit_gates",
     "run_neurobit_tunnel_demo",

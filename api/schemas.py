@@ -91,6 +91,7 @@ class RuntimeRunRequest(BaseModel):
     plugin_hook_enabled: bool = False
     plugin_set: PLUGIN_SET = "mvp5"
     plugin_context: Dict[str, Any] = Field(default_factory=dict)
+    cpai_context: Dict[str, Any] = Field(default_factory=dict)
     include_plugin_trace: bool = True
 
     @model_validator(mode="before")
@@ -144,6 +145,7 @@ class RuntimeRunRequest(BaseModel):
             "plugin_hook_enabled": self.plugin_hook_enabled,
             "plugin_set": self.plugin_set,
             "plugin_context": self.plugin_context,
+            "cpai_context": self.cpai_context,
             "include_plugin_trace": self.include_plugin_trace,
         }
 
@@ -190,6 +192,7 @@ class QNNSmokeRequest(BaseModel):
     plugin_hook_enabled: bool = False
     plugin_set: PLUGIN_SET = "mvp5"
     plugin_context: Dict[str, Any] = Field(default_factory=dict)
+    cpai_context: Dict[str, Any] = Field(default_factory=dict)
     include_plugin_trace: bool = True
 
     @model_validator(mode="before")
@@ -242,6 +245,7 @@ class NeuroBitProfileRequest(BaseModel):
     plugin_hook_enabled: bool = False
     plugin_set: PLUGIN_SET = "mvp5"
     plugin_context: Dict[str, Any] = Field(default_factory=dict)
+    cpai_context: Dict[str, Any] = Field(default_factory=dict)
     include_plugin_trace: bool = True
 
     @model_validator(mode="before")
@@ -288,6 +292,7 @@ class NeuroBitProfileRequest(BaseModel):
             "plugin_hook_enabled": self.plugin_hook_enabled,
             "plugin_set": self.plugin_set,
             "plugin_context": self.plugin_context,
+            "cpai_context": self.cpai_context,
             "include_plugin_trace": self.include_plugin_trace,
         }
 
@@ -315,6 +320,7 @@ class CommandRequest(BaseModel):
     plugin_hook_enabled: bool = False
     plugin_set: PLUGIN_SET = "mvp5"
     plugin_context: Dict[str, Any] = Field(default_factory=dict)
+    cpai_context: Dict[str, Any] = Field(default_factory=dict)
     include_plugin_trace: bool = True
     neurobit: Optional[NeuroBitTunnelRequest] = None
 

@@ -130,6 +130,12 @@ The project-level Datadog references are dashboard `4i9-v3n-pe7` and notebook
 `293549`. The simulator reports these IDs as non-secret mesh metadata only; it
 does not silently edit Datadog assets.
 
+The simulator also carries a native `CPAIMeshState` in `core/cpai_mesh.py`.
+That state is intentionally small: route, visible nodes, active nodes, response
+time, local load, forwarded load, connection state, and a local routing
+decision. This prevents the plugin hook from depending on a live external MCP
+mesh before the simulator can reason about routing.
+
 The hook measures ambiguity/tension. It does not solve ambiguity, replace
 indeterminacy, prove physical stress, make clinical claims, or make security
 decisions.
@@ -190,6 +196,22 @@ No Datadog API key, E2B key, plugin secret, PAT, or raw environment value is
 printed in hook output. The status payload reports only booleans such as
 `datadog_env_present`, `e2b_env_present`, and `redis_url_present`.
 
+### Future Cerebrum YOLO Lane
+
+The legacy Cerebrum source under
+`C:\Users\jeans\Desktop\Case study\modele\cerebrum\Cerebrum` already contains
+an OpenCV-based `vision` package and crossmodal mappings for hearing/vision and
+vision/language. It does not currently expose YOLO or CPAI as native modules.
+
+Planned integration path:
+
+1. Keep YOLO out of the MVP5 fractal hook.
+2. Add a separate Cerebrum image lane that emits bounded vision observations.
+3. Route those observations through native `CPAIMeshState`.
+4. Feed the resulting vision observations into the existing simulator bridge.
+5. Keep YOLO optional because image inference adds heavier dependencies and
+   runtime cost.
+
 ## Architecture
 
 ```text
@@ -199,6 +221,7 @@ api/
 core/
   cerebrum_adapter.py          # flat and interval event normalization
   cerebrum_runtime_bridge.py   # Cerebrum-shaped runtime bridge and pair builder
+  cpai_mesh.py                 # native local CPAI mesh state and routing profile
   life_science_port.py         # dormant StateField-shaped observation adapter
   neurobit_gates.py            # public NeuroBit gate primitive contract
   neurobit_gate_tunnel.py      # NeuroBit gate + tunnel-noise demo runtime

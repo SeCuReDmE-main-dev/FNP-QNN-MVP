@@ -125,6 +125,7 @@ def _neurobit_profile_from_request(payload: NeuroBitProfileRequest | None = None
         plugin_hook_enabled=payload.plugin_hook_enabled,
         plugin_set=payload.plugin_set,
         plugin_context=payload.plugin_context,
+        cpai_context=payload.cpai_context,
         include_plugin_trace=payload.include_plugin_trace,
     )
 
@@ -224,6 +225,7 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         plugin_hook_enabled=bool((payload or {}).get("plugin_hook_enabled", False)),
         plugin_set=str((payload or {}).get("plugin_set", "mvp5")),
         plugin_context=(payload or {}).get("plugin_context") or {},
+        cpai_context=(payload or {}).get("cpai_context") or {},
         include_plugin_trace=bool((payload or {}).get("include_plugin_trace", True)),
     )
     result = state.to_dict()
@@ -403,6 +405,7 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         plugin_hook_enabled=payload.plugin_hook_enabled,
         plugin_set=payload.plugin_set,
         plugin_context=payload.plugin_context,
+        cpai_context=payload.cpai_context,
         include_plugin_trace=payload.include_plugin_trace,
     ))
     return {
@@ -505,6 +508,7 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             plugin_hook_enabled=request.plugin_hook_enabled,
             plugin_set=request.plugin_set,
             plugin_context=request.plugin_context,
+            cpai_context=request.cpai_context,
             include_plugin_trace=request.include_plugin_trace,
         )
         samples = qnn_request.dump_samples()
@@ -528,6 +532,7 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             plugin_hook_enabled=qnn_request.plugin_hook_enabled,
             plugin_set=qnn_request.plugin_set,
             plugin_context=qnn_request.plugin_context,
+            cpai_context=qnn_request.cpai_context,
             include_plugin_trace=qnn_request.include_plugin_trace,
         ))
         return CommandResponse(

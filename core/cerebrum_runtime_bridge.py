@@ -237,6 +237,7 @@ class CerebrumRuntimeBridge:
         plugin_hook_enabled: bool = False,
         plugin_set: str = "mvp5",
         plugin_context: Optional[Mapping[str, Any]] = None,
+        cpai_context: Optional[Mapping[str, Any]] = None,
         include_plugin_trace: bool = True,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
@@ -274,7 +275,8 @@ class CerebrumRuntimeBridge:
                 fractal_scale=fractal_scale,
                 plugin_hook_enabled=plugin_hook_enabled,
                 plugin_set=plugin_set,
-                plugin_context=plugin_context,
+                plugin_context=dict(plugin_context or {}),
+                cpai_context=dict(cpai_context or {}),
                 include_plugin_trace=include_plugin_trace,
             )
             qnn_result.pop("bundle", None)

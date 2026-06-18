@@ -63,6 +63,12 @@ class QNNSmokeApiTests(unittest.TestCase):
                     "max_terms": 8,
                     "items": [{"truth": 0.6, "indeterminacy": 0.3, "falsity": 0.1}],
                 },
+                "cpai_context": {
+                    "nodes_visible": 3,
+                    "nodes_active": 3,
+                    "local_load": 0.82,
+                    "route": "qnn-smoke-test",
+                },
             },
         )
 
@@ -74,6 +80,7 @@ class QNNSmokeApiTests(unittest.TestCase):
             self.assertTrue(result["impact_verification"]["all_expected_plugins_seen"])
             self.assertIsNotNone(result["plugin_fractal_carrier"])
             self.assertEqual(result["cpai_mesh_profile"]["base"], "CPAI mesh")
+            self.assertEqual(result["cpai_mesh_profile"]["routing_decision"], "forward_candidate")
             self.assertFalse(result["impact_verification"]["secrets_exposed"])
             self.assertEqual(
                 result["plugin_hook_status"]["effective_configs"]["p046_rossler_beaulieu_cubic_framework"]["steps"],

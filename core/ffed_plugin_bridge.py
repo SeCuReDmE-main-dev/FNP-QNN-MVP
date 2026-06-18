@@ -14,6 +14,15 @@ from pathlib import Path
 import sys
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
+from .cpai_mesh import (
+    CPAI_MESH_METRICS,
+    CPAI_MESH_NODES,
+    CPAI_SERVICE_CHECK,
+    DATADOG_MESH_DASHBOARD_ID,
+    DATADOG_MESH_NOTEBOOK_ID,
+    CPAIMeshState,
+    cpai_mesh_profile,
+)
 from .neutrosophic_quantum_primitives import (
     RESEARCH_BOUNDARY,
     SOURCE_HIERARCHY,
@@ -45,25 +54,6 @@ PLUGIN_WEIGHTS = {
     "p011_fractales_atomiques": 0.15,
     "p109_dual_triplex": 0.15,
 }
-CPAI_MESH_NODES = (
-    "cpai-mcp-server",
-    "cpai-celebrum",
-    "cpai-ffed",
-)
-CPAI_MESH_METRICS = (
-    "cpai.mesh.local_response_time_ms",
-    "cpai.mesh.effective_response_time_ms",
-    "cpai.mesh.requests_processed_local",
-    "cpai.mesh.requests_forwarded",
-    "cpai.mesh.requests_received",
-    "cpai.mesh.nodes_visible",
-    "cpai.mesh.nodes_active",
-)
-CPAI_SERVICE_CHECK = "cpai.mesh.can_connect"
-DATADOG_MESH_DASHBOARD_ID = "4i9-v3n-pe7"
-DATADOG_MESH_NOTEBOOK_ID = "293549"
-
-
 def _clamp01(value: Any) -> float:
     try:
         numeric = float(value)
@@ -190,6 +180,7 @@ class FfeDPluginBridge:
         plugin_set: str = "mvp5",
     ) -> Dict[str, Any]:
         context = dict(context or {})
+        cpai_state = CPAIMeshState.from_context(context.get("cpai_context") or context.get("cpai_mesh") or {})
         base_status = self.status()
         if plugin_set != "mvp5":
             return self._disabled_payload(base_status, f"unsupported plugin_set: {plugin_set}", include_trace)
@@ -226,7 +217,9 @@ class FfeDPluginBridge:
                 "runtime_importable": True,
                 "plugin_set": plugin_set,
                 "effective_configs": effective_configs,
+                "cpai_mesh_state": cpai_state.as_dict(),
             },
+            cpai_state=cpai_state,
             include_trace=include_trace,
         )
         payload["plugin_errors"] = errors
@@ -318,6 +311,7 @@ def build_plugin_payload_from_results(
     results: Mapping[str, Any],
     *,
     status: Optional[Mapping[str, Any]] = None,
+    cpai_state: Optional[CPAIMeshState] = None,
     include_trace: bool = True,
 ) -> Dict[str, Any]:
     signals = [_signal_from_result(plugin_id, results.get(plugin_id) or {}) for plugin_id in MVP5_PLUGIN_IDS]
@@ -328,6 +322,7 @@ def build_plugin_payload_from_results(
     status_payload = dict(status or {})
     status_payload.setdefault("router", "ffed-plugin-bridge")
     status_payload.setdefault("enabled", True)
+    mesh_profile = cpai_mesh_profile(cpai_state)
     return {
         "plugin_fractal_signals": active_payloads,
         "plugin_fractal_carrier": carrier,
@@ -336,7 +331,7 @@ def build_plugin_payload_from_results(
         "plugin_gate_trace": gate_payload["plugin_gate_trace"] if include_trace else None,
         "plugin_errors": [],
         "plugin_hook_status": status_payload,
-        "cpai_mesh_profile": cpai_mesh_profile(),
+        "cpai_mesh_profile": mesh_profile,
         "feature_vector": _feature_vector(active_payloads, carrier, gate_payload["plugin_gate_profile"]),
         "impact_verification": {
             "router": "ffed-plugin-bridge",
@@ -346,29 +341,9 @@ def build_plugin_payload_from_results(
             "expected_plugins": list(MVP5_PLUGIN_IDS),
             "all_expected_plugins_seen": [signal.plugin_id for signal in active_signals] == list(MVP5_PLUGIN_IDS),
             "effective_configs": status_payload.get("effective_configs", {}),
-            "cpai_mesh_base": cpai_mesh_profile(),
+            "cpai_mesh_base": mesh_profile,
             "secrets_exposed": False,
         },
-    }
-
-
-def cpai_mesh_profile() -> Dict[str, Any]:
-    """Return the non-secret CPAI mesh contract that plugin features attach to."""
-    return {
-        "base": "CPAI mesh",
-        "role": "routing and observability substrate for FNP-QNN plugin blocks",
-        "nodes": list(CPAI_MESH_NODES),
-        "datadog_metrics": list(CPAI_MESH_METRICS),
-        "datadog_service_check": CPAI_SERVICE_CHECK,
-        "service_tags": [
-            "service:fnp-qnn-mesh",
-            "service:fnp-qnn-local-research-simulator",
-            "team:fnp-qnn",
-        ],
-        "datadog_dashboard_id": DATADOG_MESH_DASHBOARD_ID,
-        "datadog_notebook_id": DATADOG_MESH_NOTEBOOK_ID,
-        "mesh_rule": "FFeD plugin signals attach to CPAI as local measurable features; CPAI remains the mesh base.",
-        "secrets_exposed": False,
     }
 
 

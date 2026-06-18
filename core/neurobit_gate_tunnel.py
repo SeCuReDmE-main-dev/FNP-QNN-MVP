@@ -60,6 +60,7 @@ class NeuroBitProfile:
     plugin_hook_enabled: bool = False
     plugin_set: str = "mvp5"
     plugin_context: Optional[Mapping[str, Any]] = None
+    cpai_context: Optional[Mapping[str, Any]] = None
     include_plugin_trace: bool = True
 
     def normalized(self) -> "NeuroBitProfile":
@@ -95,6 +96,7 @@ class NeuroBitProfile:
                 plugin_hook_enabled=bool(self.plugin_hook_enabled),
                 plugin_set=str(self.plugin_set),
                 plugin_context=dict(self.plugin_context or {}),
+                cpai_context=dict(self.cpai_context or {}),
                 include_plugin_trace=bool(self.include_plugin_trace),
             )
         return NeuroBitProfile(
@@ -116,6 +118,7 @@ class NeuroBitProfile:
             plugin_hook_enabled=bool(self.plugin_hook_enabled),
             plugin_set=str(self.plugin_set),
             plugin_context=dict(self.plugin_context or {}),
+            cpai_context=dict(self.cpai_context or {}),
             include_plugin_trace=bool(self.include_plugin_trace),
         )
 
@@ -148,6 +151,7 @@ class NeuroBitProfile:
             payload["fractal_scale"] = str(normalized.fractal_scale)
         payload["plugin_hook_enabled"] = bool(normalized.plugin_hook_enabled)
         payload["plugin_set"] = str(normalized.plugin_set)
+        payload["cpai_context"] = dict(normalized.cpai_context or {})
         payload["include_plugin_trace"] = bool(normalized.include_plugin_trace)
         return payload
 
@@ -173,6 +177,7 @@ def profile_from_mapping(payload: Optional[Mapping[str, Any]]) -> NeuroBitProfil
         plugin_hook_enabled=bool(payload.get("plugin_hook_enabled", False)),
         plugin_set=str(payload.get("plugin_set", "mvp5")),
         plugin_context=payload.get("plugin_context") or {},
+        cpai_context=payload.get("cpai_context") or {},
         include_plugin_trace=bool(payload.get("include_plugin_trace", True)),
     )
 
@@ -487,6 +492,7 @@ def _plugin_payload_for_profile(profile: NeuroBitProfile) -> Optional[Dict[str, 
     if not profile.plugin_hook_enabled:
         return None
     context = dict(profile.plugin_context or {})
+    context.setdefault("cpai_context", dict(profile.cpai_context or {}))
     context.setdefault(
         "items",
         [

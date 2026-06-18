@@ -139,6 +139,7 @@ class QNNNucleus:
         plugin_hook_enabled: bool = False,
         plugin_set: str = "mvp5",
         plugin_context: Optional[Dict[str, Any]] = None,
+        cpai_context: Optional[Dict[str, Any]] = None,
         include_plugin_trace: bool = True,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
@@ -147,6 +148,7 @@ class QNNNucleus:
             enabled=plugin_hook_enabled,
             plugin_set=plugin_set,
             plugin_context=plugin_context,
+            cpai_context=cpai_context,
             include_plugin_trace=include_plugin_trace,
         )
         plugin_kwargs = {
@@ -696,12 +698,14 @@ class QNNNucleus:
         enabled: bool,
         plugin_set: str,
         plugin_context: Optional[Dict[str, Any]],
+        cpai_context: Optional[Dict[str, Any]],
         include_plugin_trace: bool,
     ) -> Optional[Dict[str, Any]]:
         if not enabled:
             return None
         context = dict(plugin_context or {})
         context.setdefault("events", raw_events)
+        context.setdefault("cpai_context", dict(cpai_context or {}))
         return FfeDPluginBridge().run_mvp5(
             context,
             include_trace=include_plugin_trace,
