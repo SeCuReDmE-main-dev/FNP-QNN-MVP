@@ -21,6 +21,8 @@ class DockerObservabilityStackTests(unittest.TestCase):
         self.assertIn("e2b-auditor:", compose_content)
         self.assertIn("vllm:", compose_content)
         self.assertIn("etcd:", compose_content)
+        self.assertIn("plugin-engine-redis:", compose_content)
+        self.assertIn("FNP_QNN_PLUGIN_ENGINE_REDIS_URL", compose_content)
         self.assertIn("./observability/datadog/agent-conf.d:/conf.d:ro", compose_content)
 
         conf_content = datadog_vllm_conf.read_text(encoding="ascii")

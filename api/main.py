@@ -31,6 +31,7 @@ from api.schemas import (
 from core import (
     CerebrumAdapter,
     CerebrumRuntimeBridge,
+    FfeDPluginBridge,
     LifeScienceObservationPort,
     NeuroBitProfile,
     PhiFramework,
@@ -121,6 +122,10 @@ def _neurobit_profile_from_request(payload: NeuroBitProfileRequest | None = None
         fractal_admissible=payload.fractal_admissible,
         fractal_measurement_method=payload.fractal_measurement_method,
         fractal_scale=payload.fractal_scale,
+        plugin_hook_enabled=payload.plugin_hook_enabled,
+        plugin_set=payload.plugin_set,
+        plugin_context=payload.plugin_context,
+        include_plugin_trace=payload.include_plugin_trace,
     )
 
 
@@ -216,6 +221,10 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         fractal_admissible=bool((payload or {}).get("fractal_admissible", True)),
         fractal_measurement_method=(payload or {}).get("fractal_measurement_method"),
         fractal_scale=(payload or {}).get("fractal_scale"),
+        plugin_hook_enabled=bool((payload or {}).get("plugin_hook_enabled", False)),
+        plugin_set=str((payload or {}).get("plugin_set", "mvp5")),
+        plugin_context=(payload or {}).get("plugin_context") or {},
+        include_plugin_trace=bool((payload or {}).get("include_plugin_trace", True)),
     )
     result = state.to_dict()
     if run_qnn:
@@ -391,6 +400,10 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         fractal_admissible=payload.fractal_admissible,
         fractal_measurement_method=payload.fractal_measurement_method,
         fractal_scale=payload.fractal_scale,
+        plugin_hook_enabled=payload.plugin_hook_enabled,
+        plugin_set=payload.plugin_set,
+        plugin_context=payload.plugin_context,
+        include_plugin_trace=payload.include_plugin_trace,
     ))
     return {
         "status": "ok",
@@ -402,6 +415,7 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
 @app.get("/fnp-qnn/neurobit/status")
 async def neurobit_status() -> Dict[str, Any]:
     result = run_neurobit_gates(NeuroBitProfile())
+    plugin_status = FfeDPluginBridge().status()
     return {
         "status": "ok",
         "mode": "alpha-local-research",
@@ -413,6 +427,10 @@ async def neurobit_status() -> Dict[str, Any]:
         "hierarchy": result["hierarchy"],
         "state_basis": result["state_basis"],
         "fractal_carrier_supported": True,
+        "plugin_hook_supported": True,
+        "plugin_hook_default_enabled": False,
+        "plugin_mvp5": plugin_status["mvp5_plugins"],
+        "plugin_engine": plugin_status,
     }
 
 
@@ -484,6 +502,10 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             fractal_admissible=request.fractal_admissible,
             fractal_measurement_method=request.fractal_measurement_method,
             fractal_scale=request.fractal_scale,
+            plugin_hook_enabled=request.plugin_hook_enabled,
+            plugin_set=request.plugin_set,
+            plugin_context=request.plugin_context,
+            include_plugin_trace=request.include_plugin_trace,
         )
         samples = qnn_request.dump_samples()
         labels = qnn_request.labels
@@ -503,6 +525,10 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             fractal_admissible=qnn_request.fractal_admissible,
             fractal_measurement_method=qnn_request.fractal_measurement_method,
             fractal_scale=qnn_request.fractal_scale,
+            plugin_hook_enabled=qnn_request.plugin_hook_enabled,
+            plugin_set=qnn_request.plugin_set,
+            plugin_context=qnn_request.plugin_context,
+            include_plugin_trace=qnn_request.include_plugin_trace,
         ))
         return CommandResponse(
             success=True,

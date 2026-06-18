@@ -46,6 +46,39 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertAlmostEqual(payload["result"]["fractal_carrier"]["D_f_hat"], 0.5)
         self.assertIn("not identical to I", payload["result"]["fractal_carrier"]["interpretation"])
 
+    def test_qnn_smoke_plugin_hook_reports_impact_verification(self):
+        client = TestClient(app)
+
+        response = client.post(
+            "/qnn/smoke",
+            json={
+                "epochs": 2,
+                "test_size": 0.0,
+                "plugin_hook_enabled": True,
+                "plugin_context": {
+                    "series": [0.1, 0.3, 0.2, 0.8, 0.4, 0.9],
+                    "steps": 120,
+                    "n_atoms": 8,
+                    "depth": 2,
+                    "max_terms": 8,
+                    "items": [{"truth": 0.6, "indeterminacy": 0.3, "falsity": 0.1}],
+                },
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = response.json()["result"]
+        self.assertIn("impact_verification", result)
+        self.assertIn("plugin_hook_status", result)
+        if result["impact_verification"]["activated"]:
+            self.assertTrue(result["impact_verification"]["all_expected_plugins_seen"])
+            self.assertIsNotNone(result["plugin_fractal_carrier"])
+            self.assertFalse(result["impact_verification"]["secrets_exposed"])
+            self.assertEqual(
+                result["plugin_hook_status"]["effective_configs"]["p046_rossler_beaulieu_cubic_framework"]["steps"],
+                120,
+            )
+
     def test_neurobit_api_endpoints_return_bounded_payloads(self):
         client = TestClient(app)
 

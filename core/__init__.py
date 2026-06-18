@@ -12,6 +12,7 @@ from .lvfm_runtime_graph import (
 from .life_science_port import LifeScienceObservationPort
 from .phi_framework import PhiFramework, QuantumState
 from .qnn_nucleus import QNNBenchmarkResult, QNNCandidate, QNNNucleus
+from .ffed_plugin_bridge import FfeDPluginBridge, MVP5_PLUGIN_IDS, NEXT5_PLUGIN_IDS, cpai_mesh_profile
 from .neurobit_gate_tunnel import (
     NeuroBitProfile,
     run_neurobit_gates,
@@ -61,6 +62,10 @@ __all__ = [
     "QNNCandidate",
     "QNNBenchmarkResult",
     "QNNNucleus",
+    "FfeDPluginBridge",
+    "MVP5_PLUGIN_IDS",
+    "NEXT5_PLUGIN_IDS",
+    "cpai_mesh_profile",
     "NeuroBitProfile",
     "run_neurobit_gates",
     "run_neurobit_tunnel_demo",

@@ -94,6 +94,29 @@ class NeuroBitGateTunnelTests(unittest.TestCase):
         self.assertEqual(carrier["hierarchy"], "I -> I_system^S -> D_f -> dF -> i_fractal")
         self.assertIn("not identical to I", carrier["interpretation"])
 
+    def test_plugin_hook_can_activate_w_gate_without_replacing_profile_i(self):
+        profile = NeuroBitProfile(
+            truth=0.95,
+            indeterminacy=0.02,
+            falsity=0.03,
+            plugin_hook_enabled=True,
+            plugin_context={
+                "series": [0.1, 0.3, 0.2, 0.8, 0.4, 0.9],
+                "steps": 120,
+                "n_atoms": 8,
+                "depth": 2,
+                "max_terms": 8,
+                "items": [{"truth": 0.4, "indeterminacy": 0.5, "falsity": 0.1}],
+            },
+        )
+        result = run_neurobit_gates(profile, n_qubits=4)
+
+        self.assertEqual(result["profile"]["indeterminacy"], 0.02)
+        if result["impact_verification"] and result["impact_verification"]["activated"]:
+            self.assertIn("w", result["sequence"])
+            self.assertIsNotNone(result["plugin_gate_profile"])
+            self.assertIn("I_system_component", result["plugin_gate_profile"])
+
     def test_tunnel_demo_is_research_bounded(self):
         result = run_neurobit_tunnel_demo(NeuroBitProfile(), data="abc")
         self.assertEqual(result["status"], "ok")

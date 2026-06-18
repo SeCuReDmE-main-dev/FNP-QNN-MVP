@@ -18,6 +18,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 from .cerebrum_adapter import CerebrumAdapter
+from .ffed_plugin_bridge import FfeDPluginBridge
 from .neutrosophic_quantum_primitives import fractal_carrier_profile, neutrobit_features_from_vector
 
 try:  # Optional Qiskit path. The repo should still run without it.
@@ -135,7 +136,23 @@ class QNNNucleus:
         fractal_admissible: bool = True,
         fractal_measurement_method: Optional[str] = None,
         fractal_scale: Optional[str] = None,
+        plugin_hook_enabled: bool = False,
+        plugin_set: str = "mvp5",
+        plugin_context: Optional[Dict[str, Any]] = None,
+        include_plugin_trace: bool = True,
     ) -> Dict[str, Any]:
+        raw_events = list(raw_events)
+        plugin_payload = self._plugin_hook_payload(
+            raw_events,
+            enabled=plugin_hook_enabled,
+            plugin_set=plugin_set,
+            plugin_context=plugin_context,
+            include_plugin_trace=include_plugin_trace,
+        )
+        plugin_kwargs = {
+            "plugin_features": None if plugin_payload is None else plugin_payload.get("feature_vector", []),
+            "plugin_payload": plugin_payload,
+        }
         fractal_kwargs = {
             "fractal_dimension": fractal_dimension,
             "fractal_dimension_min": fractal_dimension_min,
@@ -154,6 +171,7 @@ class QNNNucleus:
                     state_basis=state_basis,
                     puncture_delta=puncture_delta,
                     observer_strength=observer_strength,
+                    **plugin_kwargs,
                     **fractal_kwargs,
                 )
             except Exception as exc:  # pragma: no cover - runtime safety path
@@ -166,6 +184,7 @@ class QNNNucleus:
                     state_basis=state_basis,
                     puncture_delta=puncture_delta,
                     observer_strength=observer_strength,
+                    **plugin_kwargs,
                     **fractal_kwargs,
                 )
                 fallback["qiskit_error"] = str(exc)
@@ -180,6 +199,7 @@ class QNNNucleus:
             state_basis=state_basis,
             puncture_delta=puncture_delta,
             observer_strength=observer_strength,
+            **plugin_kwargs,
             **fractal_kwargs,
         )
 
@@ -276,6 +296,8 @@ class QNNNucleus:
         fractal_admissible: bool = True,
         fractal_measurement_method: Optional[str] = None,
         fractal_scale: Optional[str] = None,
+        plugin_features: Optional[Sequence[float]] = None,
+        plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         np.random.seed(self.DEFAULT_SEED)
         torch.manual_seed(self.DEFAULT_SEED)
@@ -292,6 +314,7 @@ class QNNNucleus:
             fractal_admissible=fractal_admissible,
             fractal_measurement_method=fractal_measurement_method,
             fractal_scale=fractal_scale,
+            plugin_features=plugin_features,
         )
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
@@ -353,6 +376,7 @@ class QNNNucleus:
             "fractal_carrier": fractal_carrier,
             "i_fractal_candidate": None if fractal_carrier is None else fractal_carrier["i_fractal_candidate"],
         }
+        self._attach_plugin_payload(result, plugin_payload)
 
         self._surrogate = model
         if return_bundle:
@@ -374,6 +398,8 @@ class QNNNucleus:
         fractal_admissible: bool = True,
         fractal_measurement_method: Optional[str] = None,
         fractal_scale: Optional[str] = None,
+        plugin_features: Optional[Sequence[float]] = None,
+        plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         if not QISKIT_AVAILABLE:
             raise RuntimeError("Qiskit Machine Learning is not installed in this environment")
@@ -390,6 +416,7 @@ class QNNNucleus:
             fractal_admissible=fractal_admissible,
             fractal_measurement_method=fractal_measurement_method,
             fractal_scale=fractal_scale,
+            plugin_features=plugin_features,
         )
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
@@ -451,6 +478,7 @@ class QNNNucleus:
             "fractal_carrier": fractal_carrier,
             "i_fractal_candidate": None if fractal_carrier is None else fractal_carrier["i_fractal_candidate"],
         }
+        self._attach_plugin_payload(result, plugin_payload)
         self._qiskit_model = model
         return result
 
@@ -466,6 +494,7 @@ class QNNNucleus:
         fractal_admissible: bool = True,
         fractal_measurement_method: Optional[str] = None,
         fractal_scale: Optional[str] = None,
+        plugin_features: Optional[Sequence[float]] = None,
     ) -> np.ndarray:
         bundle = self.adapter.build_bundle(raw_events)
         base_vector = self.adapter.bundle_to_vector(bundle)
@@ -480,6 +509,7 @@ class QNNNucleus:
             fractal_admissible=fractal_admissible,
             fractal_measurement_method=fractal_measurement_method,
             fractal_scale=fractal_scale,
+            plugin_features=plugin_features,
         )
 
     def _benchmark_surrogate(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> QNNBenchmarkResult:
@@ -578,6 +608,7 @@ class QNNNucleus:
         fractal_admissible: bool = True,
         fractal_measurement_method: Optional[str] = None,
         fractal_scale: Optional[str] = None,
+        plugin_features: Optional[Sequence[float]] = None,
     ) -> np.ndarray:
         vectors = [
             self.encode_sample(
@@ -591,6 +622,7 @@ class QNNNucleus:
                 fractal_admissible=fractal_admissible,
                 fractal_measurement_method=fractal_measurement_method,
                 fractal_scale=fractal_scale,
+                plugin_features=plugin_features,
             )
             for sample in samples
         ]
@@ -627,6 +659,7 @@ class QNNNucleus:
         fractal_admissible: bool = True,
         fractal_measurement_method: Optional[str] = None,
         fractal_scale: Optional[str] = None,
+        plugin_features: Optional[Sequence[float]] = None,
     ) -> np.ndarray:
         vector = np.asarray(vector, dtype=np.float32)
         if vector.size == 0:
@@ -635,8 +668,9 @@ class QNNNucleus:
         fourier = np.sin(np.pi * vector)
         envelope = np.cos(np.pi * vector)
         encoded = np.concatenate([base, fourier, envelope]).astype(np.float32)
+        plugin_array = np.asarray(list(plugin_features or []), dtype=np.float32).reshape(-1)
         if state_basis == "binary":
-            return encoded
+            return np.concatenate([encoded, plugin_array]).astype(np.float32) if plugin_array.size else encoded
         if state_basis != "neutrobit":
             raise ValueError("state_basis must be 'binary' or 'neutrobit'")
         neutrobit_features = neutrobit_features_from_vector(
@@ -650,7 +684,45 @@ class QNNNucleus:
             fractal_measurement_method=fractal_measurement_method,
             fractal_scale=fractal_scale,
         )
-        return np.concatenate([encoded, neutrobit_features]).astype(np.float32)
+        parts = [encoded, neutrobit_features]
+        if plugin_array.size:
+            parts.append(plugin_array)
+        return np.concatenate(parts).astype(np.float32)
+
+    def _plugin_hook_payload(
+        self,
+        raw_events: Sequence[Any],
+        *,
+        enabled: bool,
+        plugin_set: str,
+        plugin_context: Optional[Dict[str, Any]],
+        include_plugin_trace: bool,
+    ) -> Optional[Dict[str, Any]]:
+        if not enabled:
+            return None
+        context = dict(plugin_context or {})
+        context.setdefault("events", raw_events)
+        return FfeDPluginBridge().run_mvp5(
+            context,
+            include_trace=include_plugin_trace,
+            plugin_set=plugin_set,
+        )
+
+    def _attach_plugin_payload(self, result: Dict[str, Any], plugin_payload: Optional[Dict[str, Any]]) -> None:
+        if not plugin_payload:
+            return
+        for key in (
+            "plugin_fractal_signals",
+            "plugin_fractal_carrier",
+            "plugin_tension_profile",
+            "plugin_gate_profile",
+            "plugin_gate_trace",
+            "plugin_errors",
+            "plugin_hook_status",
+            "cpai_mesh_profile",
+            "impact_verification",
+        ):
+            result[key] = plugin_payload.get(key)
 
     def _fractal_carrier_payload(
         self,

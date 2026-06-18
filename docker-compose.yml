@@ -11,6 +11,7 @@ services:
       DD_SERVICE: ${DD_SERVICE_SIMULATOR_API:-fnp-qnn-simulator-api}
       DD_ENV: ${DD_ENV:-local}
       DD_VERSION: ${DD_VERSION:-local-dev}
+      FNP_QNN_PLUGIN_ENGINE_REDIS_URL: ${FNP_QNN_PLUGIN_ENGINE_REDIS_URL:-redis://plugin-engine-redis:6379/0}
     labels:
       com.datadoghq.tags.env: "${DD_ENV:-local}"
       com.datadoghq.tags.service: "${DD_SERVICE_SIMULATOR_API:-fnp-qnn-simulator-api}"
@@ -97,6 +98,22 @@ services:
         [{"source":"etcd","service":"${DD_SERVICE_ETCD:-fnp-qnn-etcd}"}]
     profiles: ["state", "observability"]
 
+  plugin-engine-redis:
+    image: "${REDIS_IMAGE:-redis:7-alpine}"
+    container_name: fnp-qnn-plugin-engine-redis
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1000"]
+    ports:
+      - "${PLUGIN_ENGINE_REDIS_PORT:-6379}:6379"
+    volumes:
+      - plugin-engine-redis-data:/data
+    labels:
+      com.datadoghq.tags.env: "${DD_ENV:-local}"
+      com.datadoghq.tags.service: "${DD_SERVICE_PLUGIN_ENGINE_REDIS:-fnp-qnn-plugin-engine-redis}"
+      com.datadoghq.tags.version: "${DD_VERSION:-local-dev}"
+      com.datadoghq.ad.logs: >-
+        [{"source":"redis","service":"${DD_SERVICE_PLUGIN_ENGINE_REDIS:-fnp-qnn-plugin-engine-redis}"}]
+    profiles: ["state", "observability", "plugin-engine"]
+
   datadog-agent:
     image: gcr.io/datadoghq/agent:7
     container_name: fnp-qnn-datadog-agent
@@ -154,3 +171,4 @@ networks:
 
 volumes:
   etcd-data:
+  plugin-engine-redis-data:

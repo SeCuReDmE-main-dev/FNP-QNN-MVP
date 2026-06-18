@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
+from .ffed_plugin_bridge import FfeDPluginBridge
 from .neutrosophic_quantum_primitives import (
     NeutrobitState,
     fractal_carrier_profile,
@@ -56,6 +57,10 @@ class NeuroBitProfile:
     fractal_admissible: bool = True
     fractal_measurement_method: Optional[str] = None
     fractal_scale: Optional[str] = None
+    plugin_hook_enabled: bool = False
+    plugin_set: str = "mvp5"
+    plugin_context: Optional[Mapping[str, Any]] = None
+    include_plugin_trace: bool = True
 
     def normalized(self) -> "NeuroBitProfile":
         truth = max(float(self.truth), 0.0)
@@ -87,6 +92,10 @@ class NeuroBitProfile:
                 fractal_admissible=bool(self.fractal_admissible),
                 fractal_measurement_method=self.fractal_measurement_method,
                 fractal_scale=self.fractal_scale,
+                plugin_hook_enabled=bool(self.plugin_hook_enabled),
+                plugin_set=str(self.plugin_set),
+                plugin_context=dict(self.plugin_context or {}),
+                include_plugin_trace=bool(self.include_plugin_trace),
             )
         return NeuroBitProfile(
             truth=truth / total,
@@ -104,6 +113,10 @@ class NeuroBitProfile:
             fractal_admissible=bool(self.fractal_admissible),
             fractal_measurement_method=self.fractal_measurement_method,
             fractal_scale=self.fractal_scale,
+            plugin_hook_enabled=bool(self.plugin_hook_enabled),
+            plugin_set=str(self.plugin_set),
+            plugin_context=dict(self.plugin_context or {}),
+            include_plugin_trace=bool(self.include_plugin_trace),
         )
 
     @property
@@ -133,6 +146,9 @@ class NeuroBitProfile:
             payload["fractal_measurement_method"] = str(normalized.fractal_measurement_method)
         if normalized.fractal_scale is not None:
             payload["fractal_scale"] = str(normalized.fractal_scale)
+        payload["plugin_hook_enabled"] = bool(normalized.plugin_hook_enabled)
+        payload["plugin_set"] = str(normalized.plugin_set)
+        payload["include_plugin_trace"] = bool(normalized.include_plugin_trace)
         return payload
 
 
@@ -154,6 +170,10 @@ def profile_from_mapping(payload: Optional[Mapping[str, Any]]) -> NeuroBitProfil
         fractal_admissible=bool(payload.get("fractal_admissible", True)),
         fractal_measurement_method=payload.get("fractal_measurement_method"),
         fractal_scale=payload.get("fractal_scale"),
+        plugin_hook_enabled=bool(payload.get("plugin_hook_enabled", False)),
+        plugin_set=str(payload.get("plugin_set", "mvp5")),
+        plugin_context=payload.get("plugin_context") or {},
+        include_plugin_trace=bool(payload.get("include_plugin_trace", True)),
     )
 
 
@@ -351,7 +371,13 @@ def run_neurobit_gates(profile: Optional[NeuroBitProfile] = None, n_qubits: int 
     if n_qubits <= 0:
         raise ValueError("n_qubits must be positive")
     normalized = (profile or NeuroBitProfile()).normalized()
+    plugin_payload = _plugin_payload_for_profile(normalized)
     sequence = build_neurobit_gate_sequence(normalized)
+    plugin_i = _plugin_i_component(plugin_payload)
+    if plugin_i > 0.05 and "w" not in sequence:
+        # Experimental hook rule: plugins can request the local |I> marker,
+        # but they do not overwrite the NeuroBit T/I/F profile itself.
+        sequence.insert(1, "w")
     neutro_state = NeutrobitState.from_tif(
         truth=normalized.truth,
         indeterminacy=normalized.indeterminacy,
@@ -430,6 +456,15 @@ def run_neurobit_gates(profile: Optional[NeuroBitProfile] = None, n_qubits: int 
         "partial_entanglement": entanglement,
         "fractal_carrier": fractal_carrier,
         "i_fractal_candidate": None if fractal_carrier is None else fractal_carrier["i_fractal_candidate"],
+        "plugin_fractal_signals": None if plugin_payload is None else plugin_payload.get("plugin_fractal_signals"),
+        "plugin_fractal_carrier": None if plugin_payload is None else plugin_payload.get("plugin_fractal_carrier"),
+        "plugin_tension_profile": None if plugin_payload is None else plugin_payload.get("plugin_tension_profile"),
+        "plugin_gate_profile": None if plugin_payload is None else plugin_payload.get("plugin_gate_profile"),
+        "plugin_gate_trace": None if plugin_payload is None else plugin_payload.get("plugin_gate_trace"),
+        "plugin_errors": [] if plugin_payload is None else plugin_payload.get("plugin_errors", []),
+        "plugin_hook_status": {"enabled": False} if plugin_payload is None else plugin_payload.get("plugin_hook_status"),
+        "cpai_mesh_profile": None if plugin_payload is None else plugin_payload.get("cpai_mesh_profile"),
+        "impact_verification": None if plugin_payload is None else plugin_payload.get("impact_verification"),
         "punctured_wave": punctured_wave,
         "punctured_surface": punctured_surface,
         "trace": trace,
@@ -446,6 +481,39 @@ def _fibonacci_sequence(length: int) -> List[float]:
     while len(sequence) < length:
         sequence.append(sequence[-1] + sequence[-2])
     return sequence[:length]
+
+
+def _plugin_payload_for_profile(profile: NeuroBitProfile) -> Optional[Dict[str, Any]]:
+    if not profile.plugin_hook_enabled:
+        return None
+    context = dict(profile.plugin_context or {})
+    context.setdefault(
+        "items",
+        [
+            {
+                "label": "neurobit-profile",
+                "truth": float(profile.truth),
+                "indeterminacy": float(profile.indeterminacy),
+                "falsity": float(profile.falsity),
+            }
+        ],
+    )
+    context.setdefault("series", [profile.truth, profile.indeterminacy, profile.falsity, abs(profile.delta_falsity)])
+    return FfeDPluginBridge().run_mvp5(
+        context,
+        include_trace=profile.include_plugin_trace,
+        plugin_set=profile.plugin_set,
+    )
+
+
+def _plugin_i_component(plugin_payload: Optional[Mapping[str, Any]]) -> float:
+    if not plugin_payload:
+        return 0.0
+    profile = plugin_payload.get("plugin_gate_profile") or {}
+    try:
+        return float(profile.get("I_system_component", 0.0))
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def run_neurobit_tunnel_demo(
@@ -479,6 +547,14 @@ def run_neurobit_tunnel_demo(
         "profile": normalized.metadata,
         "fractal_carrier": gates.get("fractal_carrier"),
         "i_fractal_candidate": gates.get("i_fractal_candidate"),
+        "plugin_fractal_carrier": gates.get("plugin_fractal_carrier"),
+        "plugin_tension_profile": gates.get("plugin_tension_profile"),
+        "plugin_gate_profile": gates.get("plugin_gate_profile"),
+        "plugin_gate_trace": gates.get("plugin_gate_trace"),
+        "plugin_errors": gates.get("plugin_errors", []),
+        "plugin_hook_status": gates.get("plugin_hook_status"),
+        "cpai_mesh_profile": gates.get("cpai_mesh_profile"),
+        "impact_verification": gates.get("impact_verification"),
         "sequence_id": sequence_id,
         "gate_trace": gates["trace"],
         "quantum_state": counts,

@@ -81,6 +81,86 @@ Accepted inputs are optional `fractal_dimension`, `fractal_dimension_min`, and
 by the API. `D_f_hat` is calculated by the simulator and should not be supplied
 as an asserted input value.
 
+## FFeD MVP5 Plugin Hook
+
+The QNN can optionally call the local Codex pluginpack through
+`core/ffed_plugin_bridge.py`. This is an application-level hook, not a Codex
+manifest hook. It does not add `hooks` to `.codex-plugin/plugin.json`, and it
+does not allow arbitrary plugin IDs. The hook is disabled by default and must
+be requested with:
+
+```json
+{
+  "plugin_hook_enabled": true,
+  "plugin_set": "mvp5",
+  "include_plugin_trace": true
+}
+```
+
+The bridge acts as a small router in front of the QNN:
+
+1. It receives the simulation observations or a supplied `plugin_context`.
+2. It normalizes plugin parameters into the valid range accepted by each plugin.
+3. It calls only the MVP5 allowlist.
+4. It maps plugin outputs into local `D_f`, `D_min`, `D_max`, `D_f_hat`, `dF`,
+   and `i_fractal_candidate` metadata.
+5. It returns `impact_verification`, showing which plugin IDs ran and which
+   effective parameters they received.
+
+The hook measures ambiguity/tension. It does not solve ambiguity, replace
+indeterminacy, prove physical stress, make clinical claims, or make security
+decisions.
+
+MVP5 plugins:
+
+- `p011_fractales_atomiques`: measures atom overload and recomposition. Example:
+  if many event fragments arrive with weak recomposition, the bridge raises the
+  local overload carrier because the simulated atom is harder to recompose.
+- `p046_rossler_beaulieu_cubic_framework`: measures chaos, divergence, and
+  anti-entropy balance. Example: if the time-series becomes more divergent, the
+  chaos carrier makes roughness/frustration more visible to the QNN feature
+  vector.
+- `p097_fbm_tuner`: measures roughness, drift, and instability in a numeric
+  series. Example: values `[0.1, 0.3, 0.2, 0.8, 0.4, 0.9]` produce a roughness
+  signal that can mark unstable local motion.
+- `p109_dual_triplex`: mandatory MVP plugin for dual-triplex fractal density.
+  Example: the plugin supplies a native fractal-density carrier that replaces
+  the older `p112` MVP slot without treating density as general `I`.
+- `p114_ffed_neutrosophic_consensus`: produces the native local `T/I/F`
+  consensus. Example: evidence items with high indeterminacy raise only the
+  local `I_system_component`, never the full global `I`.
+
+The global plugin carrier is:
+
+```text
+D_f_plugin = weighted_mean(p114=0.25, p046=0.25, p097=0.20, p011=0.15, p109=0.15)
+D_f_hat_plugin = normalize_fractal_dimension(D_f_plugin, 0, 1)
+```
+
+Neutrosophic gate integration:
+
+- `AND(p046, p097)` measures persistent instability: chaos plus roughness.
+- `OR(p011, p109)` measures atom/fractal stress: overload or density.
+- `IF_THEN(p114, p046)` measures ambiguity that makes chaos relevant.
+- `AND(atom/fractal stress, ambiguity chaos)` becomes `plugin_tension_profile`.
+- `NOT(stability)` is an explanatory contrast only.
+
+For NeuroBit, plugins can request the local `W` gate when their
+`I_system_component` crosses the local threshold. They do not rewrite the
+profile's original `truth`, `indeterminacy`, or `falsity`.
+
+Datadog, E2B, and Redis are observability/engine surfaces around the hook:
+
+- Datadog Agent is optional and receives logs/metrics from the Docker stack.
+- E2B auditor is optional and can run external sandbox audits.
+- `plugin-engine-redis` is optional Docker infrastructure for future
+  router/cache/trace distribution. The current Python path falls back to local
+  in-process execution when Redis is absent.
+
+No Datadog API key, E2B key, plugin secret, PAT, or raw environment value is
+printed in hook output. The status payload reports only booleans such as
+`datadog_env_present`, `e2b_env_present`, and `redis_url_present`.
+
 ## Architecture
 
 ```text
@@ -94,6 +174,7 @@ core/
   neurobit_gates.py            # public NeuroBit gate primitive contract
   neurobit_gate_tunnel.py      # NeuroBit gate + tunnel-noise demo runtime
   experiment_seed.py           # deterministic experiment seed provenance
+  ffed_plugin_bridge.py        # optional FFeD MVP5 plugin router and D_f mapper
   quantum_feature_transforms.py # pure amplitude/phase feature transforms
   qnn_nucleus.py               # QNN candidate matrix and Torch fallback
   phi_framework.py             # synthetic phi-framework simulation primitives
@@ -217,6 +298,7 @@ The repository now includes a Docker Compose stack for:
 - `simulator-panel`: HoloViz Panel control room
 - `vllm`: optional `vLLM` OpenAI-compatible server
 - `etcd`: optional single-node local state service
+- `plugin-engine-redis`: optional Redis router/cache/trace block for the plugin engine
 - `datadog-agent`: optional Datadog Agent scraping the `vLLM` metrics endpoint
 - `e2b-auditor`: optional E2B sandbox auditor emitting Datadog logs tied to the same stack
 
@@ -242,6 +324,12 @@ Add the `etcd` lane:
 
 ```bash
 docker compose --profile state up --build etcd
+```
+
+Add the optional Redis plugin engine lane:
+
+```bash
+docker compose --profile plugin-engine up --build plugin-engine-redis
 ```
 
 Add Datadog Agent + E2B audit services:

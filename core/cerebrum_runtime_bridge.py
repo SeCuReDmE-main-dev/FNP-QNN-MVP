@@ -234,6 +234,10 @@ class CerebrumRuntimeBridge:
         fractal_admissible: bool = True,
         fractal_measurement_method: Optional[str] = None,
         fractal_scale: Optional[str] = None,
+        plugin_hook_enabled: bool = False,
+        plugin_set: str = "mvp5",
+        plugin_context: Optional[Mapping[str, Any]] = None,
+        include_plugin_trace: bool = True,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
@@ -268,8 +272,16 @@ class CerebrumRuntimeBridge:
                 fractal_admissible=fractal_admissible,
                 fractal_measurement_method=fractal_measurement_method,
                 fractal_scale=fractal_scale,
+                plugin_hook_enabled=plugin_hook_enabled,
+                plugin_set=plugin_set,
+                plugin_context=plugin_context,
+                include_plugin_trace=include_plugin_trace,
             )
             qnn_result.pop("bundle", None)
+            if qnn_result.get("plugin_fractal_carrier") is not None:
+                lvfm["plugin_fractal_carrier"] = qnn_result.get("plugin_fractal_carrier")
+                lvfm["plugin_tension_profile"] = qnn_result.get("plugin_tension_profile")
+                lvfm["impact_verification"] = qnn_result.get("impact_verification")
         return CerebrumRuntimeState(
             events=events,
             pairs=pairs,

@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 ALLOWED_MODALITIES = {"audio", "video", "text", "stimuli", "hearing", "vision", "language", "stimulus"}
 MAX_EVENTS = 1000
 MAX_LABEL_LENGTH = 120
+PLUGIN_SET = Literal["mvp5"]
 
 
 def _finite(value: float, field_name: str) -> float:
@@ -87,6 +88,10 @@ class RuntimeRunRequest(BaseModel):
     fractal_admissible: bool = True
     fractal_measurement_method: Optional[str] = Field(default=None, max_length=120)
     fractal_scale: Optional[str] = Field(default=None, max_length=120)
+    plugin_hook_enabled: bool = False
+    plugin_set: PLUGIN_SET = "mvp5"
+    plugin_context: Dict[str, Any] = Field(default_factory=dict)
+    include_plugin_trace: bool = True
 
     @model_validator(mode="before")
     @classmethod
@@ -123,6 +128,7 @@ class RuntimeRunRequest(BaseModel):
         if self.observer_strength is not None:
             payload["observer_strength"] = self.observer_strength
         payload.update(self.fractal_payload())
+        payload.update(self.plugin_payload())
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:
@@ -132,6 +138,14 @@ class RuntimeRunRequest(BaseModel):
         if self.statefield is not None:
             payload["statefield"] = self.statefield
         return payload
+
+    def plugin_payload(self) -> Dict[str, Any]:
+        return {
+            "plugin_hook_enabled": self.plugin_hook_enabled,
+            "plugin_set": self.plugin_set,
+            "plugin_context": self.plugin_context,
+            "include_plugin_trace": self.include_plugin_trace,
+        }
 
     def fractal_payload(self) -> Dict[str, Any]:
         payload: Dict[str, Any] = {"fractal_admissible": self.fractal_admissible}
@@ -173,6 +187,10 @@ class QNNSmokeRequest(BaseModel):
     fractal_admissible: bool = True
     fractal_measurement_method: Optional[str] = Field(default=None, max_length=120)
     fractal_scale: Optional[str] = Field(default=None, max_length=120)
+    plugin_hook_enabled: bool = False
+    plugin_set: PLUGIN_SET = "mvp5"
+    plugin_context: Dict[str, Any] = Field(default_factory=dict)
+    include_plugin_trace: bool = True
 
     @model_validator(mode="before")
     @classmethod
@@ -221,6 +239,10 @@ class NeuroBitProfileRequest(BaseModel):
     fractal_admissible: bool = True
     fractal_measurement_method: Optional[str] = Field(default=None, max_length=120)
     fractal_scale: Optional[str] = Field(default=None, max_length=120)
+    plugin_hook_enabled: bool = False
+    plugin_set: PLUGIN_SET = "mvp5"
+    plugin_context: Dict[str, Any] = Field(default_factory=dict)
+    include_plugin_trace: bool = True
 
     @model_validator(mode="before")
     @classmethod
@@ -263,6 +285,10 @@ class NeuroBitProfileRequest(BaseModel):
             "fractal_admissible": self.fractal_admissible,
             "fractal_measurement_method": self.fractal_measurement_method,
             "fractal_scale": self.fractal_scale,
+            "plugin_hook_enabled": self.plugin_hook_enabled,
+            "plugin_set": self.plugin_set,
+            "plugin_context": self.plugin_context,
+            "include_plugin_trace": self.include_plugin_trace,
         }
 
 
@@ -286,6 +312,10 @@ class CommandRequest(BaseModel):
     fractal_admissible: bool = True
     fractal_measurement_method: Optional[str] = Field(default=None, max_length=120)
     fractal_scale: Optional[str] = Field(default=None, max_length=120)
+    plugin_hook_enabled: bool = False
+    plugin_set: PLUGIN_SET = "mvp5"
+    plugin_context: Dict[str, Any] = Field(default_factory=dict)
+    include_plugin_trace: bool = True
     neurobit: Optional[NeuroBitTunnelRequest] = None
 
     @model_validator(mode="before")
