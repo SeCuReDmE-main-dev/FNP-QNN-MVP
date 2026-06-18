@@ -62,9 +62,52 @@ The standalone introspection endpoint is:
 
 The endpoint reuses the same primitive as the runtime bridge.
 
+## Plugin Stabilization Envelope
+
+The bridge can optionally use the existing FFeD MVP5 plugin suite as a
+stabilization envelope when all three flags are active:
+
+```json
+{
+  "plithogenic_enabled": true,
+  "revolutionary_topology_enabled": true,
+  "plugin_hook_enabled": true
+}
+```
+
+The selected plugin suite is:
+
+- `p011_fractales_atomiques`
+- `p046_rossler_beaulieu_cubic_framework`
+- `p097_fbm_tuner`
+- `p109_dual_triplex`
+- `p114_ffed_neutrosophic_consensus`
+
+The runtime executes the plugin bridge once before the combined
+plithogenic-topology profile is finalized. The same plugin payload is then
+shared with QNN, so the plugin hook is not run twice in this path.
+
+The plugin envelope adds:
+
+- `plugin_stabilization_profile`
+- `plithogenic_topology_load_profile`
+- `stabilized_feature_vector`
+- `stabilized_feature_dimension`
+
+This envelope only stabilizes derived fields such as statistical confidence,
+deformation equivalence probability, neighborhood statistical stability, and
+feature pressure. It does not overwrite raw plithogenic probability values,
+topology axiom values, `D_f`, `dF`, or `i_fractal`.
+
+If CPAI reports `forward_candidate`, that status is recorded as metadata only.
+The simulator does not offload execution, write to Datadog, require Redis, or
+require Docker for this path.
+
 ## Boundaries
 
 - Alpha-local educational simulator only.
 - No clinical, diagnostic, therapeutic, emergency, safety-critical, production, security, or validated physical-topology claim.
 - No stochastic prediction is introduced; v1 computes deterministic empirical statistics over supplied runtime events.
 - Standalone QNN, NeuroBit, Nidus, Plithogenic, Revolutionary Topology, LVFM, and runtime defaults remain unchanged unless the required opt-in flags are enabled.
+- Plugin stabilization is not a validated optimizer; it is a bounded local
+  envelope for derived metadata and lightweight feature pressure only.

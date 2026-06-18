@@ -720,6 +720,23 @@ The same combined profile is available through:
 
 - `POST /fnp-qnn/plithogenic-topology/runtime/profile`
 
+Plugin stabilization can be layered on top with the existing MVP5 plugin hook:
+
+```json
+{
+  "plithogenic_enabled": true,
+  "revolutionary_topology_enabled": true,
+  "plugin_hook_enabled": true,
+  "plugin_set": "mvp5"
+}
+```
+
+In that mode the five selected plugins provide bounded stabilization metadata
+for derived confidence/load fields only. Raw plithogenic probabilities,
+topology axioms, `D_f`, `dF`, and `i_fractal` are not overwritten. CPAI
+`forward_candidate` is recorded as metadata only; no Datadog write, Redis,
+Docker, remote offload, or pluginpack dependency is required for defaults.
+
 The implementation report lives at
 `FNP-QNN-MVP-organisation/04_implementation_planning/PLITHOGENIC_PROBABILITY_STATISTICS_TO_TOPOLOGY_WIRING.md`.
 This bridge is disabled by default and does not change QNN, NeuroBit, Nidus,

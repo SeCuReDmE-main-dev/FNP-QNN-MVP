@@ -52,8 +52,10 @@ from .plithogenic_logic import (
     plithogenic_weighted_cumulative_truth,
 )
 from .plithogenic_probability_statistics import (
+    plugin_stabilization_profile,
     plithogenic_multi_to_uni_decision,
     plithogenic_probability_family_profile,
+    plithogenic_topology_load_profile,
     plithogenic_topology_wiring_profile,
     plithogenic_variate_sample_profile,
     refined_plithogenic_statistical_components,
@@ -121,8 +123,10 @@ __all__ = [
     "plithogenic_neutrosophic_conjunction",
     "plithogenic_runtime_fusion_profile",
     "plithogenic_weighted_cumulative_truth",
+    "plugin_stabilization_profile",
     "plithogenic_multi_to_uni_decision",
     "plithogenic_probability_family_profile",
+    "plithogenic_topology_load_profile",
     "plithogenic_topology_wiring_profile",
     "plithogenic_variate_sample_profile",
     "refined_plithogenic_statistical_components",

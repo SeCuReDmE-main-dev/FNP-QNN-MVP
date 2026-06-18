@@ -41,7 +41,6 @@ from core import (
     QNNNucleus,
     RuntimeStateStore,
     partial_membership_mean,
-    plithogenic_topology_wiring_profile,
     plithogenic_runtime_fusion_profile,
     revolutionary_topology_runtime_profile,
     run_neurobit_gates,
@@ -535,13 +534,21 @@ async def revolutionary_topology_runtime_profile_endpoint(payload: RuntimeRunReq
 
 @app.post("/fnp-qnn/plithogenic-topology/runtime/profile")
 async def plithogenic_topology_runtime_profile_endpoint(payload: RuntimeRunRequest) -> Dict[str, Any]:
-    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
-    plithogenic_profile = plithogenic_runtime_fusion_profile(events, pairs)
-    topology_profile = revolutionary_topology_runtime_profile(events, pairs)
+    runtime_payload = _runtime_payload(payload.to_runtime_payload())
+    state = cerebrum_runtime_bridge.build_state(
+        runtime_payload,
+        plithogenic_enabled=True,
+        revolutionary_topology_enabled=True,
+        plugin_hook_enabled=payload.plugin_hook_enabled,
+        plugin_set=payload.plugin_set,
+        plugin_context=payload.plugin_context,
+        cpai_context=payload.cpai_context,
+        include_plugin_trace=payload.include_plugin_trace,
+    )
     return {
         "status": "ok",
-        "profile": plithogenic_topology_wiring_profile(events, pairs, plithogenic_profile, topology_profile),
-        "warnings": warnings,
+        "profile": state.plithogenic_topology,
+        "warnings": state.warnings,
     }
 
 

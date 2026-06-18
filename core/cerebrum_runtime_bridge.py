@@ -20,6 +20,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 
 from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, MODALITIES
+from .ffed_plugin_bridge import FfeDPluginBridge
 from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
 from .neutrosophic_quantum_primitives import fractal_carrier_profile
 from .plithogenic_logic import plithogenic_runtime_fusion_profile
@@ -274,15 +275,34 @@ class CerebrumRuntimeBridge:
             vector = np.concatenate([vector, np.asarray(revolutionary_topology_features, dtype=np.float32)]).astype(np.float32)
         plithogenic_topology_profile = None
         plithogenic_topology_features: Optional[List[float]] = None
+        plithogenic_topology_plugin_payload: Optional[Dict[str, Any]] = None
         if plithogenic_profile is not None and revolutionary_topology_profile is not None:
+            if plugin_hook_enabled:
+                plithogenic_topology_plugin_payload = FfeDPluginBridge().run_mvp5(
+                    self._plithogenic_topology_plugin_context(
+                        events,
+                        pairs,
+                        plithogenic_profile,
+                        revolutionary_topology_profile,
+                        plugin_context=plugin_context,
+                        cpai_context=cpai_context,
+                    ),
+                    include_trace=include_plugin_trace,
+                    plugin_set=plugin_set,
+                )
             plithogenic_topology_profile = plithogenic_topology_wiring_profile(
                 events,
                 pairs,
                 plithogenic_profile,
                 revolutionary_topology_profile,
+                plugin_payload=plithogenic_topology_plugin_payload,
             )
             plithogenic_topology_features = [
-                float(item) for item in plithogenic_topology_profile["feature_vector"]
+                float(item)
+                for item in plithogenic_topology_profile.get(
+                    "stabilized_feature_vector",
+                    plithogenic_topology_profile["feature_vector"],
+                )
             ]
             vector = np.concatenate([vector, np.asarray(plithogenic_topology_features, dtype=np.float32)]).astype(np.float32)
         lvfm = self._build_lvfm_snapshot(events, pairs)
@@ -316,6 +336,19 @@ class CerebrumRuntimeBridge:
                 "topology_variable_completion": plithogenic_topology_profile["topology_variable_completion"],
                 "hierarchy": plithogenic_topology_profile["hierarchy"],
             }
+            if "plugin_stabilization_profile" in plithogenic_topology_profile:
+                lvfm["plithogenic_topology_profile"]["plugin_stabilization_profile"] = plithogenic_topology_profile[
+                    "plugin_stabilization_profile"
+                ]
+                lvfm["plithogenic_topology_profile"]["plithogenic_topology_load_profile"] = plithogenic_topology_profile[
+                    "plithogenic_topology_load_profile"
+                ]
+                lvfm["plithogenic_topology_profile"]["stabilized_feature_vector"] = plithogenic_topology_profile[
+                    "stabilized_feature_vector"
+                ]
+                lvfm["plithogenic_topology_profile"]["stabilized_feature_dimension"] = plithogenic_topology_profile[
+                    "stabilized_feature_dimension"
+                ]
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
             fractal_dimension_min,
@@ -344,7 +377,7 @@ class CerebrumRuntimeBridge:
                 fractal_admissible=fractal_admissible,
                 fractal_measurement_method=fractal_measurement_method,
                 fractal_scale=fractal_scale,
-                plugin_hook_enabled=plugin_hook_enabled,
+                plugin_hook_enabled=plugin_hook_enabled and plithogenic_topology_plugin_payload is None,
                 plugin_set=plugin_set,
                 plugin_context=dict(plugin_context or {}),
                 cpai_context=dict(cpai_context or {}),
@@ -355,6 +388,7 @@ class CerebrumRuntimeBridge:
                 revolutionary_topology_payload=revolutionary_topology_profile,
                 plithogenic_topology_features=plithogenic_topology_features,
                 plithogenic_topology_payload=plithogenic_topology_profile,
+                precomputed_plugin_payload=plithogenic_topology_plugin_payload,
             )
             qnn_result.pop("bundle", None)
             if qnn_result.get("plugin_fractal_carrier") is not None:
@@ -396,6 +430,68 @@ class CerebrumRuntimeBridge:
             domain=domain,
             admissible=fractal_admissible,
         )
+
+    def _plithogenic_topology_plugin_context(
+        self,
+        events: Sequence[CerebrumMemoryEvent],
+        pairs: Sequence[CrossModalPair],
+        plithogenic_profile: Mapping[str, Any],
+        revolutionary_topology_profile: Mapping[str, Any],
+        *,
+        plugin_context: Optional[Mapping[str, Any]],
+        cpai_context: Optional[Mapping[str, Any]],
+    ) -> Dict[str, Any]:
+        context = dict(plugin_context or {})
+        observations = [event.to_observation() for event in events]
+        attributes = list((plithogenic_profile.get("attribute_profile") or {}).get("attributes") or [])
+        truth_series = [self._coerce_float(attribute.get("truth"), 0.0) for attribute in attributes]
+        indeterminacy_series = [self._coerce_float(attribute.get("indeterminacy"), 0.0) for attribute in attributes]
+        falsity_series = [self._coerce_float(attribute.get("falsity"), 0.0) for attribute in attributes]
+        topology_features = [self._coerce_float(item, 0.0) for item in revolutionary_topology_profile.get("feature_vector", [])]
+        event_values = [event.value for event in events]
+        series = context.get("series") or [
+            *event_values,
+            *truth_series,
+            *indeterminacy_series,
+            *falsity_series,
+            *topology_features,
+        ]
+        items = context.get("items") or [
+            {
+                "label": str(attribute.get("attribute_id", attribute.get("variable", f"attribute-{index}"))),
+                "truth": self._coerce_float(attribute.get("truth"), 0.0),
+                "indeterminacy": self._coerce_float(attribute.get("indeterminacy"), 0.0),
+                "falsity": self._coerce_float(attribute.get("falsity"), 0.0),
+            }
+            for index, attribute in enumerate(attributes)
+        ]
+        estimated_load = min(
+            1.0,
+            max(
+                0.0,
+                len(events) / MAX_RUNTIME_EVENTS
+                + len(pairs) / MAX_RUNTIME_PAIRS
+                + len(topology_features) / 256.0,
+            ),
+        )
+        merged_cpai_context = dict(cpai_context or {})
+        merged_cpai_context.setdefault("local_load", estimated_load)
+        context.update(
+            {
+                "events": observations,
+                "observations": observations,
+                "series": [self._coerce_float(value, 0.0) for value in list(series)[:64]],
+                "items": list(items)[:16],
+                "cpai_context": merged_cpai_context,
+                "plithogenic_topology_load": {
+                    "event_count": len(events),
+                    "pair_count": len(pairs),
+                    "topology_feature_count": len(topology_features),
+                    "estimated_load": estimated_load,
+                },
+            }
+        )
+        return context
 
     def _build_lvfm_snapshot(
         self,

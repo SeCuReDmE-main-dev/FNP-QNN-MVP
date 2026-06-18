@@ -14,7 +14,7 @@ simulation or make validated predictive claims.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Any, Dict, Iterable, List, Mapping, Sequence
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
 
 HIERARCHY = "I -> I_system^S -> D_f -> dF -> i_fractal"
@@ -229,11 +229,14 @@ def plithogenic_topology_wiring_profile(
     pairs: Iterable[Any],
     plithogenic_profile: Mapping[str, Any],
     topology_profile: Mapping[str, Any],
+    plugin_payload: Optional[Mapping[str, Any]] = None,
+    load_profile: Optional[Mapping[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Complete topology variables with deterministic plithogenic statistics."""
 
-    del pairs  # Pair-derived signals are already present in the two source profiles.
-    sample_profile = plithogenic_variate_sample_profile(events)
+    event_list = list(events)
+    pair_list = list(pairs)
+    sample_profile = plithogenic_variate_sample_profile(event_list)
     probability_profile = plithogenic_probability_family_profile(plithogenic_profile)
     refined = refined_plithogenic_statistical_components(plithogenic_profile, topology_profile)
     attributes = list((plithogenic_profile.get("attribute_profile") or {}).get("attributes") or [])
@@ -303,7 +306,7 @@ def plithogenic_topology_wiring_profile(
         topology_variable_completion["recurrence_sample_weight"],
     ]
 
-    return {
+    profile = {
         "model": "plithogenic_probability_statistics_topology_wiring_v1",
         "source": "Plithogenic Probability & Statistics, Neutrosophic Sets and Systems Vol. 43, 2021",
         "sample_profile": sample_profile,
@@ -319,5 +322,134 @@ def plithogenic_topology_wiring_profile(
         "research_boundary": (
             "alpha-local educational simulation only; empirical deterministic statistics, "
             "not clinical, diagnostic, predictive, production, or validated physical topology"
+        ),
+    }
+    if plugin_payload is not None:
+        profile["plithogenic_topology_load_profile"] = plithogenic_topology_load_profile(
+            event_list,
+            pair_list,
+            profile,
+            plugin_payload=plugin_payload,
+            load_profile=load_profile,
+        )
+        profile["plugin_stabilization_profile"] = plugin_stabilization_profile(
+            profile,
+            plugin_payload,
+            profile["plithogenic_topology_load_profile"],
+        )
+        profile["stabilized_feature_vector"] = profile["plugin_stabilization_profile"]["stabilized_feature_vector"]
+        profile["stabilized_feature_dimension"] = len(profile["stabilized_feature_vector"])
+    return profile
+
+
+def plithogenic_topology_load_profile(
+    events: Sequence[Any],
+    pairs: Sequence[Any],
+    topology_wiring_profile: Mapping[str, Any],
+    *,
+    plugin_payload: Optional[Mapping[str, Any]] = None,
+    load_profile: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Describe local computational pressure without triggering offload."""
+
+    plugin_payload = plugin_payload or {}
+    cpai = dict(plugin_payload.get("cpai_mesh_profile") or {})
+    feature_count = len(topology_wiring_profile.get("feature_vector") or [])
+    plugin_feature_count = len(plugin_payload.get("feature_vector") or [])
+    event_count = len(events)
+    pair_count = len(pairs)
+    estimated_load = _clamp01(
+        (event_count / 1000.0)
+        + (pair_count / 20000.0)
+        + (feature_count / 256.0)
+        + (plugin_feature_count / 128.0)
+    )
+    if load_profile:
+        estimated_load = _clamp01((estimated_load + _clamp01(load_profile.get("estimated_load"))) / 2.0)
+    return {
+        "model": "plithogenic_topology_load_profile_v1",
+        "event_count": event_count,
+        "pair_count": pair_count,
+        "feature_count": feature_count,
+        "plugin_feature_count": plugin_feature_count,
+        "estimated_load": estimated_load,
+        "cpai_routing_decision": cpai.get("routing_decision", "process_local"),
+        "cpai_should_forward_metadata_only": bool(cpai.get("should_forward", False)),
+        "offload_performed": False,
+        "research_boundary": (
+            "local metadata only; CPAI forward_candidate is advisory and does not trigger remote execution"
+        ),
+    }
+
+
+def plugin_stabilization_profile(
+    topology_wiring_profile: Mapping[str, Any],
+    plugin_payload: Mapping[str, Any],
+    load_profile: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Use plugin metrics to soften derived feature pressure without rewriting evidence."""
+
+    feature_vector = [_clamp01(item) for item in topology_wiring_profile.get("feature_vector") or []]
+    completion = dict(topology_wiring_profile.get("topology_variable_completion") or {})
+    plugin_gate = dict(plugin_payload.get("plugin_gate_profile") or {})
+    plugin_carrier = dict(plugin_payload.get("plugin_fractal_carrier") or {})
+    impact = dict(plugin_payload.get("impact_verification") or {})
+    activated = bool(impact.get("activated", False))
+    plugin_vector = [_clamp01(item) for item in plugin_payload.get("feature_vector") or []]
+
+    plugin_tension = _clamp01(plugin_gate.get("dF_plugin", plugin_gate.get("F")))
+    plugin_truth = _clamp01(plugin_gate.get("T"))
+    plugin_indeterminacy = _clamp01(plugin_gate.get("I_system_component", plugin_gate.get("I")))
+    carrier_stability = _clamp01(1.0 - _clamp01(plugin_carrier.get("D_f_hat_plugin", plugin_carrier.get("D_f_hat"))))
+    estimated_load = _clamp01(load_profile.get("estimated_load"))
+    base_softening = _clamp01((carrier_stability + (1.0 - plugin_tension) + plugin_truth) / 3.0)
+    load_softening_factor = _clamp01(base_softening * (1.0 - 0.5 * estimated_load)) if activated else 0.0
+
+    raw_statistical_confidence = _clamp01(topology_wiring_profile.get("statistical_confidence"))
+    raw_equivalence = _clamp01(completion.get("deformation_equivalence_probability"))
+    raw_neighborhood = _clamp01(completion.get("neighborhood_statistical_stability"))
+    stabilized_statistical_confidence = _clamp01(
+        raw_statistical_confidence * (1.0 - 0.25 * plugin_tension)
+        + load_softening_factor * 0.25
+    )
+    stabilized_equivalence = _clamp01(raw_equivalence * (0.85 + 0.15 * load_softening_factor))
+    stabilized_neighborhood = _clamp01(raw_neighborhood * (0.80 + 0.20 * load_softening_factor))
+
+    stabilized_vector = list(feature_vector)
+    if activated and stabilized_vector:
+        stabilized_vector = [
+            _clamp01((value * (0.90 + 0.10 * load_softening_factor)) + (0.02 * plugin_indeterminacy))
+            for value in stabilized_vector
+        ]
+    stabilized_vector.extend(
+        [
+            stabilized_statistical_confidence,
+            stabilized_equivalence,
+            stabilized_neighborhood,
+            load_softening_factor,
+            _clamp01(plugin_tension),
+        ]
+    )
+
+    return {
+        "model": "plugin_stabilized_plithogenic_topology_v1",
+        "activated": activated,
+        "observed_plugins": list(impact.get("observed_plugins") or []),
+        "plugin_errors": list(plugin_payload.get("plugin_errors") or []),
+        "plugin_gate_profile": plugin_gate or None,
+        "plugin_fractal_carrier": plugin_carrier or None,
+        "cpai_mesh_profile": plugin_payload.get("cpai_mesh_profile"),
+        "load_softening_factor": load_softening_factor,
+        "raw_statistical_confidence": raw_statistical_confidence,
+        "stabilized_statistical_confidence": stabilized_statistical_confidence,
+        "raw_deformation_equivalence_probability": raw_equivalence,
+        "stabilized_deformation_equivalence_probability": stabilized_equivalence,
+        "raw_neighborhood_statistical_stability": raw_neighborhood,
+        "stabilized_neighborhood_statistical_stability": stabilized_neighborhood,
+        "stabilized_feature_vector": [_clamp01(item) for item in stabilized_vector],
+        "plugin_feature_count": len(plugin_vector),
+        "hierarchy": HIERARCHY,
+        "research_boundary": (
+            "plugin metrics soften derived feature pressure only; raw probabilities and topology evidence are unchanged"
         ),
     }

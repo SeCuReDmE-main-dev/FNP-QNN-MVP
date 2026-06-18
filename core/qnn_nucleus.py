@@ -147,16 +147,19 @@ class QNNNucleus:
         revolutionary_topology_payload: Optional[Dict[str, Any]] = None,
         plithogenic_topology_features: Optional[Sequence[float]] = None,
         plithogenic_topology_payload: Optional[Dict[str, Any]] = None,
+        precomputed_plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
-        plugin_payload = self._plugin_hook_payload(
-            raw_events,
-            enabled=plugin_hook_enabled,
-            plugin_set=plugin_set,
-            plugin_context=plugin_context,
-            cpai_context=cpai_context,
-            include_plugin_trace=include_plugin_trace,
-        )
+        plugin_payload = precomputed_plugin_payload
+        if plugin_payload is None:
+            plugin_payload = self._plugin_hook_payload(
+                raw_events,
+                enabled=plugin_hook_enabled,
+                plugin_set=plugin_set,
+                plugin_context=plugin_context,
+                cpai_context=cpai_context,
+                include_plugin_trace=include_plugin_trace,
+            )
         external_features = list(plugin_payload.get("feature_vector", [])) if plugin_payload is not None else []
         external_features.extend(list(plithogenic_features or []))
         external_features.extend(list(revolutionary_topology_features or []))
@@ -795,6 +798,19 @@ class QNNNucleus:
             "topology_variable_completion": plithogenic_topology_payload["topology_variable_completion"],
             "hierarchy": plithogenic_topology_payload["hierarchy"],
         }
+        if "plugin_stabilization_profile" in plithogenic_topology_payload:
+            result["plithogenic_topology_profile"]["plugin_stabilization_profile"] = plithogenic_topology_payload[
+                "plugin_stabilization_profile"
+            ]
+            result["plithogenic_topology_profile"]["plithogenic_topology_load_profile"] = plithogenic_topology_payload[
+                "plithogenic_topology_load_profile"
+            ]
+            result["plithogenic_topology_profile"]["stabilized_feature_vector"] = plithogenic_topology_payload[
+                "stabilized_feature_vector"
+            ]
+            result["plithogenic_topology_profile"]["stabilized_feature_dimension"] = plithogenic_topology_payload[
+                "stabilized_feature_dimension"
+            ]
 
     def _fractal_carrier_payload(
         self,

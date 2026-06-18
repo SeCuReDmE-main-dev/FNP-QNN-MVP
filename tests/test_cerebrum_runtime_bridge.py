@@ -234,6 +234,7 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
         self.assertIn("plithogenic_topology_profile", enabled_state.lvfm)
         self.assertGreater(enabled_state.feature_vector.shape[0], plithogenic_only.feature_vector.shape[0])
         self.assertGreater(enabled_state.feature_vector.shape[0], topology_only.feature_vector.shape[0])
+        self.assertNotIn("plugin_stabilization_profile", enabled_state.plithogenic_topology)
 
     def test_plithogenic_topology_features_reach_qnn_when_both_flags_enabled(self):
         nucleus = QNNNucleus(adapter=self.bridge.adapter)
@@ -250,6 +251,34 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
         self.assertEqual(
             state.qnn_result["plithogenic_topology_profile"]["feature_dimension"],
             state.plithogenic_topology["feature_dimension"],
+        )
+
+    def test_plugin_stabilized_plithogenic_topology_reaches_runtime_lvfm_and_qnn(self):
+        nucleus = QNNNucleus(adapter=self.bridge.adapter)
+        state = self.bridge.build_state(
+            self.bridge.default_payload(),
+            qnn_nucleus=nucleus,
+            max_epochs=2,
+            plithogenic_enabled=True,
+            revolutionary_topology_enabled=True,
+            plugin_hook_enabled=True,
+            plugin_context={
+                "series": [0.1, 0.3, 0.2, 0.8, 0.4, 0.9],
+                "steps": 120,
+                "n_atoms": 8,
+                "depth": 2,
+                "max_terms": 8,
+            },
+            cpai_context={"local_load": 0.8, "nodes_active": 2, "nodes_visible": 2},
+        )
+
+        self.assertIsNotNone(state.plithogenic_topology)
+        self.assertIn("plugin_stabilization_profile", state.plithogenic_topology)
+        self.assertIn("plugin_stabilization_profile", state.lvfm["plithogenic_topology_profile"])
+        self.assertIn("plugin_stabilization_profile", state.qnn_result["plithogenic_topology_profile"])
+        self.assertIn("plugin_hook_status", state.qnn_result)
+        self.assertTrue(
+            all(0.0 <= item <= 1.0 for item in state.plithogenic_topology["stabilized_feature_vector"])
         )
 
     def test_life_science_statefield_port_is_opt_in(self):
@@ -394,6 +423,24 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("plithogenic_topology_profile", runtime["qnn_result"])
         self.assertTrue(all(0.0 <= item <= 1.0 for item in runtime["plithogenic_topology"]["feature_vector"]))
 
+    def test_runtime_run_endpoint_accepts_plugin_stabilized_plithogenic_topology(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            json={
+                "epochs": 2,
+                "plithogenic_enabled": True,
+                "revolutionary_topology_enabled": True,
+                "plugin_hook_enabled": True,
+                "plugin_context": {"series": [0.2, 0.4, 0.8], "steps": 120, "n_atoms": 8},
+                "cpai_context": {"local_load": 0.9, "nodes_active": 2, "nodes_visible": 2},
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        self.assertIn("plugin_stabilization_profile", runtime["plithogenic_topology"])
+        self.assertIn("plugin_stabilization_profile", runtime["lvfm"]["plithogenic_topology_profile"])
+        self.assertIn("plugin_stabilization_profile", runtime["qnn_result"]["plithogenic_topology_profile"])
+
     def test_plithogenic_topology_runtime_profile_endpoint(self):
         response = self.client.post(
             "/fnp-qnn/plithogenic-topology/runtime/profile",
@@ -409,6 +456,25 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertEqual(profile["model"], "plithogenic_probability_statistics_topology_wiring_v1")
         self.assertIn("topology_variable_completion", profile)
         self.assertTrue(all(0.0 <= item <= 1.0 for item in profile["feature_vector"]))
+
+    def test_plithogenic_topology_runtime_profile_endpoint_accepts_plugin_hook(self):
+        response = self.client.post(
+            "/fnp-qnn/plithogenic-topology/runtime/profile",
+            json={
+                "plugin_hook_enabled": True,
+                "plugin_context": {"series": [0.2, 0.4, 0.8], "steps": 120, "n_atoms": 8},
+                "cpai_context": {"local_load": 0.9, "nodes_active": 2, "nodes_visible": 2},
+                "memories": [
+                    {"modality": "audio", "starting_time": 0.0, "ending_time": 1.0, "value": 0.2},
+                    {"modality": "video", "starting_time": 0.2, "ending_time": 1.2, "value": 0.8},
+                ],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        profile = response.json()["profile"]
+        self.assertIn("plugin_stabilization_profile", profile)
+        self.assertIn("plithogenic_topology_load_profile", profile)
+        self.assertFalse(profile["plithogenic_topology_load_profile"]["offload_performed"])
 
     def test_runtime_latest_state_endpoint(self):
         run_response = self.client.post("/cerebrum/runtime/run", json={"epochs": 3})
