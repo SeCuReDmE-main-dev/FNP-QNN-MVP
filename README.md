@@ -242,6 +242,7 @@ core/
   experiment_seed.py           # deterministic experiment seed provenance
   ffed_plugin_bridge.py        # optional FFeD MVP5 plugin router and D_f mapper
   plithogenic_logic.py         # opt-in plithogenic runtime fusion profile
+  revolutionary_topologies.py  # opt-in topology-style deformation profile
   quantum_feature_transforms.py # pure amplitude/phase feature transforms
   qnn_nucleus.py               # QNN candidate matrix and Torch fallback
   phi_framework.py             # synthetic phi-framework simulation primitives
@@ -280,6 +281,7 @@ Core HTTP endpoints:
 - `POST /fnp-qnn/nidus/fusion/profile`
 - `POST /fnp-qnn/nidus/partial-membership/mean`
 - `POST /fnp-qnn/plithogenic/runtime/profile`
+- `POST /fnp-qnn/revolutionary-topology/runtime/profile`
 - `POST /commands/{command_name}`
 
 Compatibility endpoint:
@@ -666,16 +668,47 @@ The implementation report lives at
 This layer is disabled by default and does not change QNN, NeuroBit, Nidus,
 runtime, or Panel behavior unless requested.
 
+### Revolutionary topologies runtime layer
+
+`core/revolutionary_topologies.py` adds an opt-in topology-style runtime layer
+based on *Foundation of Revolutionary Topologies*. The simulator uses this as
+the safe topological entry point: before LVFM/QNN treats runtime states as
+different, it can inspect whether selected structure invariants survive local
+deformation.
+
+Enable it on runtime runs with:
+
+```json
+{
+  "revolutionary_topology_enabled": true
+}
+```
+
+The layer reports CT/NCT/ACT-style axiom closure, refined `T/I/F` topology
+components, nested event/modality/pair metadata, NonStandard binad
+neighborhood tolerance, and bounded Over/Under/Off plus multiset recurrence
+signals. The same profile is available through:
+
+- `POST /fnp-qnn/revolutionary-topology/runtime/profile`
+
+The implementation report lives at
+`FNP-QNN-MVP-organisation/04_implementation_planning/REVOLUTIONARY_TOPOLOGIES_RUNTIME_LAYER.md`.
+This layer is disabled by default and does not change QNN, NeuroBit, Nidus,
+Plithogenic, runtime, or Panel behavior unless requested.
+
 ### Math source guardrail baseline
 
-The current source-to-function baseline is recorded in:
+The current source-to-function baseline and professor-thread source-of-truth
+record is stored in:
 
 - `docs/source_ledger/math_function_source_guardrail.md`
 - `FNP-QNN-MVP-organisation/04_implementation_planning/MATH_SOURCE_FUNCTION_GUARDRAIL_BASELINE_2026-06-18.md`
 
-From this baseline forward, source updates should be append-only: add only new
-mathematical sources, new functions, new endpoints, and new tests instead of
-repeating the complete history each time.
+The organization report records the correct Gmail thread context, the selected
+source URLs/tomes, the exact code bindings, endpoints, tests, and Git/GitHub
+commit evidence. From this baseline forward, source updates should be
+append-only: add only new mathematical sources, new functions, new endpoints,
+and new tests instead of repeating the complete history each time.
 
 Nota bene: this README is intentionally serving as a maintainer trace marker
 during pre-alpha. It is larger than the final public README should be. Before

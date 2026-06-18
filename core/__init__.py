@@ -51,6 +51,13 @@ from .plithogenic_logic import (
     plithogenic_runtime_fusion_profile,
     plithogenic_weighted_cumulative_truth,
 )
+from .revolutionary_topologies import (
+    deformation_invariant_signature,
+    nonstandard_neighborhood_profile,
+    refined_topology_components,
+    revolutionary_topology_runtime_profile,
+    topological_axiom_profile,
+)
 from .runtime_state_store import RuntimeStateStore
 
 __version__ = "1.2.0-research"
@@ -107,5 +114,10 @@ __all__ = [
     "plithogenic_neutrosophic_conjunction",
     "plithogenic_runtime_fusion_profile",
     "plithogenic_weighted_cumulative_truth",
+    "deformation_invariant_signature",
+    "nonstandard_neighborhood_profile",
+    "refined_topology_components",
+    "revolutionary_topology_runtime_profile",
+    "topological_axiom_profile",
     "RuntimeStateStore",
 ]

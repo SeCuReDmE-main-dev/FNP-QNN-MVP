@@ -143,6 +143,8 @@ class QNNNucleus:
         include_plugin_trace: bool = True,
         plithogenic_features: Optional[Sequence[float]] = None,
         plithogenic_payload: Optional[Dict[str, Any]] = None,
+        revolutionary_topology_features: Optional[Sequence[float]] = None,
+        revolutionary_topology_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
         plugin_payload = self._plugin_hook_payload(
@@ -155,6 +157,7 @@ class QNNNucleus:
         )
         external_features = list(plugin_payload.get("feature_vector", [])) if plugin_payload is not None else []
         external_features.extend(list(plithogenic_features or []))
+        external_features.extend(list(revolutionary_topology_features or []))
         plugin_kwargs = {
             "plugin_features": external_features or None,
             "plugin_payload": plugin_payload,
@@ -181,6 +184,7 @@ class QNNNucleus:
                     **fractal_kwargs,
                 )
                 self._attach_plithogenic_payload(result, plithogenic_payload)
+                self._attach_revolutionary_topology_payload(result, revolutionary_topology_payload)
                 return result
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -198,6 +202,7 @@ class QNNNucleus:
                 fallback["qiskit_error"] = str(exc)
                 fallback["backend"] = "torch_surrogate_fallback_after_qiskit_error"
                 self._attach_plithogenic_payload(fallback, plithogenic_payload)
+                self._attach_revolutionary_topology_payload(fallback, revolutionary_topology_payload)
                 return fallback
         result = self.fit_surrogate(
             [raw_events],
@@ -212,6 +217,7 @@ class QNNNucleus:
             **fractal_kwargs,
         )
         self._attach_plithogenic_payload(result, plithogenic_payload)
+        self._attach_revolutionary_topology_payload(result, revolutionary_topology_payload)
         return result
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -748,6 +754,22 @@ class QNNNucleus:
             "weighted_cumulative_truth": plithogenic_payload["weighted_cumulative_truth"],
             "contradiction_summary": plithogenic_payload["contradiction_summary"],
             "hierarchy": plithogenic_payload["hierarchy"],
+        }
+
+    def _attach_revolutionary_topology_payload(
+        self,
+        result: Dict[str, Any],
+        revolutionary_topology_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not revolutionary_topology_payload:
+            return
+        result["revolutionary_topology_profile"] = {
+            "model": revolutionary_topology_payload["model"],
+            "feature_vector": revolutionary_topology_payload["feature_vector"],
+            "feature_dimension": revolutionary_topology_payload["feature_dimension"],
+            "topological_axiom_profile": revolutionary_topology_payload["topological_axiom_profile"],
+            "deformation_signature": revolutionary_topology_payload["deformation_signature"],
+            "hierarchy": revolutionary_topology_payload["hierarchy"],
         }
 
     def _fractal_carrier_payload(

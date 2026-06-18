@@ -42,6 +42,7 @@ from core import (
     RuntimeStateStore,
     partial_membership_mean,
     plithogenic_runtime_fusion_profile,
+    revolutionary_topology_runtime_profile,
     run_neurobit_gates,
     run_neurobit_tunnel_demo,
     source_weighted_triplet_fusion,
@@ -235,6 +236,7 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         cpai_context=(payload or {}).get("cpai_context") or {},
         include_plugin_trace=bool((payload or {}).get("include_plugin_trace", True)),
         plithogenic_enabled=bool((payload or {}).get("plithogenic_enabled", False)),
+        revolutionary_topology_enabled=bool((payload or {}).get("revolutionary_topology_enabled", False)),
     )
     result = state.to_dict()
     if run_qnn:
@@ -516,6 +518,16 @@ async def plithogenic_runtime_profile(payload: RuntimeRunRequest) -> Dict[str, A
     return {
         "status": "ok",
         "profile": plithogenic_runtime_fusion_profile(events, pairs),
+        "warnings": warnings,
+    }
+
+
+@app.post("/fnp-qnn/revolutionary-topology/runtime/profile")
+async def revolutionary_topology_runtime_profile_endpoint(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
+    return {
+        "status": "ok",
+        "profile": revolutionary_topology_runtime_profile(events, pairs),
         "warnings": warnings,
     }
 

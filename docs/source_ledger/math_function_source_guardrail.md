@@ -1,48 +1,83 @@
 # Math Function Source Guardrail
 
-This document is the code-facing registry for mathematical functions currently available in the FNP-QNN simulator. It mirrors the organization baseline:
+This is the code-facing registry for mathematical functions currently available in the FNP-QNN simulator.
+
+Canonical organization baseline:
 
 `FNP-QNN-MVP-organisation/04_implementation_planning/MATH_SOURCE_FUNCTION_GUARDRAIL_BASELINE_2026-06-18.md`
 
-After 2026-06-18, add only new source/function rows instead of repeating the whole baseline.
+Rule: after 2026-06-18, append only new source/function rows. Do not repeat the whole historical baseline in every future update.
 
-## Current Function Registry
+Boundary: alpha-local educational research simulator only. No clinical, diagnostic, therapeutic, emergency, safety-critical, security, production, encryption, or validated physical quantum claim.
 
-| Function or class | File | Source relation | URL or source reference |
-| --- | --- | --- | --- |
-| `NeutrobitState` | `core/neutrosophic_quantum_primitives.py` | Local `|0>`, `|1>`, `|I>` simulation basis | https://fs.unm.edu/NeutrosophicQuantumComputer.pdf |
-| `CoherentNeutroState`, `DecoherentNeutroState` | `core/neutrosophic_quantum_primitives.py` | Coherent/decoherent neutrosophic state wrappers | https://fs.unm.edu/neut/NeutrosophicLogicBasedQuantum.pdf |
-| `neutrosophic_measurement()` | `core/neutrosophic_quantum_primitives.py` | Non-projective T/I/F-style measurement | https://fs.unm.edu/neut/NeutrosophicLogicBasedQuantum.pdf |
-| `neutrosophic_gate_algebra()` | `core/neutrosophic_quantum_primitives.py` | Bounded neutrosophic `not`, `and`, `or`, `if_then` previews | https://fs.unm.edu/NeutrosophicQuantumComputer.pdf |
-| `punctured_wave_state()` | `core/neutrosophic_quantum_primitives.py` | Finite puncture sequence for wave-like simulation | https://fs.unm.edu/IPW/ |
-| `punctured_surface_state()` | `core/neutrosophic_quantum_primitives.py` | Finite puncture grid for surface-like simulation | https://fs.unm.edu/IPW/IPW-to-FPW.pdf |
-| `partial_entanglement_profile()` | `core/neutrosophic_quantum_primitives.py` | Partial entanglement/separability/decoherence T/I/F metadata | https://fs.unm.edu/NSS/1QuantumTheory.pdf |
-| `observer_effect_profile()` | `core/neutrosophic_quantum_primitives.py` | Partial observer effect T/I/F metadata | https://fs.unm.edu/NSS/1QuantumTheory.pdf |
-| `normalize_fractal_dimension()` | `core/neutrosophic_quantum_primitives.py` | `D_f_hat = (D_f - D_min) / (D_max - D_min)` | Local Fractal NeutroGeometry manuscript source |
-| `fractal_carrier_profile()` | `core/neutrosophic_quantum_primitives.py` | Local admissible `D_f_hat`, `dF`, `i_fractal_candidate` carrier | Local Fractal NeutroGeometry manuscript source |
-| `neutrobit_features_from_vector()` | `core/neutrosophic_quantum_primitives.py` | Optional QNN feature expansion using neutrobit/puncture/observer/fractal metadata | Source-backed composite |
-| `build_neurobit_gate_sequence()` | `core/neurobit_gate_tunnel.py` | Deterministic NeuroBit gate schedule with `W` as local `|I>` marker | https://fs.unm.edu/NeutrosophicQuantumComputer.pdf |
-| `run_neurobit_gates()` | `core/neurobit_gate_tunnel.py` | NeuroBit gate trace, measurement, entanglement, observer, puncture, and carrier payload | Source-backed composite |
-| `run_neurobit_tunnel_demo()` | `core/neurobit_gate_tunnel.py` | Deterministic tunnel-noise demo | Local simulator only; not encryption |
-| `to_torchquantum_ops()` | `core/neurobit_gates.py` | Backend-neutral operation descriptors | Local MVP transfer contract |
-| `apply_gate_sequence_qiskit()` | `core/neurobit_gates.py` | Optional Qiskit-compatible trace path | Local MVP transfer contract |
-| `complex_wavefunction_to_amplitude_phase_features()` | `core/quantum_feature_transforms.py` | Amplitude/phase feature encoding | Local MVP transfer contract |
-| `structure_vector_to_phi_scaled_state()` | `core/quantum_feature_transforms.py` | Phi-scaled complex state encoding | Local MVP transfer contract |
-| `triplet_quality_profile()` | `core/nidus_idearum_math.py` | Dynamic T/I/F quality metadata | https://fs.unm.edu/NidusIdearum2-ed2.pdf |
-| `source_weighted_triplet_fusion()` | `core/nidus_idearum_math.py` | Source-weighted fusion preserving incomplete/intersection uncertainty | https://fs.unm.edu/NidusIdearum2-ed2.pdf |
-| `partial_membership_mean()` | `core/nidus_idearum_math.py` | Partial membership mean with under/equal/over membership | https://fs.unm.edu/NidusIdearum2-ed2.pdf |
-| `plithogenic_attribute_profile()` | `core/plithogenic_logic.py` | Runtime `P(V1, V2, ..., Vn)` attribute profile | https://fs.unm.edu/NSS/IntroductionPlithogenicLogic1.pdf |
-| `plithogenic_contradiction_degree()` | `core/plithogenic_logic.py` | Bounded local dependence/contradiction metric | https://fs.unm.edu/NSS/IntroductionPlithogenicLogic1.pdf |
-| `plithogenic_neutrosophic_conjunction()` | `core/plithogenic_logic.py` | Cumulative truth by `min(T), max(I), max(F)` | https://fs.unm.edu/NSS/IntroductionPlithogenicLogic1.pdf |
-| `plithogenic_weighted_cumulative_truth()` | `core/plithogenic_logic.py` | Weight-sensitive cumulative truth readout | https://fs.unm.edu/NSS/IntroductionPlithogenicLogic1.pdf |
-| `plithogenic_runtime_fusion_profile()` | `core/plithogenic_logic.py` | Opt-in runtime event fusion profile before LVFM/QNN features | https://fs.unm.edu/NSS/IntroductionPlithogenicLogic1.pdf |
-| `FfeDPluginBridge.run_mvp5()` | `core/ffed_plugin_bridge.py` | Optional allowlisted plugin feature bridge into `D_f/D_f_hat/dF/i_fractal_candidate` | Local pluginpack path when available |
-| `CerebrumRuntimeBridge.build_state()` | `core/cerebrum_runtime_bridge.py` | Runtime event, pair, LVFM, QNN, plugin, and plithogenic integration point | Local clean-room runtime contract |
+## Source URL Registry
+
+| Source id | Source URL or local path | Evidence class |
+| --- | --- | --- |
+| `NQC` | `https://fs.unm.edu/NeutrosophicQuantumComputer.pdf` | Prof-thread primary source |
+| `NLQC` | `https://fs.unm.edu/neut/NeutrosophicLogicBasedQuantum.pdf` | Prof-thread primary source |
+| `IPW` | `https://fs.unm.edu/IPW/` | Prof-thread primary source |
+| `IPW_39` | `https://fs.unm.edu/NSS/39Infinitesimally.pdf` | Prof-thread primary source |
+| `IPW_6` | `https://fs.unm.edu/NSS/6InfinitesimallyPunctured.pdf` | Prof-thread primary source |
+| `FPW` | `https://fs.unm.edu/IPW/IPW-to-FPW.pdf` | Prof-thread primary source |
+| `NQT_2025` | `https://fs.unm.edu/NSS/1QuantumTheory.pdf` | Prof-thread primary source |
+| `NIDUS_II` | `https://fs.unm.edu/NidusIdearum2-ed2.pdf` | Later FS PDF primary source |
+| `PLITHOGENIC_2021` | `https://fs.unm.edu/NSS/IntroductionPlithogenicLogic1.pdf` | Later FS PDF primary source |
+| `REVOLUTIONARY_TOPOLOGIES` | `https://fs.unm.edu/TT/RevolutionaryTopologies.pdf` | Later FS PDF primary source |
+| `FRACTAL_LOCAL` | `C:\Users\jeans\Desktop\livre pdf\Fractal_NeutroGeometry_Livre_V2_chapters_1_to_7.pdf` | Local manuscript source |
+| `NODE734_LOCAL` | `C:\Users\jeans\Desktop\Docs\pdf\livre\complain of quantum node #734\Complain-of-Quantum-Node-734{{ final }} .pdf` | Local manuscript source |
+| `LOCAL_RUNTIME` | Repository runtime contract | Local clean-room implementation source |
+
+## Function Registry
+
+| Function or class | File | Source ids | Endpoint/runtime surface | Test coverage |
+| --- | --- | --- | --- | --- |
+| `NeutrobitState` | `core/neutrosophic_quantum_primitives.py` | `NQC`, `NLQC` | `state_basis="neutrobit"` in `/qnn/smoke`, `/fnp-qnn/neurobit/gates/run` | `tests/test_neutrosophic_quantum_primitives.py`, `tests/test_cerebrum_qnn.py`, `tests/test_api_qnn_smoke.py` |
+| `CoherentNeutroState`, `DecoherentNeutroState` | `core/neutrosophic_quantum_primitives.py` | `NLQC` | Non-projective measurement payloads | `tests/test_neutrosophic_quantum_primitives.py` |
+| `neutrosophic_measurement()` | `core/neutrosophic_quantum_primitives.py` | `NQC`, `NLQC` | NeuroBit/QNN triplet metadata | `tests/test_neutrosophic_quantum_primitives.py`, `tests/test_neurobit_gate_tunnel.py` |
+| `neutrosophic_gate_algebra()` | `core/neutrosophic_quantum_primitives.py` | `NQC`, `NLQC` | Pure bounded primitive for `not`, `and`, `or`, `if_then` | `tests/test_neutrosophic_quantum_primitives.py` |
+| `punctured_wave_state()` | `core/neutrosophic_quantum_primitives.py` | `IPW`, `IPW_39`, `FPW` | Optional `puncture_delta` metadata | `tests/test_neutrosophic_quantum_primitives.py`, `tests/test_neurobit_gate_tunnel.py` |
+| `punctured_surface_state()` | `core/neutrosophic_quantum_primitives.py` | `IPW`, `IPW_6`, `FPW` | NeuroBit surface metadata and QNN expansion support | `tests/test_neutrosophic_quantum_primitives.py`, `tests/test_neurobit_gate_tunnel.py`, `tests/test_api_qnn_smoke.py` |
+| `partial_entanglement_profile()` | `core/neutrosophic_quantum_primitives.py` | `NQT_2025` | NeuroBit/QNN local T/I/F metadata | `tests/test_neutrosophic_quantum_primitives.py`, `tests/test_neurobit_gate_tunnel.py` |
+| `observer_effect_profile()` | `core/neutrosophic_quantum_primitives.py` | `NQT_2025` | Optional `observer_strength` in QNN/NeuroBit/runtime schemas | `tests/test_neutrosophic_quantum_primitives.py`, `tests/test_neurobit_gate_tunnel.py`, `tests/test_cerebrum_qnn.py` |
+| `normalize_fractal_dimension()` | `core/neutrosophic_quantum_primitives.py` | `FRACTAL_LOCAL` | API aliases `D_f`, `D_min`, `D_max`; local `D_f_hat` carrier | `tests/test_neutrosophic_quantum_primitives.py` |
+| `fractal_carrier_profile()` | `core/neutrosophic_quantum_primitives.py` | `FRACTAL_LOCAL`, `NODE734_LOCAL` | QNN, NeuroBit, LVFM, and plugin metadata: `D_f_hat`, `dF_carrier`, `i_fractal_candidate` | `tests/test_neutrosophic_quantum_primitives.py`, `tests/test_neurobit_gate_tunnel.py`, `tests/test_api_qnn_smoke.py` |
+| `neutrobit_features_from_vector()` | `core/neutrosophic_quantum_primitives.py` | Composite: `NQC`, `NLQC`, `FPW`, `NQT_2025`, `FRACTAL_LOCAL` | Optional QNN feature expansion | `tests/test_neutrosophic_quantum_primitives.py`, `tests/test_cerebrum_qnn.py` |
+| `build_neurobit_gate_sequence()` | `core/neurobit_gate_tunnel.py` | `NQC` | `/fnp-qnn/neurobit/gates/run` | `tests/test_neurobit_gate_tunnel.py` |
+| `gate_semantics()`, `reversibility_profile()` | `core/neurobit_gate_tunnel.py` | `NQC`, `NLQC` | NeuroBit gate trace metadata | `tests/test_neurobit_gate_tunnel.py` |
+| `run_neurobit_gates()` | `core/neurobit_gate_tunnel.py` | Composite source-backed runtime | `/fnp-qnn/neurobit/gates/run`, `/commands/neurobit-gates` | `tests/test_neurobit_gate_tunnel.py`, `tests/test_api_qnn_smoke.py` |
+| `run_neurobit_tunnel_demo()` | `core/neurobit_gate_tunnel.py` | Local simulator only | `/fnp-qnn/neurobit/tunnel/demo`, `/commands/neurobit-tunnel-demo` | `tests/test_neurobit_gate_tunnel.py`, `tests/test_api_qnn_smoke.py` |
+| `build_neutrosophic_gate_sequence()` | `core/neurobit_gates.py` | `NQC` | Public NeuroBit gate primitive contract | `tests/test_neurobit_gates.py` |
+| `to_torchquantum_ops()` | `core/neurobit_gates.py` | `LOCAL_RUNTIME` | Backend-neutral op descriptors | `tests/test_neurobit_gates.py` |
+| `apply_gate_sequence_qiskit()` | `core/neurobit_gates.py` | `LOCAL_RUNTIME` | Optional Qiskit-compatible trace path | `tests/test_neurobit_gates.py` |
+| `complex_wavefunction_to_amplitude_phase_features()` | `core/quantum_feature_transforms.py` | `LOCAL_RUNTIME` | Pure feature transform | `tests/test_quantum_feature_transforms.py` |
+| `structure_vector_to_phi_scaled_state()` | `core/quantum_feature_transforms.py` | `LOCAL_RUNTIME` | Phi-scaled local feature transform | `tests/test_quantum_feature_transforms.py` |
+| `triplet_quality_profile()` | `core/nidus_idearum_math.py` | `NIDUS_II` | `/fnp-qnn/nidus/triplet/profile` | `tests/test_nidus_idearum_math.py`, `tests/test_api_qnn_smoke.py` |
+| `source_weighted_triplet_fusion()` | `core/nidus_idearum_math.py` | `NIDUS_II` | `/fnp-qnn/nidus/fusion/profile` | `tests/test_nidus_idearum_math.py`, `tests/test_api_qnn_smoke.py` |
+| `partial_membership_mean()` | `core/nidus_idearum_math.py` | `NIDUS_II` | `/fnp-qnn/nidus/partial-membership/mean` | `tests/test_nidus_idearum_math.py`, `tests/test_api_qnn_smoke.py` |
+| `plithogenic_attribute_profile()` | `core/plithogenic_logic.py` | `PLITHOGENIC_2021` | Runtime attribute profile under `plithogenic_enabled=true` | `tests/test_plithogenic_logic.py`, `tests/test_cerebrum_runtime_bridge.py` |
+| `plithogenic_contradiction_degree()` | `core/plithogenic_logic.py` | `PLITHOGENIC_2021` | Pair dependence/contradiction metadata | `tests/test_plithogenic_logic.py` |
+| `plithogenic_neutrosophic_conjunction()` | `core/plithogenic_logic.py` | `PLITHOGENIC_2021` | Cumulative truth: `min(T), max(I), max(F)` | `tests/test_plithogenic_logic.py` |
+| `plithogenic_weighted_cumulative_truth()` | `core/plithogenic_logic.py` | `PLITHOGENIC_2021` | Weighted cumulative runtime readout | `tests/test_plithogenic_logic.py` |
+| `plithogenic_runtime_fusion_profile()` | `core/plithogenic_logic.py` | `PLITHOGENIC_2021` | `POST /fnp-qnn/plithogenic/runtime/profile`, `RuntimeRunRequest.plithogenic_enabled`, LVFM/QNN opt-in metadata | `tests/test_plithogenic_logic.py`, `tests/test_cerebrum_runtime_bridge.py` |
+| `topological_axiom_profile()` | `core/revolutionary_topologies.py` | `REVOLUTIONARY_TOPOLOGIES` | CT/NCT/ACT-style closure profile for topology-like runtime sets | `tests/test_revolutionary_topologies.py` |
+| `deformation_invariant_signature()` | `core/revolutionary_topologies.py` | `REVOLUTIONARY_TOPOLOGIES` | Graph invariant metadata for selected structure under deformation | `tests/test_revolutionary_topologies.py` |
+| `nonstandard_neighborhood_profile()` | `core/revolutionary_topologies.py` | `REVOLUTIONARY_TOPOLOGIES` | Left/right/binad local neighborhood tolerance | `tests/test_revolutionary_topologies.py` |
+| `refined_topology_components()` | `core/revolutionary_topologies.py` | `REVOLUTIONARY_TOPOLOGIES` | Refined `T/I/F` topology components preserving `I -> I_system^S -> D_f -> dF -> i_fractal` | `tests/test_revolutionary_topologies.py` |
+| `revolutionary_topology_runtime_profile()` | `core/revolutionary_topologies.py` | `REVOLUTIONARY_TOPOLOGIES` | `POST /fnp-qnn/revolutionary-topology/runtime/profile`, `RuntimeRunRequest.revolutionary_topology_enabled`, LVFM/QNN opt-in metadata | `tests/test_revolutionary_topologies.py`, `tests/test_cerebrum_runtime_bridge.py` |
+| `CerebrumRuntimeBridge.ingest()` | `core/cerebrum_runtime_bridge.py` | `LOCAL_RUNTIME` | `/cerebrum/runtime/ingest`, `/cerebrum/runtime/pairs` | `tests/test_cerebrum_runtime_bridge.py` |
+| `CerebrumRuntimeBridge.build_state()` | `core/cerebrum_runtime_bridge.py` | `LOCAL_RUNTIME`, `FRACTAL_LOCAL`, `PLITHOGENIC_2021`, `REVOLUTIONARY_TOPOLOGIES` | Runtime event, pair, LVFM, QNN, plugin, plithogenic, and topology integration point | `tests/test_cerebrum_runtime_bridge.py` |
+| `LVFMRuntimeGraph` | `core/lvfm_runtime_graph.py` | `LOCAL_RUNTIME` | Runtime LVFM snapshot with T/dF/F register bits | `tests/test_lvfm_runtime_graph.py` |
+| `FfeDPluginBridge.run_mvp5()` | `core/ffed_plugin_bridge.py` | `NODE734_LOCAL`, `FRACTAL_LOCAL`, local pluginpack when available | Optional `plugin_hook_enabled`; maps plugin signals into local carrier metadata | `tests/test_ffed_plugin_bridge.py`, `tests/test_neurobit_gate_tunnel.py`, `tests/test_api_qnn_smoke.py` |
+| `build_plugin_payload_from_results()` | `core/ffed_plugin_bridge.py` | `NODE734_LOCAL`, `FRACTAL_LOCAL` | Plugin trace payload and impact verification | `tests/test_ffed_plugin_bridge.py` |
+| `CPAIMeshState`, `cpai_mesh_profile()` | `core/cpai_mesh.py` | `LOCAL_RUNTIME` | Optional `cpai_context`, routing decision, Datadog metric contract | `tests/test_cpai_mesh.py`, `tests/test_ffed_plugin_bridge.py`, `tests/test_api_qnn_smoke.py` |
 
 ## Guardrail
 
 - New source-backed math must add a new row here.
 - New public endpoints must reference the row that justifies them.
+- New tests must be listed next to the function or endpoint they protect.
 - Source claims must stay educational and bounded.
-- `D_f_hat` and `dF` must not be collapsed into generic `I`.
+- `D_f_hat`, `dF`, and `i_fractal_candidate` must not be collapsed into generic `I`.
+- Preserve `I -> I_system^S -> D_f -> dF -> i_fractal`.
 - The README may point here instead of duplicating this full table.

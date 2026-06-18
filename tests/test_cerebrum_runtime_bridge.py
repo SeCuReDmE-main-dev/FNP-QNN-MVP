@@ -189,6 +189,33 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
             state.plithogenic["feature_dimension"],
         )
 
+    def test_revolutionary_topology_runtime_layer_is_opt_in(self):
+        default_state = self.bridge.build_state(self.bridge.default_payload())
+        enabled_state = self.bridge.build_state(self.bridge.default_payload(), revolutionary_topology_enabled=True)
+
+        self.assertIsNone(default_state.revolutionary_topology)
+        self.assertNotIn("revolutionary_topology", default_state.to_dict())
+        self.assertIsNotNone(enabled_state.revolutionary_topology)
+        self.assertIn("revolutionary_topology", enabled_state.to_dict())
+        self.assertIn("revolutionary_topology_profile", enabled_state.lvfm)
+        self.assertGreater(enabled_state.feature_vector.shape[0], default_state.feature_vector.shape[0])
+
+    def test_revolutionary_topology_features_reach_qnn_when_enabled(self):
+        nucleus = QNNNucleus(adapter=self.bridge.adapter)
+        state = self.bridge.build_state(
+            self.bridge.default_payload(),
+            qnn_nucleus=nucleus,
+            max_epochs=2,
+            revolutionary_topology_enabled=True,
+        )
+
+        self.assertIsNotNone(state.qnn_result)
+        self.assertIn("revolutionary_topology_profile", state.qnn_result)
+        self.assertEqual(
+            state.qnn_result["revolutionary_topology_profile"]["feature_dimension"],
+            state.revolutionary_topology["feature_dimension"],
+        )
+
     def test_life_science_statefield_port_is_opt_in(self):
         port = LifeScienceObservationPort()
         observations = port.statefield_to_observations({"mu": [0.2, 0.7], "nu": [0.1, 0.2], "pi": [0.7, 0.1]})
@@ -285,6 +312,34 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         profile = response.json()["profile"]
         self.assertEqual(profile["model"], "plithogenic_runtime_fusion_v1")
         self.assertEqual(profile["attribute_profile"]["attribute_count"], 2)
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in profile["feature_vector"]))
+
+    def test_runtime_run_endpoint_accepts_revolutionary_topology_opt_in(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            json={"epochs": 2, "revolutionary_topology_enabled": True},
+        )
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        self.assertIn("revolutionary_topology", runtime)
+        self.assertIn("revolutionary_topology_profile", runtime["lvfm"])
+        self.assertIn("revolutionary_topology_profile", runtime["qnn_result"])
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in runtime["revolutionary_topology"]["feature_vector"]))
+
+    def test_revolutionary_topology_runtime_profile_endpoint(self):
+        response = self.client.post(
+            "/fnp-qnn/revolutionary-topology/runtime/profile",
+            json={
+                "memories": [
+                    {"modality": "audio", "starting_time": 0.0, "ending_time": 1.0, "value": 0.2},
+                    {"modality": "video", "starting_time": 0.2, "ending_time": 1.2, "value": 0.8},
+                ]
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        profile = response.json()["profile"]
+        self.assertEqual(profile["model"], "revolutionary_topology_runtime_v1")
+        self.assertIn("deformation_signature", profile)
         self.assertTrue(all(0.0 <= item <= 1.0 for item in profile["feature_vector"]))
 
     def test_runtime_latest_state_endpoint(self):
