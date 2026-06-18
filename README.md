@@ -284,48 +284,76 @@ Compatibility endpoint:
 
 ## Install
 
-Base runtime:
+Use the repository-local `.venv`. Do not install this project into your global
+Python environment.
 
-```bash
-pip install -r requirements.txt
+Windows PowerShell setup:
+
+```powershell
+py -3.10 --version
+py -3.10 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 ```
 
-Optional Qiskit lane:
+The expected Python version is `3.10.11`. If `py -3.10 --version` does not show
+Python 3.10.11, fix Python first before installing dependencies.
 
-```bash
-pip install ".[qiskit]"
+One-command local setup:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Install-FNPQNNVenv.ps1
 ```
 
-Optional legacy export utility:
+Optional Qiskit plus visualization lane:
 
-```bash
-pip install ".[legacy-export]"
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Install-FNPQNNVenv.ps1 -WithQiskit
+```
+
+Optional local cloud/operator kit:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Install-FNPQNNVenv.ps1 -WithCloudKit
+```
+
+Full local research kit:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Install-FNPQNNVenv.ps1 -WithQiskit -WithCloudKit
+```
+
+All validation commands in this README assume `.venv`:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py"
+.\.venv\Scripts\python.exe scripts\validate_alpha_readiness.py
 ```
 
 ## Run
 
 Adapter/QNN smoke demo:
 
-```bash
-python examples/cerebrum_qnn_demo.py
+```powershell
+.\.venv\Scripts\python.exe examples\cerebrum_qnn_demo.py
 ```
 
 Runtime bridge smoke demo:
 
-```bash
-python examples/cerebrum_runtime_demo.py
+```powershell
+.\.venv\Scripts\python.exe examples\cerebrum_runtime_demo.py
 ```
 
 Legacy fixture replay:
 
-```bash
-python examples/cerebrum_runtime_legacy_demo.py
+```powershell
+.\.venv\Scripts\python.exe examples\cerebrum_runtime_legacy_demo.py
 ```
 
 NeuroBit gate demo:
 
-```bash
-python examples/neurobit_gate_demo.py --truth 0.55 --indeterminacy 0.30 --falsity 0.15
+```powershell
+.\.venv\Scripts\python.exe examples\neurobit_gate_demo.py --truth 0.55 --indeterminacy 0.30 --falsity 0.15
 ```
 
 Unit/API tests:
