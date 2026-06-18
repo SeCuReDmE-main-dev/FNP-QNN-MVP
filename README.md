@@ -323,6 +323,53 @@ Full local research kit:
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\Install-FNPQNNVenv.ps1 -WithQiskit -WithCloudKit
 ```
 
+## Optional Kits
+
+The base simulator should stay lightweight. Optional kits are installed only
+when a user wants the extra lane they enable.
+
+### Qiskit Kit
+
+The Qiskit kit is for the educational quantum lane. It installs Qiskit,
+Qiskit Machine Learning, Aer, Algorithms, IBM Runtime helpers, and Qiskit
+visualization support inside `.venv`.
+
+Use it when you want to:
+
+- show a visible quantum/QNN backend lane in the Network Designer;
+- run Qiskit availability checks instead of the default gated placeholder;
+- experiment with `EstimatorQNN` / `TorchConnector` paths;
+- generate educational circuit diagrams and visual traces;
+- compare the Qiskit lane against the deterministic Torch surrogate.
+
+The Qiskit kit does not make the simulator clinical, production-ready, or
+scientifically validated. It is an optional teaching and backend-experiment
+surface.
+
+### CloudKit
+
+The CloudKit is for local operator integrations around the simulator. It keeps
+cloud and service clients in `.venv` so experiments do not pollute global
+Python.
+
+It is intended to support:
+
+- E2B SDK usage for sandbox smoke tests and future cloud execution checks;
+- E2B infrastructure planning with `e2b-dev/infra` as the open-source reference;
+- Datadog metrics/tracing clients for metadata-only observability;
+- Redis client experiments for local queue/cache/router patterns;
+- Docker Python client checks for local engine/container status;
+- Supabase client experiments for future public-safe data surfaces.
+
+CodeProject.AI / CPAI is currently reached by HTTP on the local mesh, so no
+special Python wheel is required for CPAI in this kit. Vercel is primarily an
+npm CLI, so it is documented as an external toolchain dependency rather than a
+Python package.
+
+CloudKit must not upload secrets, private documents, raw images, clinical data,
+or private CeLeBrUm material. It is for controlled smoke tests, public-safe
+metadata, and future reproducibility work.
+
 All validation commands in this README assume `.venv`:
 
 ```powershell
