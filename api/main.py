@@ -112,6 +112,9 @@ def _neurobit_profile_from_request(payload: NeuroBitProfileRequest | None = None
         delta_falsity=payload.delta_falsity,
         state_basis=payload.state_basis,
         puncture_delta=payload.puncture_delta,
+        observer_strength=payload.observer_strength,
+        surface_width=payload.surface_width,
+        surface_height=payload.surface_height,
     )
 
 
@@ -200,6 +203,7 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         max_epochs=int((payload or {}).get("epochs", 12)),
         state_basis=str((payload or {}).get("state_basis", "binary")),
         puncture_delta=(payload or {}).get("puncture_delta"),
+        observer_strength=(payload or {}).get("observer_strength"),
     )
     result = state.to_dict()
     if run_qnn:
@@ -368,6 +372,7 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         test_size=payload.test_size,
         state_basis=payload.state_basis,
         puncture_delta=payload.puncture_delta,
+        observer_strength=payload.observer_strength,
     ))
     return {
         "status": "ok",
@@ -451,6 +456,9 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             labels=request.labels,
             epochs=request.epochs,
             test_size=request.test_size,
+            state_basis=request.state_basis,
+            puncture_delta=request.puncture_delta,
+            observer_strength=request.observer_strength,
         )
         samples = qnn_request.dump_samples()
         labels = qnn_request.labels
@@ -463,6 +471,7 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             test_size=qnn_request.test_size,
             state_basis=qnn_request.state_basis,
             puncture_delta=qnn_request.puncture_delta,
+            observer_strength=qnn_request.observer_strength,
         ))
         return CommandResponse(
             success=True,

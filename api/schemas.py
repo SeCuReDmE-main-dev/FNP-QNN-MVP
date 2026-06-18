@@ -65,6 +65,7 @@ class RuntimeRunRequest(BaseModel):
     run_qnn: bool = True
     state_basis: Literal["binary", "neutrobit"] = "binary"
     puncture_delta: Optional[float] = Field(default=None, gt=0.0)
+    observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)
 
     @field_validator("memories", "events", "observations")
     @classmethod
@@ -86,6 +87,8 @@ class RuntimeRunRequest(BaseModel):
         }
         if self.puncture_delta is not None:
             payload["puncture_delta"] = self.puncture_delta
+        if self.observer_strength is not None:
+            payload["observer_strength"] = self.observer_strength
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:
@@ -115,6 +118,7 @@ class QNNSmokeRequest(BaseModel):
     test_size: float = Field(default=0.25, ge=0.0, le=0.9)
     state_basis: Literal["binary", "neutrobit"] = "binary"
     puncture_delta: Optional[float] = Field(default=None, gt=0.0)
+    observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)
 
     @model_validator(mode="after")
     def validate_samples_and_labels(self):
@@ -142,6 +146,9 @@ class NeuroBitProfileRequest(BaseModel):
     n_qubits: int = Field(default=4, ge=1, le=12)
     state_basis: Literal["binary", "neutrobit"] = "binary"
     puncture_delta: Optional[float] = Field(default=None, gt=0.0)
+    observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    surface_width: Optional[float] = Field(default=None, gt=0.0, le=256.0)
+    surface_height: Optional[float] = Field(default=None, gt=0.0, le=256.0)
 
     @model_validator(mode="before")
     @classmethod
@@ -164,6 +171,9 @@ class NeuroBitProfileRequest(BaseModel):
             "delta_falsity": self.delta_falsity,
             "state_basis": self.state_basis,
             "puncture_delta": self.puncture_delta,
+            "observer_strength": self.observer_strength,
+            "surface_width": self.surface_width,
+            "surface_height": self.surface_height,
         }
 
 
@@ -178,6 +188,9 @@ class CommandRequest(BaseModel):
     labels: Optional[List[int]] = None
     epochs: int = Field(default=24, ge=0, le=256)
     test_size: float = Field(default=0.25, ge=0.0, le=0.9)
+    state_basis: Literal["binary", "neutrobit"] = "binary"
+    puncture_delta: Optional[float] = Field(default=None, gt=0.0)
+    observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     neurobit: Optional[NeuroBitTunnelRequest] = None
 
 

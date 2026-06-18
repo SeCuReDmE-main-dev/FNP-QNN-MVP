@@ -15,8 +15,11 @@ import numpy as np
 
 from .neutrosophic_quantum_primitives import (
     NeutrobitState,
+    neutrosophic_gate_algebra,
     neutrosophic_measurement,
+    observer_effect_profile,
     partial_entanglement_profile,
+    punctured_surface_state,
     punctured_wave_state,
 )
 
@@ -43,6 +46,9 @@ class NeuroBitProfile:
     delta_falsity: float = 0.0
     state_basis: str = "binary"
     puncture_delta: Optional[float] = None
+    observer_strength: Optional[float] = None
+    surface_width: Optional[float] = None
+    surface_height: Optional[float] = None
 
     def normalized(self) -> "NeuroBitProfile":
         truth = max(float(self.truth), 0.0)
@@ -50,6 +56,9 @@ class NeuroBitProfile:
         falsity = max(float(self.falsity), 0.0)
         state_basis = self.state_basis if self.state_basis in {"binary", "neutrobit"} else "binary"
         puncture_delta = None if self.puncture_delta is None else max(float(self.puncture_delta), 0.0)
+        observer_strength = None if self.observer_strength is None else min(1.0, max(float(self.observer_strength), 0.0))
+        surface_width = None if self.surface_width is None else max(float(self.surface_width), 0.0)
+        surface_height = None if self.surface_height is None else max(float(self.surface_height), 0.0)
         total = truth + indeterminacy + falsity
         if total <= 0.0:
             return NeuroBitProfile(
@@ -59,6 +68,9 @@ class NeuroBitProfile:
                 delta_falsity=float(self.delta_falsity),
                 state_basis=state_basis,
                 puncture_delta=puncture_delta,
+                observer_strength=observer_strength,
+                surface_width=surface_width,
+                surface_height=surface_height,
             )
         return NeuroBitProfile(
             truth=truth / total,
@@ -67,18 +79,28 @@ class NeuroBitProfile:
             delta_falsity=float(self.delta_falsity),
             state_basis=state_basis,
             puncture_delta=puncture_delta,
+            observer_strength=observer_strength,
+            surface_width=surface_width,
+            surface_height=surface_height,
         )
 
     @property
     def metadata(self) -> Dict[str, float]:
         normalized = self.normalized()
-        return {
+        payload = {
             "truth": float(normalized.truth),
             "indeterminacy": float(normalized.indeterminacy),
             "falsity": float(normalized.falsity),
             "delta_falsity": float(normalized.delta_falsity),
             "puncture_delta": float(normalized.puncture_delta or 0.0),
         }
+        if normalized.observer_strength is not None:
+            payload["observer_strength"] = float(normalized.observer_strength)
+        if normalized.surface_width is not None:
+            payload["surface_width"] = float(normalized.surface_width)
+        if normalized.surface_height is not None:
+            payload["surface_height"] = float(normalized.surface_height)
+        return payload
 
 
 def profile_from_mapping(payload: Optional[Mapping[str, Any]]) -> NeuroBitProfile:
@@ -90,6 +112,9 @@ def profile_from_mapping(payload: Optional[Mapping[str, Any]]) -> NeuroBitProfil
         delta_falsity=float(payload.get("delta_falsity", payload.get("dF", 0.0))),
         state_basis=str(payload.get("state_basis", "binary")),
         puncture_delta=payload.get("puncture_delta"),
+        observer_strength=payload.get("observer_strength"),
+        surface_width=payload.get("surface_width"),
+        surface_height=payload.get("surface_height"),
     )
 
 
@@ -153,6 +178,36 @@ def build_gate_parameters(profile: Optional[NeuroBitProfile] = None) -> Dict[str
         "phase": float(math.pi * (normalized.truth + normalized.indeterminacy) / 2.0),
         "delta_falsity": float(normalized.delta_falsity),
         "indeterminate_basis_weight": float(normalized.indeterminacy),
+    }
+
+
+def gate_semantics(sequence: Sequence[str]) -> List[Dict[str, Any]]:
+    meanings = {
+        "hadamard": "binary superposition seed for the local gate demo",
+        "w": "local |I> marker for indeterminate-basis contribution",
+        "x": "truth-weighted binary inversion lane",
+        "y": "indeterminacy-weighted phase rotation lane",
+        "z": "falsity/phase contrast lane",
+    }
+    return [
+        {
+            "gate": "H" if gate == "hadamard" else gate.upper(),
+            "meaning": meanings.get(gate, "local educational gate marker"),
+        }
+        for gate in sequence
+    ]
+
+
+def reversibility_profile(sequence: Sequence[str], profile: Optional[NeuroBitProfile] = None) -> Dict[str, Any]:
+    normalized = (profile or NeuroBitProfile()).normalized()
+    has_indeterminate_gate = any(gate == "w" for gate in sequence)
+    information_loss_risk = min(1.0, normalized.indeterminacy + abs(normalized.delta_falsity))
+    undefined_transform_risk = min(1.0, normalized.indeterminacy if has_indeterminate_gate else 0.0)
+    return {
+        "reversible": bool(information_loss_risk < 0.5 and undefined_transform_risk < 0.5),
+        "information_loss_risk": float(information_loss_risk),
+        "undefined_transform_risk": float(undefined_transform_risk),
+        "notes": "Educational trace metadata only; not a proof of physical reversible quantum execution.",
     }
 
 
@@ -251,11 +306,35 @@ def run_neurobit_gates(profile: Optional[NeuroBitProfile] = None, n_qubits: int 
         decoherence=normalized.indeterminacy,
         delta_falsity=normalized.delta_falsity,
     )
+    observer_effect = None
+    if normalized.observer_strength is not None:
+        observer_effect = observer_effect_profile(
+            {"T": measurement["T"], "I": measurement["I"], "F": measurement["F"]},
+            observer_strength=normalized.observer_strength,
+            decoherence=normalized.indeterminacy,
+        )
+    gate_and = neutrosophic_gate_algebra(
+        "and",
+        {"T": normalized.truth, "I": normalized.indeterminacy, "F": normalized.falsity},
+        {"T": measurement["T"], "I": measurement["I"], "F": measurement["F"]},
+    )
     punctured_wave = None
     if normalized.puncture_delta is not None and normalized.puncture_delta > 0.0:
         punctured_wave = punctured_wave_state(
             delta=normalized.puncture_delta,
             length=max(float(normalized.puncture_delta), float(n_qubits) * float(normalized.puncture_delta)),
+        )
+    punctured_surface = None
+    if (
+        normalized.puncture_delta is not None
+        and normalized.puncture_delta > 0.0
+        and normalized.surface_width is not None
+        and normalized.surface_height is not None
+    ):
+        punctured_surface = punctured_surface_state(
+            delta=normalized.puncture_delta,
+            width=normalized.surface_width,
+            height=normalized.surface_height,
         )
     backend = "deterministic_fallback"
     try:
@@ -284,9 +363,14 @@ def run_neurobit_gates(profile: Optional[NeuroBitProfile] = None, n_qubits: int 
         "hierarchy": "I -> I_system^S -> D_f -> dF -> i_fractal",
         "sequence": sequence,
         "parameters": build_gate_parameters(normalized),
+        "gate_semantics": gate_semantics(sequence),
+        "reversibility_profile": reversibility_profile(sequence, normalized),
+        "gate_algebra_preview": gate_and,
         "neutrobit_measurement": measurement,
+        "observer_effect": observer_effect,
         "partial_entanglement": entanglement,
         "punctured_wave": punctured_wave,
+        "punctured_surface": punctured_surface,
         "trace": trace,
         "counts": counts,
         "expectation_vector": [round(float(value), 6) for value in expectation.tolist()],

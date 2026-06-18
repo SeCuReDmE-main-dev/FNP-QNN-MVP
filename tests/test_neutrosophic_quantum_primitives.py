@@ -7,8 +7,11 @@ from core.neutrosophic_quantum_primitives import (
     DecoherentNeutroState,
     NeutrobitState,
     neutrobit_features_from_vector,
+    neutrosophic_gate_algebra,
     neutrosophic_measurement,
+    observer_effect_profile,
     partial_entanglement_profile,
+    punctured_surface_state,
     punctured_wave_state,
 )
 
@@ -66,6 +69,72 @@ class NeutrosophicQuantumPrimitiveTests(unittest.TestCase):
         features = neutrobit_features_from_vector([0.1, 0.5, 0.9], puncture_delta=0.1)
         self.assertGreaterEqual(features.shape[0], 11)
         self.assertTrue(np.isfinite(features).all())
+
+    def test_neutrosophic_gate_not_swaps_truth_and_falsity(self):
+        result = neutrosophic_gate_algebra("not", {"T": 0.7, "I": 0.2, "F": 0.1})
+        self.assertAlmostEqual(result["T"], 0.1)
+        self.assertAlmostEqual(result["I"], 0.2)
+        self.assertAlmostEqual(result["F"], 0.7)
+
+    def test_neutrosophic_gate_binary_ops_are_bounded(self):
+        left = {"T": 0.8, "I": 0.1, "F": 0.1}
+        right = {"T": 0.2, "I": 0.3, "F": 0.5}
+        for operation in ("and", "or", "if_then"):
+            with self.subTest(operation=operation):
+                result = neutrosophic_gate_algebra(operation, left, right)
+                self.assertAlmostEqual(result["T"] + result["I"] + result["F"], 1.0)
+                self.assertTrue(0.0 <= result["T"] <= 1.0)
+                self.assertTrue(0.0 <= result["I"] <= 1.0)
+                self.assertTrue(0.0 <= result["F"] <= 1.0)
+
+    def test_neutrosophic_gate_if_then_keeps_indeterminacy(self):
+        result = neutrosophic_gate_algebra(
+            "if_then",
+            {"T": 0.1, "I": 0.3, "F": 0.6},
+            {"T": 0.4, "I": 0.4, "F": 0.2},
+        )
+        self.assertGreater(result["I"], 0.0)
+        self.assertAlmostEqual(result["T"] + result["I"] + result["F"], 1.0)
+
+    def test_neutrosophic_gate_invalid_inputs_raise(self):
+        with self.assertRaises(ValueError):
+            neutrosophic_gate_algebra("xor", {"T": 1.0, "I": 0.0, "F": 0.0})
+        with self.assertRaises(ValueError):
+            neutrosophic_gate_algebra("and", {"T": float("nan"), "I": 0.0, "F": 0.0}, {"T": 1.0})
+
+    def test_punctured_surface_state_is_deterministic_and_bounded(self):
+        surface_a = punctured_surface_state(delta=0.5, width=1.0, height=1.0)
+        surface_b = punctured_surface_state(delta=0.5, width=1.0, height=1.0)
+        self.assertEqual(surface_a, surface_b)
+        self.assertEqual(surface_a["count"], 9)
+        self.assertEqual(surface_a["points"][0], {"x": 0.0, "y": 0.0})
+        self.assertLessEqual(surface_a["points"][-1]["x"], 1.0)
+        self.assertLessEqual(surface_a["points"][-1]["y"], 1.0)
+        self.assertAlmostEqual(float(np.linalg.norm(surface_a["amplitudes"])), 1.0)
+
+    def test_punctured_surface_empty_and_invalid_inputs(self):
+        empty = punctured_surface_state(delta=0.25, width=0.0, height=1.0)
+        self.assertEqual(empty["count"], 0)
+        self.assertEqual(empty["points"], [])
+        with self.assertRaises(ValueError):
+            punctured_surface_state(delta=0.0, width=1.0, height=1.0)
+        with self.assertRaises(ValueError):
+            punctured_surface_state(
+                delta=0.5,
+                width=1.0,
+                height=1.0,
+                density_fn=lambda _x, _y: float("nan"),
+            )
+
+    def test_observer_effect_preserves_and_then_increases_indeterminacy(self):
+        state = {"T": 0.6, "I": 0.2, "F": 0.2}
+        baseline = observer_effect_profile(state, observer_strength=0.0)
+        observed = observer_effect_profile(state, observer_strength=1.0)
+        self.assertAlmostEqual(baseline["T"], 0.6)
+        self.assertAlmostEqual(baseline["I"], 0.2)
+        self.assertAlmostEqual(baseline["F"], 0.2)
+        self.assertGreater(observed["I"], baseline["I"])
+        self.assertAlmostEqual(observed["T"] + observed["I"] + observed["F"], 1.0)
 
 
 if __name__ == "__main__":

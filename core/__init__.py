@@ -27,8 +27,11 @@ from .neutrosophic_quantum_primitives import (
     DecoherentNeutroState,
     NeutrobitState,
     neutrobit_features_from_vector,
+    neutrosophic_gate_algebra,
     neutrosophic_measurement,
+    observer_effect_profile,
     partial_entanglement_profile,
+    punctured_surface_state,
     punctured_wave_state,
 )
 from .runtime_state_store import RuntimeStateStore
@@ -65,8 +68,11 @@ __all__ = [
     "DecoherentNeutroState",
     "NeutrobitState",
     "neutrobit_features_from_vector",
+    "neutrosophic_gate_algebra",
     "neutrosophic_measurement",
+    "observer_effect_profile",
     "partial_entanglement_profile",
+    "punctured_surface_state",
     "punctured_wave_state",
     "RuntimeStateStore",
 ]

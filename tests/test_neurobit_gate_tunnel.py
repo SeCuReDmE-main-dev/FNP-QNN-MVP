@@ -50,6 +50,9 @@ class NeuroBitGateTunnelTests(unittest.TestCase):
         self.assertEqual(len(result["expectation_vector"]), 4)
         self.assertEqual(result["neutrobit_measurement"]["measurement"], "non_projective_triplet")
         self.assertIn("partial_entanglement", result)
+        self.assertIn("gate_semantics", result)
+        self.assertIn("reversibility_profile", result)
+        self.assertIn("gate_algebra_preview", result)
 
     def test_neutrobit_basis_can_emit_punctured_wave_metadata(self):
         profile = NeuroBitProfile(
@@ -58,11 +61,18 @@ class NeuroBitGateTunnelTests(unittest.TestCase):
             falsity=0.15,
             state_basis="neutrobit",
             puncture_delta=0.25,
+            observer_strength=0.5,
+            surface_width=0.5,
+            surface_height=0.5,
         )
         result = run_neurobit_gates(profile, n_qubits=4)
         self.assertEqual(result["state_basis"], "neutrobit")
         self.assertIsNotNone(result["punctured_wave"])
         self.assertEqual(result["punctured_wave"]["delta"], 0.25)
+        self.assertIsNotNone(result["punctured_surface"])
+        self.assertEqual(result["punctured_surface"]["count"], 9)
+        self.assertIsNotNone(result["observer_effect"])
+        self.assertGreater(result["observer_effect"]["I"], result["neutrobit_measurement"]["I"])
 
     def test_tunnel_demo_is_research_bounded(self):
         result = run_neurobit_tunnel_demo(NeuroBitProfile(), data="abc")

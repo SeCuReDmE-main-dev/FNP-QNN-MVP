@@ -128,6 +128,7 @@ class QNNNucleus:
         test_size: float = 0.0,
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
+        observer_strength: Optional[float] = None,
     ) -> Dict[str, Any]:
         if QISKIT_AVAILABLE:
             try:
@@ -138,6 +139,7 @@ class QNNNucleus:
                     test_size=test_size,
                     state_basis=state_basis,
                     puncture_delta=puncture_delta,
+                    observer_strength=observer_strength,
                 )
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -148,6 +150,7 @@ class QNNNucleus:
                     return_bundle=True,
                     state_basis=state_basis,
                     puncture_delta=puncture_delta,
+                    observer_strength=observer_strength,
                 )
                 fallback["qiskit_error"] = str(exc)
                 fallback["backend"] = "torch_surrogate_fallback_after_qiskit_error"
@@ -160,6 +163,7 @@ class QNNNucleus:
             return_bundle=True,
             state_basis=state_basis,
             puncture_delta=puncture_delta,
+            observer_strength=observer_strength,
         )
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -248,12 +252,18 @@ class QNNNucleus:
         return_bundle: bool = False,
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
+        observer_strength: Optional[float] = None,
     ) -> Dict[str, Any]:
         np.random.seed(self.DEFAULT_SEED)
         torch.manual_seed(self.DEFAULT_SEED)
         if torch.cuda.is_available():  # pragma: no cover - local CPU path is expected
             torch.cuda.manual_seed_all(self.DEFAULT_SEED)
-        vectors = self._vectorize_samples(samples, state_basis=state_basis, puncture_delta=puncture_delta)
+        vectors = self._vectorize_samples(
+            samples,
+            state_basis=state_basis,
+            puncture_delta=puncture_delta,
+            observer_strength=observer_strength,
+        )
         y = np.asarray(labels, dtype=np.float32)
 
         if len(vectors) == 1 or test_size <= 0.0:
@@ -301,6 +311,7 @@ class QNNNucleus:
             "bundle_summary": self.adapter.build_bundle(samples[-1]).summary,
             "state_basis": state_basis,
             "puncture_delta": puncture_delta,
+            "observer_strength": observer_strength,
         }
 
         self._surrogate = model
@@ -316,6 +327,7 @@ class QNNNucleus:
         test_size: float = 0.25,
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
+        observer_strength: Optional[float] = None,
     ) -> Dict[str, Any]:
         if not QISKIT_AVAILABLE:
             raise RuntimeError("Qiskit Machine Learning is not installed in this environment")
@@ -325,6 +337,7 @@ class QNNNucleus:
             target_dim=self.QISKIT_QUBITS,
             state_basis=state_basis,
             puncture_delta=puncture_delta,
+            observer_strength=observer_strength,
         )
         y = np.asarray(labels, dtype=np.float32)
 
@@ -373,6 +386,7 @@ class QNNNucleus:
             "qiskit_num_weights": int(qnn.num_weights),
             "state_basis": state_basis,
             "puncture_delta": puncture_delta,
+            "observer_strength": observer_strength,
         }
         self._qiskit_model = model
         return result
@@ -382,10 +396,16 @@ class QNNNucleus:
         raw_events: Sequence[Any],
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
+        observer_strength: Optional[float] = None,
     ) -> np.ndarray:
         bundle = self.adapter.build_bundle(raw_events)
         base_vector = self.adapter.bundle_to_vector(bundle)
-        return self._quantum_style_encoding(base_vector, state_basis=state_basis, puncture_delta=puncture_delta)
+        return self._quantum_style_encoding(
+            base_vector,
+            state_basis=state_basis,
+            puncture_delta=puncture_delta,
+            observer_strength=observer_strength,
+        )
 
     def _benchmark_surrogate(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> QNNBenchmarkResult:
         outcome = self.fit_surrogate(samples, labels, max_epochs=36, test_size=0.25)
@@ -476,9 +496,15 @@ class QNNNucleus:
         target_dim: Optional[int] = None,
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
+        observer_strength: Optional[float] = None,
     ) -> np.ndarray:
         vectors = [
-            self.encode_sample(sample, state_basis=state_basis, puncture_delta=puncture_delta)
+            self.encode_sample(
+                sample,
+                state_basis=state_basis,
+                puncture_delta=puncture_delta,
+                observer_strength=observer_strength,
+            )
             for sample in samples
         ]
         matrix = np.asarray(vectors, dtype=np.float32)
@@ -507,6 +533,7 @@ class QNNNucleus:
         vector: np.ndarray,
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
+        observer_strength: Optional[float] = None,
     ) -> np.ndarray:
         vector = np.asarray(vector, dtype=np.float32)
         if vector.size == 0:
@@ -519,7 +546,11 @@ class QNNNucleus:
             return encoded
         if state_basis != "neutrobit":
             raise ValueError("state_basis must be 'binary' or 'neutrobit'")
-        neutrobit_features = neutrobit_features_from_vector(encoded, puncture_delta=puncture_delta)
+        neutrobit_features = neutrobit_features_from_vector(
+            encoded,
+            puncture_delta=puncture_delta,
+            observer_strength=observer_strength,
+        )
         return np.concatenate([encoded, neutrobit_features]).astype(np.float32)
 
     def _module_available(self, module_name: str) -> bool:

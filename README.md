@@ -308,17 +308,20 @@ Recent quantum-neutrosophic learning additions:
 - `core/neutrosophic_quantum_primitives.py` adds a small, pure simulation
   grammar for `NeutrobitState`, coherent/decoherent neutrosophic states,
   non-projective T/I/F measurement, finite punctured-wave states, partial
-  entanglement profiles, and optional neutrobit feature expansion.
+  entanglement profiles, bounded neutrosophic gate algebra, finite
+  punctured-surface grids, partial-observer profiles, and optional neutrobit
+  feature expansion.
 - `core/neurobit_gate_tunnel.py` now reports the `W` gate as the local `|I>`
   basis marker, includes triplet measurement metadata, exposes a bounded
-  partial-entanglement T/I/F profile, and can include finite
-  `puncture_delta` metadata when requested.
+  partial-entanglement T/I/F profile, reports gate semantics and reversibility
+  risk metadata, and can include finite `puncture_delta`, surface, and
+  observer metadata when requested.
 - `core/qnn_nucleus.py` keeps the default `state_basis="binary"` path intact
-  and adds opt-in `state_basis="neutrobit"` feature expansion before the
-  QNN/Torch surrogate lane.
+  and adds opt-in `state_basis="neutrobit"` and `observer_strength` feature
+  expansion before the QNN/Torch surrogate lane.
 - `api/schemas.py` and `api/main.py` expose the compatible optional fields
-  `state_basis` and `puncture_delta` for QNN smoke, runtime runs, and
-  NeuroBit gate demos.
+  `state_basis`, `puncture_delta`, and `observer_strength` for QNN smoke,
+  runtime runs, and NeuroBit gate demos, plus NeuroBit-only surface dimensions.
 - `docs/source_ledger/quantum_neutrosophic_sources.md` maps each source PDF
   to the exact simulator mechanism, accepted educational claim, and forbidden
   public claim.
@@ -333,7 +336,22 @@ Source-backed topics now available for education and code reading:
 - coherent versus decoherent neutrosophic state handling;
 - non-projective measurement as a T/I/F distribution;
 - finite punctured-wave simulation through `puncture_delta`;
-- partial entanglement represented as bounded T/I/F metadata.
+- finite punctured-surface simulation for IPW/FPW-style grids;
+- neutrosophic `not`, `and`, `or`, and `if_then` gate algebra;
+- partial entanglement and partial observer effect represented as bounded
+  T/I/F metadata.
+
+Current Mechanism Layer v2 validation:
+
+- `neutrosophic_gate_algebra()` provides deterministic educational logic
+  previews for `not`, `and`, `or`, and `if_then`;
+- `punctured_surface_state()` extends finite puncture modeling from 1D waves
+  to 2D surface grids;
+- `observer_effect_profile()` adds an optional partial-observer T/I/F profile;
+- NeuroBit gate runs now include optional gate semantics, reversibility-risk
+  metadata, surface puncture metadata, and observer-effect metadata;
+- the full local test suite currently passes with 88 tests, and the
+  alpha-local readiness validator passes.
 
 These additions are local educational simulation primitives only. They do not
 claim a physical neutrosophic quantum computer, clinical system, security

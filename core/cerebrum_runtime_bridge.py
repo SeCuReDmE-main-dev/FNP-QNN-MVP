@@ -226,6 +226,7 @@ class CerebrumRuntimeBridge:
         max_epochs: int = 12,
         state_basis: str = "binary",
         puncture_delta: Optional[float] = None,
+        observer_strength: Optional[float] = None,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
@@ -241,6 +242,7 @@ class CerebrumRuntimeBridge:
                 test_size=0.0,
                 state_basis=state_basis,
                 puncture_delta=puncture_delta,
+                observer_strength=observer_strength,
             )
             qnn_result.pop("bundle", None)
         return CerebrumRuntimeState(

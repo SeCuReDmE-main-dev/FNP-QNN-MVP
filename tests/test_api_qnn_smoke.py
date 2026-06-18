@@ -24,13 +24,20 @@ class QNNSmokeApiTests(unittest.TestCase):
 
         response = client.post(
             "/qnn/smoke",
-            json={"epochs": 2, "test_size": 0.0, "state_basis": "neutrobit", "puncture_delta": 0.25},
+            json={
+                "epochs": 2,
+                "test_size": 0.0,
+                "state_basis": "neutrobit",
+                "puncture_delta": 0.25,
+                "observer_strength": 0.5,
+            },
         )
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["result"]["state_basis"], "neutrobit")
         self.assertEqual(payload["result"]["puncture_delta"], 0.25)
+        self.assertEqual(payload["result"]["observer_strength"], 0.5)
 
     def test_neurobit_api_endpoints_return_bounded_payloads(self):
         client = TestClient(app)
@@ -48,6 +55,9 @@ class QNNSmokeApiTests(unittest.TestCase):
                 "dF": 0.1,
                 "state_basis": "neutrobit",
                 "puncture_delta": 0.25,
+                "observer_strength": 0.5,
+                "surface_width": 0.5,
+                "surface_height": 0.5,
             },
         )
         self.assertEqual(gates_response.status_code, 200)
@@ -57,6 +67,8 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertIn("expectation_vector", gates_payload)
         self.assertEqual(gates_payload["state_basis"], "neutrobit")
         self.assertIsNotNone(gates_payload["punctured_wave"])
+        self.assertIsNotNone(gates_payload["punctured_surface"])
+        self.assertIsNotNone(gates_payload["observer_effect"])
 
         tunnel_response = client.post(
             "/fnp-qnn/neurobit/tunnel/demo",
