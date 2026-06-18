@@ -12,7 +12,7 @@ Ce module fournit un agent local pour auditer automatiquement une sandbox E2B et
 ## Installation
 
 ```bash
-cd "C:\\Users\\jeans\\Desktop\\Case study\\modele\\simulateur de bacterie\\FNP-QNN-MVP-version-desise-simulator-\\scripts\\e2b_datadog_audit"
+cd "C:\\Users\\jeans\\Desktop\\Case study\\modele\\FNP-QNN-MVP\\FNP-QNN-MVP\\scripts\\e2b_datadog_audit"
 python -m pip install -r requirements.txt
 ```
 
@@ -34,7 +34,7 @@ strictement fermé.
 ## Utilisation basique
 
 ```bash
-cd "C:\\Users\\jeans\\Desktop\\Case study\\modele\\simulateur de bacterie\\FNP-QNN-MVP-version-desise-simulator-\\scripts\\e2b_datadog_audit"
+cd "C:\\Users\\jeans\\Desktop\\Case study\\modele\\FNP-QNN-MVP\\FNP-QNN-MVP\\scripts\\e2b_datadog_audit"
 python audit_e2b.py
 ```
 
