@@ -666,6 +666,23 @@ The implementation report lives at
 This layer is disabled by default and does not change QNN, NeuroBit, Nidus,
 runtime, or Panel behavior unless requested.
 
+### Math source guardrail baseline
+
+The current source-to-function baseline is recorded in:
+
+- `docs/source_ledger/math_function_source_guardrail.md`
+- `FNP-QNN-MVP-organisation/04_implementation_planning/MATH_SOURCE_FUNCTION_GUARDRAIL_BASELINE_2026-06-18.md`
+
+From this baseline forward, source updates should be append-only: add only new
+mathematical sources, new functions, new endpoints, and new tests instead of
+repeating the complete history each time.
+
+Nota bene: this README is intentionally serving as a maintainer trace marker
+during pre-alpha. It is larger than the final public README should be. Before
+soft launch / alpha, it should be condensed into a cleaner user-facing README,
+while the detailed source/function registry remains in the ledger and
+organization documents.
+
 Start with:
 
 - `EDUCATION.md`

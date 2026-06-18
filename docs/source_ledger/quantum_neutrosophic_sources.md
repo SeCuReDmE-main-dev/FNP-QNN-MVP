@@ -4,6 +4,8 @@ This ledger maps Prof. Florentin Smarandache's quantum-neutrosophic sources to b
 
 Boundary: FNP-QNN does not claim to implement a physical neutrosophic quantum computer, clinical tool, security product, production system, or validated quantum physics engine. The code uses small, deterministic, source-attributed primitives as simulation grammar.
 
+Guardrail baseline: the full function-to-source registry now lives in `docs/source_ledger/math_function_source_guardrail.md`, with the organization baseline at `FNP-QNN-MVP-organisation/04_implementation_planning/MATH_SOURCE_FUNCTION_GUARDRAIL_BASELINE_2026-06-18.md`. After 2026-06-18, new source work should be appended as new source/function rows instead of repeating the whole history.
+
 ## Sources And Simulator Binding
 
 | Source | Relevant concept | Simulator binding | Public-safe claim |
@@ -47,3 +49,7 @@ Boundary: FNP-QNN does not claim to implement a physical neutrosophic quantum co
 - `core/plithogenic_logic.py`: opt-in runtime attribute profiles, dependence/contradiction metadata, cumulative plithogenic truth, and bounded feature vectors.
 - `api/schemas.py`: backward-compatible optional fields `state_basis`, `puncture_delta`, `observer_strength`, and fractal carrier inputs; NeuroBit-only surface dimensions.
 - Tests: primitives, NeuroBit regression, QNN opt-in feature expansion, and API compatibility.
+
+## Append-Only Update Rule
+
+From the 2026-06-18 baseline forward, this ledger should record only new mathematical sources, new simulator functions, and new public-safe claims. Do not relist already-covered source/function mappings in every future update. Use `math_function_source_guardrail.md` as the canonical baseline.
