@@ -1,0 +1,30 @@
+# Repository-local .venv kit for optional cloud, observability, and service clients.
+# Install only with:
+#   .\.venv\Scripts\python.exe -m pip install -r requirements\local-cloud-kit.txt
+
+python-dotenv>=1.0.1
+requests>=2.32.4
+httpx>=0.24.0
+
+# CPAI / CodeProject.AI is reached by HTTP on the local mesh; no official Python
+# package is required for the current simulator bridge.
+
+# Redis and Docker Python clients. Docker Engine/Desktop itself remains an
+# external system dependency, not a Python wheel.
+redis>=5.0.0
+docker>=7.1.0
+
+# Datadog local instrumentation and API client helpers.
+datadog>=0.49.1
+ddtrace>=2.8.0
+
+# E2B cloud SDKs. e2b-dev/infra is the open-source infrastructure reference;
+# these packages are the Python client surface for smoke tests and sandboxes.
+e2b>=1.0.0
+e2b-code-interpreter>=1.0.0
+
+# Supabase Python client.
+supabase>=2.10.0
+
+# Vercel is primarily an npm CLI, not a Python package. Keep Vercel CLI install
+# outside this file and document it as a system/toolchain prerequisite.

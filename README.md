@@ -1,4 +1,4 @@
-{{ attention mainteneur : le code est en phase de conception active. Les contributions doivent rester maintainer-guidees pendant que ce message reste present. Merci de discuter avant d'ouvrir de grands changements, issues, pull requests, pushes ou demandes de review. }}
+{{ pre-alpha educational research simulator: contributions are open through a maintainer-reviewed education pilot. Please read CONTRIBUTING.md before opening issues or pull requests. Unscoped or incomplete proposals may be closed. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
 
 # FNP-QNN Local Research Simulator
 
