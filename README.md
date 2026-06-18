@@ -107,6 +107,29 @@ The bridge acts as a small router in front of the QNN:
 5. It returns `impact_verification`, showing which plugin IDs ran and which
    effective parameters they received.
 
+CPAI is the mesh base. The hook does not replace CPAI; it attaches plugin
+signals to the CPAI mesh as local, measurable features. The expected mesh nodes
+are:
+
+- `cpai-mcp-server`;
+- `cpai-celebrum`;
+- `cpai-ffed`.
+
+The expected Datadog metric family is:
+
+- `cpai.mesh.local_response_time_ms`;
+- `cpai.mesh.effective_response_time_ms`;
+- `cpai.mesh.requests_processed_local`;
+- `cpai.mesh.requests_forwarded`;
+- `cpai.mesh.requests_received`;
+- `cpai.mesh.nodes_visible`;
+- `cpai.mesh.nodes_active`;
+- service check `cpai.mesh.can_connect`.
+
+The project-level Datadog references are dashboard `4i9-v3n-pe7` and notebook
+`293549`. The simulator reports these IDs as non-secret mesh metadata only; it
+does not silently edit Datadog assets.
+
 The hook measures ambiguity/tension. It does not solve ambiguity, replace
 indeterminacy, prove physical stress, make clinical claims, or make security
 decisions.
@@ -156,6 +179,12 @@ Datadog, E2B, and Redis are observability/engine surfaces around the hook:
 - `plugin-engine-redis` is optional Docker infrastructure for future
   router/cache/trace distribution. The current Python path falls back to local
   in-process execution when Redis is absent.
+- FFeD MCP can be used as an external runtime in Codex sessions that expose it.
+  The checked-in simulator uses the local `ffed_runtime.run_plugin(...)` API so
+  unit tests remain deterministic.
+- Datadog MCP supervision is represented as expected configuration and
+  runbook metadata unless Datadog MCP tools are actually available in the
+  active session.
 
 No Datadog API key, E2B key, plugin secret, PAT, or raw environment value is
 printed in hook output. The status payload reports only booleans such as
