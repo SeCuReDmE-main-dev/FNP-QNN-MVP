@@ -586,6 +586,15 @@ Recent quantum-neutrosophic learning additions:
 - `core/plithogenic_logic.py` adds opt-in runtime fusion metadata for
   multi-attribute plithogenic truth variables, weights, dependence/contradiction,
   and cumulative truth before LVFM/QNN feature encoding.
+- `core/penrose_hameroff_math.py` adds a bounded opt-in study layer for
+  Penrose-style objective-reduction timing, Orch OR-style coherence comparison,
+  spin-network admissibility, twistor/nonlocality context, and microtubule
+  signal metadata.
+- `core/hydra_em_gpcn_math.py` adds a bounded opt-in Hydra-EM-GPCN hypothesis
+  layer. It uses `GPCN-Set_phi` as an axiomatic chamber for microtubule-like
+  proxies, deterministic quasicrystal neighborhoods, computational anesthesia
+  damping sweeps, and simulator verdicts: `communicates`, `decoheres`,
+  `suspended`, or `rejected`.
 - `docs/source_ledger/quantum_neutrosophic_sources.md` maps each source PDF
   to the exact simulator mechanism, accepted educational claim, and forbidden
   public claim.
@@ -606,6 +615,11 @@ Source-backed topics now available for education and code reading:
   T/I/F metadata.
 - plithogenic runtime fusion for weighted multi-attribute event truth,
   dependence/contradiction metadata, and cumulative neutrosophic truth.
+- Penrose/Hameroff study metadata for objective-reduction timing and
+  Orch OR-style local coherence comparison.
+- Hydra-EM-GPCN proxy simulation using `GPCN-Set_phi`,
+  quasicrystal-style neighborhoods, plithogenic contradiction, cubic
+  neutrosophic `T/I/F`, and computational damping sweeps.
 
 Current Mechanism Layer v2 validation:
 
@@ -616,12 +630,13 @@ Current Mechanism Layer v2 validation:
 - `observer_effect_profile()` adds an optional partial-observer T/I/F profile;
 - NeuroBit gate runs now include optional gate semantics, reversibility-risk
   metadata, surface puncture metadata, and observer-effect metadata;
-- the full local test suite currently passes with 117 tests, and the
+- the full local test suite currently passes with 179 tests, and the
   alpha-local readiness validator passes.
 
 These additions are local educational simulation primitives only. They do not
 claim a physical neutrosophic quantum computer, clinical system, security
-system, production system, quantum advantage, or validated physics engine.
+system, production system, quantum advantage, validated physics engine,
+biological microtubule validation, anesthesia guidance, or consciousness proof.
 
 ### Nidus Idearum II math layer
 
@@ -781,6 +796,68 @@ The NeutroStructure system metrics report lives at
 `FNP-QNN-MVP-organisation/04_implementation_planning/NEUTROSTRUCTURE_SYSTEM_METRICS_LAYER.md`.
 This layer is disabled by default and does not overwrite plithogenic,
 topology, plugin, QNN, NeuroBit, LVFM, `D_f`, `dF`, or `i_fractal` evidence.
+
+### Penrose/Hameroff and Hydra-EM-GPCN study layers
+
+`core/penrose_hameroff_math.py` exposes a bounded source-attributed study
+surface for Penrose/Hameroff-inspired metadata. It can compare local coherence
+metadata against `tau_s = hbar / E_delta`, inspect spin-network admissibility,
+and attach Orch OR-style microtubule signal metadata to runtime/LVFM/QNN
+payloads only when explicitly enabled.
+
+Enable the Penrose/Hameroff layer on runtime runs with:
+
+```json
+{
+  "penrose_hameroff_enabled": true,
+  "objective_reduction_energy_joule": 1.054571817e-34,
+  "coherence_time_s": 1.0,
+  "anesthetic_damping": 0.1,
+  "microtubule_frequency_hz": 100000000.0
+}
+```
+
+The same study profile is available through:
+
+- `GET /fnp-qnn/penrose-hameroff/status`
+- `POST /fnp-qnn/penrose-hameroff/objective-reduction/profile`
+- `POST /fnp-qnn/penrose-hameroff/runtime/profile`
+
+`core/hydra_em_gpcn_math.py` adds a second bounded hypothesis layer. Its
+container is `GPCN-Set_phi`, and the simulated microtubules are proxy objects
+inside that axiomatic chamber, not validated biological microtubules. The layer
+combines deterministic quasicrystal-style neighborhoods, plithogenic
+contradiction, cubic neutrosophic `T/I/F`, Penrose/Hameroff timing metadata,
+and a computational anesthesia damping parameter.
+
+Enable the Hydra-EM-GPCN layer on runtime runs with:
+
+```json
+{
+  "hydra_em_enabled": true,
+  "gpcn_set_phi_enabled": true,
+  "orch_or_simulation_enabled": true,
+  "microtubule_proxy_count": 6,
+  "microtubule_coupling_strength": 0.8,
+  "anesthetic_damping": 0.1,
+  "coherence_time_s": 1.0,
+  "objective_reduction_energy_joule": 1.054571817e-34,
+  "microtubule_frequency_hz": 100000000.0
+}
+```
+
+The Hydra-EM-GPCN endpoints are:
+
+- `GET /fnp-qnn/hydra-em-gpcn/status`
+- `POST /fnp-qnn/hydra-em-gpcn/orch-profile`
+- `POST /fnp-qnn/hydra-em-gpcn/anesthesia-sweep`
+- `POST /fnp-qnn/hydra-em-gpcn/runtime/profile`
+
+The implementation report lives at
+`FNP-QNN-MVP-organisation/04_implementation_planning/HYDRA_EM_GPCN_ORCH_OR_HYPOTHESIS_LAYER.md`.
+Both layers are disabled by default and do not change QNN, NeuroBit, Nidus,
+Plithogenic, Revolutionary Topology, NeutroAlgebra, runtime, or Panel behavior
+unless requested.
 
 ### Math source guardrail baseline
 

@@ -21,6 +21,7 @@ from api.schemas import (
     CommandRequest,
     CommandResponse,
     EncodeRequest,
+    HydraEMGPCNAnesthesiaSweepRequest,
     NidusFusionProfileRequest,
     NidusPartialMembershipMeanRequest,
     NidusTripletProfileRequest,
@@ -39,6 +40,8 @@ from core import (
     PhiFramework,
     QNNNucleus,
     RuntimeStateStore,
+    anesthesia_sweep_profile,
+    hydra_em_gpcn_orch_profile,
     objective_reduction_profile,
     partial_membership_mean,
     penrose_hameroff_runtime_profile,
@@ -245,6 +248,16 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         anesthetic_damping=(payload or {}).get("anesthetic_damping"),
         microtubule_frequency_hz=(payload or {}).get("microtubule_frequency_hz"),
         spin_network_vertices=(payload or {}).get("spin_network_vertices"),
+        hydra_em_enabled=bool((payload or {}).get("hydra_em_enabled", False)),
+        gpcn_set_phi_enabled=bool((payload or {}).get("gpcn_set_phi_enabled", False)),
+        orch_or_simulation_enabled=bool((payload or {}).get("orch_or_simulation_enabled", False)),
+        microtubule_proxy_count=int((payload or {}).get("microtubule_proxy_count", 8)),
+        microtubule_coupling_strength=float((payload or {}).get("microtubule_coupling_strength", 0.5)),
+        quasicrystal_projection_enabled=bool((payload or {}).get("quasicrystal_projection_enabled", True)),
+        plithogenic_contradiction_threshold=float((payload or {}).get("plithogenic_contradiction_threshold", 0.35)),
+        lattice_seed=int((payload or {}).get("lattice_seed", 0)),
+        observation_scale_min=float((payload or {}).get("observation_scale_min", 0.01)),
+        observation_scale_max=float((payload or {}).get("observation_scale_max", 1.0)),
     )
     result = state.to_dict()
     if run_qnn:
@@ -418,6 +431,24 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
             microtubule_frequency_hz=payload.microtubule_frequency_hz,
             spin_network_vertices=payload.spin_network_vertices,
         )
+    hydra_em_gpcn_profile = None
+    if payload.hydra_em_enabled and payload.gpcn_set_phi_enabled and payload.orch_or_simulation_enabled:
+        events, pairs, _warnings = cerebrum_runtime_bridge.ingest({"memories": samples[0]})
+        hydra_em_gpcn_profile = hydra_em_gpcn_orch_profile(
+            events,
+            pairs,
+            microtubule_proxy_count=payload.microtubule_proxy_count,
+            microtubule_coupling_strength=payload.microtubule_coupling_strength,
+            anesthetic_damping=payload.anesthetic_damping,
+            coherence_time_s=payload.coherence_time_s,
+            objective_reduction_energy_joule=payload.objective_reduction_energy_joule,
+            microtubule_frequency_hz=payload.microtubule_frequency_hz,
+            quasicrystal_projection_enabled=payload.quasicrystal_projection_enabled,
+            plithogenic_contradiction_threshold=payload.plithogenic_contradiction_threshold,
+            lattice_seed=payload.lattice_seed,
+            observation_scale_min=payload.observation_scale_min,
+            observation_scale_max=payload.observation_scale_max,
+        )
     result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
         samples[0],
         label=float(labels[0]) if labels else 1.0,
@@ -439,6 +470,8 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         include_plugin_trace=payload.include_plugin_trace,
         penrose_hameroff_features=None if penrose_hameroff_profile is None else penrose_hameroff_profile["feature_vector"],
         penrose_hameroff_payload=penrose_hameroff_profile,
+        hydra_em_gpcn_features=None if hydra_em_gpcn_profile is None else hydra_em_gpcn_profile["feature_vector"],
+        hydra_em_gpcn_payload=hydra_em_gpcn_profile,
     ))
     return {
         "status": "ok",
@@ -560,6 +593,112 @@ async def penrose_hameroff_runtime_profile_endpoint(payload: RuntimeRunRequest) 
             spin_network_vertices=payload.spin_network_vertices,
         ),
         "warnings": warnings,
+    }
+
+
+@app.get("/fnp-qnn/hydra-em-gpcn/status")
+async def hydra_em_gpcn_status() -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "mode": "alpha-local-research",
+        "feature": "hydra-em-gpcn-orch-or-hypothesis-simulator",
+        "axiomatic_container": "GPCN-Set_phi",
+        "available_primitives": [
+            "gpcn_set_phi_profile",
+            "quasicrystal_gpcn_projection_profile",
+            "microtubule_proxy_phi_profile",
+            "hydra_em_gpcn_orch_profile",
+            "anesthesia_sweep_profile",
+        ],
+        "endpoints": [
+            "POST /fnp-qnn/hydra-em-gpcn/orch-profile",
+            "POST /fnp-qnn/hydra-em-gpcn/anesthesia-sweep",
+            "POST /fnp-qnn/hydra-em-gpcn/runtime/profile",
+        ],
+        "verdicts": ["communicates", "decoheres", "suspended", "rejected"],
+        "hierarchy": "I -> I_system^S -> D_f -> dF -> i_fractal",
+        "research_boundary": (
+            "alpha-local educational simulation only; not clinical, biological validation, "
+            "consciousness proof, physical quantum-gravity engine, or production-public claim"
+        ),
+    }
+
+
+@app.post("/fnp-qnn/hydra-em-gpcn/orch-profile")
+async def hydra_em_gpcn_orch_profile_endpoint(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
+    return {
+        "status": "ok",
+        "profile": hydra_em_gpcn_orch_profile(
+            events,
+            pairs,
+            microtubule_proxy_count=payload.microtubule_proxy_count,
+            microtubule_coupling_strength=payload.microtubule_coupling_strength,
+            anesthetic_damping=payload.anesthetic_damping,
+            coherence_time_s=payload.coherence_time_s,
+            objective_reduction_energy_joule=payload.objective_reduction_energy_joule,
+            microtubule_frequency_hz=payload.microtubule_frequency_hz,
+            quasicrystal_projection_enabled=payload.quasicrystal_projection_enabled,
+            plithogenic_contradiction_threshold=payload.plithogenic_contradiction_threshold,
+            lattice_seed=payload.lattice_seed,
+            observation_scale_min=payload.observation_scale_min,
+            observation_scale_max=payload.observation_scale_max,
+        ),
+        "warnings": warnings,
+    }
+
+
+@app.post("/fnp-qnn/hydra-em-gpcn/anesthesia-sweep")
+async def hydra_em_gpcn_anesthesia_sweep(payload: HydraEMGPCNAnesthesiaSweepRequest) -> Dict[str, Any]:
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
+    return {
+        "status": "ok",
+        "profile": anesthesia_sweep_profile(
+            events,
+            pairs,
+            damping_values=payload.damping_values,
+            microtubule_proxy_count=payload.microtubule_proxy_count,
+            microtubule_coupling_strength=payload.microtubule_coupling_strength,
+            coherence_time_s=payload.coherence_time_s,
+            objective_reduction_energy_joule=payload.objective_reduction_energy_joule,
+            microtubule_frequency_hz=payload.microtubule_frequency_hz,
+            quasicrystal_projection_enabled=payload.quasicrystal_projection_enabled,
+            plithogenic_contradiction_threshold=payload.plithogenic_contradiction_threshold,
+            lattice_seed=payload.lattice_seed,
+            observation_scale_min=payload.observation_scale_min,
+            observation_scale_max=payload.observation_scale_max,
+        ),
+        "warnings": warnings,
+    }
+
+
+@app.post("/fnp-qnn/hydra-em-gpcn/runtime/profile")
+async def hydra_em_gpcn_runtime_profile_endpoint(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    runtime_payload = payload.to_runtime_payload()
+    runtime_payload["hydra_em_enabled"] = True
+    runtime_payload["gpcn_set_phi_enabled"] = True
+    runtime_payload["orch_or_simulation_enabled"] = True
+    state = cerebrum_runtime_bridge.build_state(
+        _runtime_payload(runtime_payload),
+        hydra_em_enabled=True,
+        gpcn_set_phi_enabled=True,
+        orch_or_simulation_enabled=True,
+        objective_reduction_energy_joule=payload.objective_reduction_energy_joule,
+        coherence_time_s=payload.coherence_time_s,
+        anesthetic_damping=payload.anesthetic_damping,
+        microtubule_frequency_hz=payload.microtubule_frequency_hz,
+        microtubule_proxy_count=payload.microtubule_proxy_count,
+        microtubule_coupling_strength=payload.microtubule_coupling_strength,
+        quasicrystal_projection_enabled=payload.quasicrystal_projection_enabled,
+        plithogenic_contradiction_threshold=payload.plithogenic_contradiction_threshold,
+        lattice_seed=payload.lattice_seed,
+        observation_scale_min=payload.observation_scale_min,
+        observation_scale_max=payload.observation_scale_max,
+    )
+    return {
+        "status": "ok",
+        "profile": state.hydra_em_gpcn,
+        "warnings": state.warnings,
     }
 
 
@@ -719,6 +858,16 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             anesthetic_damping=request.anesthetic_damping,
             microtubule_frequency_hz=request.microtubule_frequency_hz,
             spin_network_vertices=request.spin_network_vertices,
+            hydra_em_enabled=request.hydra_em_enabled,
+            gpcn_set_phi_enabled=request.gpcn_set_phi_enabled,
+            orch_or_simulation_enabled=request.orch_or_simulation_enabled,
+            microtubule_proxy_count=request.microtubule_proxy_count,
+            microtubule_coupling_strength=request.microtubule_coupling_strength,
+            quasicrystal_projection_enabled=request.quasicrystal_projection_enabled,
+            plithogenic_contradiction_threshold=request.plithogenic_contradiction_threshold,
+            lattice_seed=request.lattice_seed,
+            observation_scale_min=request.observation_scale_min,
+            observation_scale_max=request.observation_scale_max,
         )
         samples = qnn_request.dump_samples()
         labels = qnn_request.labels
@@ -735,6 +884,24 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
                 anesthetic_damping=qnn_request.anesthetic_damping,
                 microtubule_frequency_hz=qnn_request.microtubule_frequency_hz,
                 spin_network_vertices=qnn_request.spin_network_vertices,
+            )
+        hydra_em_gpcn_profile = None
+        if qnn_request.hydra_em_enabled and qnn_request.gpcn_set_phi_enabled and qnn_request.orch_or_simulation_enabled:
+            events, pairs, _warnings = cerebrum_runtime_bridge.ingest({"memories": samples[0]})
+            hydra_em_gpcn_profile = hydra_em_gpcn_orch_profile(
+                events,
+                pairs,
+                microtubule_proxy_count=qnn_request.microtubule_proxy_count,
+                microtubule_coupling_strength=qnn_request.microtubule_coupling_strength,
+                anesthetic_damping=qnn_request.anesthetic_damping,
+                coherence_time_s=qnn_request.coherence_time_s,
+                objective_reduction_energy_joule=qnn_request.objective_reduction_energy_joule,
+                microtubule_frequency_hz=qnn_request.microtubule_frequency_hz,
+                quasicrystal_projection_enabled=qnn_request.quasicrystal_projection_enabled,
+                plithogenic_contradiction_threshold=qnn_request.plithogenic_contradiction_threshold,
+                lattice_seed=qnn_request.lattice_seed,
+                observation_scale_min=qnn_request.observation_scale_min,
+                observation_scale_max=qnn_request.observation_scale_max,
             )
         result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
             samples[0],
@@ -757,6 +924,8 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             include_plugin_trace=qnn_request.include_plugin_trace,
             penrose_hameroff_features=None if penrose_hameroff_profile is None else penrose_hameroff_profile["feature_vector"],
             penrose_hameroff_payload=penrose_hameroff_profile,
+            hydra_em_gpcn_features=None if hydra_em_gpcn_profile is None else hydra_em_gpcn_profile["feature_vector"],
+            hydra_em_gpcn_payload=hydra_em_gpcn_profile,
         ))
         return CommandResponse(
             success=True,

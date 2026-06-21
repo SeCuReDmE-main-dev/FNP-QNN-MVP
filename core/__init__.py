@@ -47,6 +47,13 @@ from .penrose_hameroff_math import (
     spin_network_admissibility_profile,
     twistor_nonlocality_profile,
 )
+from .hydra_em_gpcn_math import (
+    anesthesia_sweep_profile,
+    gpcn_set_phi_profile,
+    hydra_em_gpcn_orch_profile,
+    microtubule_proxy_phi_profile,
+    quasicrystal_gpcn_projection_profile,
+)
 from .neutro_algebra import (
     neutro_axiom_profile,
     neutro_function_profile,
@@ -143,6 +150,11 @@ __all__ = [
     "penrose_hameroff_runtime_profile",
     "spin_network_admissibility_profile",
     "twistor_nonlocality_profile",
+    "anesthesia_sweep_profile",
+    "gpcn_set_phi_profile",
+    "hydra_em_gpcn_orch_profile",
+    "microtubule_proxy_phi_profile",
+    "quasicrystal_gpcn_projection_profile",
     "neutro_axiom_profile",
     "neutro_function_profile",
     "neutro_operation_table_profile",

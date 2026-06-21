@@ -151,6 +151,8 @@ class QNNNucleus:
         neutro_algebra_payload: Optional[Dict[str, Any]] = None,
         penrose_hameroff_features: Optional[Sequence[float]] = None,
         penrose_hameroff_payload: Optional[Dict[str, Any]] = None,
+        hydra_em_gpcn_features: Optional[Sequence[float]] = None,
+        hydra_em_gpcn_payload: Optional[Dict[str, Any]] = None,
         precomputed_plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
@@ -170,6 +172,7 @@ class QNNNucleus:
         external_features.extend(list(plithogenic_topology_features or []))
         external_features.extend(list(neutro_algebra_features or []))
         external_features.extend(list(penrose_hameroff_features or []))
+        external_features.extend(list(hydra_em_gpcn_features or []))
         plugin_kwargs = {
             "plugin_features": external_features or None,
             "plugin_payload": plugin_payload,
@@ -200,6 +203,7 @@ class QNNNucleus:
                 self._attach_plithogenic_topology_payload(result, plithogenic_topology_payload)
                 self._attach_neutro_algebra_payload(result, neutro_algebra_payload)
                 self._attach_penrose_hameroff_payload(result, penrose_hameroff_payload)
+                self._attach_hydra_em_gpcn_payload(result, hydra_em_gpcn_payload)
                 return result
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -221,6 +225,7 @@ class QNNNucleus:
                 self._attach_plithogenic_topology_payload(fallback, plithogenic_topology_payload)
                 self._attach_neutro_algebra_payload(fallback, neutro_algebra_payload)
                 self._attach_penrose_hameroff_payload(fallback, penrose_hameroff_payload)
+                self._attach_hydra_em_gpcn_payload(fallback, hydra_em_gpcn_payload)
                 return fallback
         result = self.fit_surrogate(
             [raw_events],
@@ -239,6 +244,7 @@ class QNNNucleus:
         self._attach_plithogenic_topology_payload(result, plithogenic_topology_payload)
         self._attach_neutro_algebra_payload(result, neutro_algebra_payload)
         self._attach_penrose_hameroff_payload(result, penrose_hameroff_payload)
+        self._attach_hydra_em_gpcn_payload(result, hydra_em_gpcn_payload)
         return result
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -873,6 +879,28 @@ class QNNNucleus:
             "microtubule_signal": penrose_hameroff_payload["microtubule_signal"],
             "hierarchy": penrose_hameroff_payload["hierarchy"],
             "research_boundary": penrose_hameroff_payload["research_boundary"],
+        }
+
+    def _attach_hydra_em_gpcn_payload(
+        self,
+        result: Dict[str, Any],
+        hydra_em_gpcn_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not hydra_em_gpcn_payload:
+            return
+        result["hydra_em_gpcn_profile"] = {
+            "model": hydra_em_gpcn_payload["model"],
+            "source_ids": hydra_em_gpcn_payload["source_ids"],
+            "feature_vector": hydra_em_gpcn_payload["feature_vector"],
+            "feature_dimension": hydra_em_gpcn_payload["feature_dimension"],
+            "axiomatic_container": hydra_em_gpcn_payload["axiomatic_container"],
+            "objective_reduction": hydra_em_gpcn_payload["objective_reduction"],
+            "orchestration": hydra_em_gpcn_payload["orchestration"],
+            "quasicrystal_projection": hydra_em_gpcn_payload["quasicrystal_projection"],
+            "simulation_scores": hydra_em_gpcn_payload["simulation_scores"],
+            "verdict": hydra_em_gpcn_payload["verdict"],
+            "hierarchy": hydra_em_gpcn_payload["hierarchy"],
+            "research_boundary": hydra_em_gpcn_payload["research_boundary"],
         }
 
     def _fractal_carrier_payload(

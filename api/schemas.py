@@ -102,6 +102,16 @@ class RuntimeRunRequest(BaseModel):
     anesthetic_damping: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     microtubule_frequency_hz: Optional[float] = Field(default=None, ge=0.0)
     spin_network_vertices: Optional[List[List[float]]] = None
+    hydra_em_enabled: bool = False
+    gpcn_set_phi_enabled: bool = False
+    orch_or_simulation_enabled: bool = False
+    microtubule_proxy_count: int = Field(default=8, ge=0, le=256)
+    microtubule_coupling_strength: float = Field(default=0.5, ge=0.0, le=1.0)
+    quasicrystal_projection_enabled: bool = True
+    plithogenic_contradiction_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
+    lattice_seed: int = Field(default=0, ge=0)
+    observation_scale_min: float = Field(default=0.01, gt=0.0)
+    observation_scale_max: float = Field(default=1.0, gt=0.0)
 
     @model_validator(mode="before")
     @classmethod
@@ -166,6 +176,7 @@ class RuntimeRunRequest(BaseModel):
         payload["neutro_algebra_enabled"] = self.neutro_algebra_enabled
         payload["penrose_hameroff_enabled"] = self.penrose_hameroff_enabled
         payload.update(self.penrose_hameroff_payload())
+        payload.update(self.hydra_em_gpcn_payload())
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:
@@ -213,6 +224,26 @@ class RuntimeRunRequest(BaseModel):
             payload["spin_network_vertices"] = self.spin_network_vertices
         return payload
 
+    def hydra_em_gpcn_payload(self) -> Dict[str, Any]:
+        return {
+            "hydra_em_enabled": self.hydra_em_enabled,
+            "gpcn_set_phi_enabled": self.gpcn_set_phi_enabled,
+            "orch_or_simulation_enabled": self.orch_or_simulation_enabled,
+            "microtubule_proxy_count": self.microtubule_proxy_count,
+            "microtubule_coupling_strength": self.microtubule_coupling_strength,
+            "quasicrystal_projection_enabled": self.quasicrystal_projection_enabled,
+            "plithogenic_contradiction_threshold": self.plithogenic_contradiction_threshold,
+            "lattice_seed": self.lattice_seed,
+            "observation_scale_min": self.observation_scale_min,
+            "observation_scale_max": self.observation_scale_max,
+        }
+
+    @model_validator(mode="after")
+    def validate_hydra_scale(self):
+        if self.observation_scale_max <= self.observation_scale_min:
+            raise ValueError("observation_scale_max must be greater than observation_scale_min")
+        return self
+
 
 class EncodeRequest(BaseModel):
     observations: List[Observation] = Field(default_factory=list)
@@ -250,6 +281,16 @@ class QNNSmokeRequest(BaseModel):
     anesthetic_damping: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     microtubule_frequency_hz: Optional[float] = Field(default=None, ge=0.0)
     spin_network_vertices: Optional[List[List[float]]] = None
+    hydra_em_enabled: bool = False
+    gpcn_set_phi_enabled: bool = False
+    orch_or_simulation_enabled: bool = False
+    microtubule_proxy_count: int = Field(default=8, ge=0, le=256)
+    microtubule_coupling_strength: float = Field(default=0.5, ge=0.0, le=1.0)
+    quasicrystal_projection_enabled: bool = True
+    plithogenic_contradiction_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
+    lattice_seed: int = Field(default=0, ge=0)
+    observation_scale_min: float = Field(default=0.01, gt=0.0)
+    observation_scale_max: float = Field(default=1.0, gt=0.0)
 
     @model_validator(mode="before")
     @classmethod
@@ -266,6 +307,12 @@ class QNNSmokeRequest(BaseModel):
             raise ValueError("samples and labels must have the same length")
         if len(self.samples) > MAX_EVENTS:
             raise ValueError(f"At most {MAX_EVENTS} samples are accepted")
+        return self
+
+    @model_validator(mode="after")
+    def validate_qnn_hydra_scale(self):
+        if self.observation_scale_max <= self.observation_scale_min:
+            raise ValueError("observation_scale_max must be greater than observation_scale_min")
         return self
 
     @field_validator(
@@ -313,6 +360,24 @@ class PenroseHameroffObjectiveReductionRequest(BaseModel):
         if value is None:
             return value
         return _finite(value, info.field_name)
+
+
+class HydraEMGPCNAnesthesiaSweepRequest(RuntimeRunRequest):
+    damping_values: List[float] = Field(default_factory=lambda: [0.0, 0.25, 0.5, 0.75, 1.0])
+
+    @field_validator("damping_values")
+    @classmethod
+    def validate_damping_values(cls, value: List[float]):
+        if not value:
+            raise ValueError("damping_values must contain at least one value")
+        if len(value) > 16:
+            raise ValueError("At most 16 damping values are accepted")
+        for item in value:
+            _finite(item, "damping_values")
+            if item < 0.0 or item > 1.0:
+                raise ValueError("damping_values must be between 0 and 1")
+        return value
+
 
 class NeuroBitProfileRequest(BaseModel):
     truth: float = Field(default=0.55, ge=0.0)
@@ -531,6 +596,16 @@ class CommandRequest(BaseModel):
     anesthetic_damping: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     microtubule_frequency_hz: Optional[float] = Field(default=None, ge=0.0)
     spin_network_vertices: Optional[List[List[float]]] = None
+    hydra_em_enabled: bool = False
+    gpcn_set_phi_enabled: bool = False
+    orch_or_simulation_enabled: bool = False
+    microtubule_proxy_count: int = Field(default=8, ge=0, le=256)
+    microtubule_coupling_strength: float = Field(default=0.5, ge=0.0, le=1.0)
+    quasicrystal_projection_enabled: bool = True
+    plithogenic_contradiction_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
+    lattice_seed: int = Field(default=0, ge=0)
+    observation_scale_min: float = Field(default=0.01, gt=0.0)
+    observation_scale_max: float = Field(default=1.0, gt=0.0)
 
     @model_validator(mode="before")
     @classmethod

@@ -261,6 +261,79 @@ class QNNSmokeApiTests(unittest.TestCase):
             len(result["penrose_hameroff_profile"]["feature_vector"]),
         )
 
+    def test_hydra_em_gpcn_endpoints_return_bounded_payloads(self):
+        client = TestClient(app)
+
+        status_response = client.get("/fnp-qnn/hydra-em-gpcn/status")
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["axiomatic_container"], "GPCN-Set_phi")
+
+        request = {
+            "objective_reduction_energy_joule": 1.054571817e-34,
+            "coherence_time_s": 1.0,
+            "anesthetic_damping": 0.1,
+            "microtubule_frequency_hz": 100000000.0,
+            "microtubule_proxy_count": 6,
+            "microtubule_coupling_strength": 0.8,
+            "memories": [
+                {"modality": "audio", "starting_time": 0.0, "ending_time": 1.0, "value": 0.2},
+                {"modality": "video", "starting_time": 0.2, "ending_time": 1.2, "value": 0.8},
+            ],
+        }
+        orch_response = client.post("/fnp-qnn/hydra-em-gpcn/orch-profile", json=request)
+        self.assertEqual(orch_response.status_code, 200)
+        profile = orch_response.json()["profile"]
+        self.assertEqual(profile["model"], "hydra_em_gpcn_orch_profile_v1")
+        self.assertIn(profile["verdict"], ["communicates", "decoheres", "suspended", "rejected"])
+        self.assertEqual(profile["feature_dimension"], len(profile["feature_vector"]))
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in profile["feature_vector"]))
+        self.assertIn("GPCN-Set_phi", profile["axiomatic_container"]["axiom"])
+
+        sweep_response = client.post(
+            "/fnp-qnn/hydra-em-gpcn/anesthesia-sweep",
+            json={**request, "damping_values": [0.0, 0.5, 1.0]},
+        )
+        self.assertEqual(sweep_response.status_code, 200)
+        sweep = sweep_response.json()["profile"]
+        self.assertTrue(sweep["monotonic_nonincreasing_communication"])
+
+        runtime_response = client.post("/fnp-qnn/hydra-em-gpcn/runtime/profile", json=request)
+        self.assertEqual(runtime_response.status_code, 200)
+        self.assertEqual(runtime_response.json()["profile"]["model"], "hydra_em_gpcn_orch_profile_v1")
+
+    def test_qnn_smoke_accepts_hydra_em_gpcn_opt_in(self):
+        client = TestClient(app)
+
+        baseline = client.post("/qnn/smoke", json={"epochs": 2, "test_size": 0.0})
+        self.assertEqual(baseline.status_code, 200)
+        baseline_dim = baseline.json()["result"]["feature_dimension"]
+
+        response = client.post(
+            "/qnn/smoke",
+            json={
+                "epochs": 2,
+                "test_size": 0.0,
+                "hydra_em_enabled": True,
+                "gpcn_set_phi_enabled": True,
+                "orch_or_simulation_enabled": True,
+                "objective_reduction_energy_joule": 1.054571817e-34,
+                "coherence_time_s": 1.0,
+                "anesthetic_damping": 0.1,
+                "microtubule_frequency_hz": 100000000.0,
+                "microtubule_proxy_count": 6,
+                "microtubule_coupling_strength": 0.8,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = response.json()["result"]
+        self.assertIn("hydra_em_gpcn_profile", result)
+        self.assertGreater(result["feature_dimension"], baseline_dim)
+        self.assertEqual(
+            result["hydra_em_gpcn_profile"]["feature_dimension"],
+            len(result["hydra_em_gpcn_profile"]["feature_vector"]),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

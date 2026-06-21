@@ -21,6 +21,7 @@ import numpy as np
 
 from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, MODALITIES
 from .ffed_plugin_bridge import FfeDPluginBridge
+from .hydra_em_gpcn_math import hydra_em_gpcn_orch_profile
 from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
 from .neutrosophic_quantum_primitives import fractal_carrier_profile
 from .neutro_algebra import neutroalgebra_runtime_profile
@@ -162,6 +163,7 @@ class CerebrumRuntimeState:
     plithogenic_topology: Optional[Dict[str, Any]] = None
     neutro_algebra: Optional[Dict[str, Any]] = None
     penrose_hameroff: Optional[Dict[str, Any]] = None
+    hydra_em_gpcn: Optional[Dict[str, Any]] = None
 
     def to_dict(self, include_bundle: bool = True) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -185,6 +187,8 @@ class CerebrumRuntimeState:
             payload["neutro_algebra"] = self.neutro_algebra
         if self.penrose_hameroff is not None:
             payload["penrose_hameroff"] = self.penrose_hameroff
+        if self.hydra_em_gpcn is not None:
+            payload["hydra_em_gpcn"] = self.hydra_em_gpcn
         if include_bundle:
             payload["bundle"] = {
                 "sequence_length": self.feature_bundle.sequence_length,
@@ -270,6 +274,16 @@ class CerebrumRuntimeBridge:
         anesthetic_damping: Optional[float] = None,
         microtubule_frequency_hz: Optional[float] = None,
         spin_network_vertices: Optional[Sequence[Sequence[float]]] = None,
+        hydra_em_enabled: bool = False,
+        gpcn_set_phi_enabled: bool = False,
+        orch_or_simulation_enabled: bool = False,
+        microtubule_proxy_count: int = 8,
+        microtubule_coupling_strength: float = 0.5,
+        quasicrystal_projection_enabled: bool = True,
+        plithogenic_contradiction_threshold: float = 0.35,
+        lattice_seed: int = 0,
+        observation_scale_min: float = 0.01,
+        observation_scale_max: float = 1.0,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
@@ -353,6 +367,26 @@ class CerebrumRuntimeBridge:
             )
             penrose_hameroff_features = [float(item) for item in penrose_hameroff_profile["feature_vector"]]
             vector = np.concatenate([vector, np.asarray(penrose_hameroff_features, dtype=np.float32)]).astype(np.float32)
+        hydra_em_gpcn_profile = None
+        hydra_em_gpcn_features: Optional[List[float]] = None
+        if hydra_em_enabled and gpcn_set_phi_enabled and orch_or_simulation_enabled:
+            hydra_em_gpcn_profile = hydra_em_gpcn_orch_profile(
+                events,
+                pairs,
+                microtubule_proxy_count=microtubule_proxy_count,
+                microtubule_coupling_strength=microtubule_coupling_strength,
+                anesthetic_damping=anesthetic_damping,
+                coherence_time_s=coherence_time_s,
+                objective_reduction_energy_joule=objective_reduction_energy_joule,
+                microtubule_frequency_hz=microtubule_frequency_hz,
+                quasicrystal_projection_enabled=quasicrystal_projection_enabled,
+                plithogenic_contradiction_threshold=plithogenic_contradiction_threshold,
+                lattice_seed=lattice_seed,
+                observation_scale_min=observation_scale_min,
+                observation_scale_max=observation_scale_max,
+            )
+            hydra_em_gpcn_features = [float(item) for item in hydra_em_gpcn_profile["feature_vector"]]
+            vector = np.concatenate([vector, np.asarray(hydra_em_gpcn_features, dtype=np.float32)]).astype(np.float32)
         lvfm = self._build_lvfm_snapshot(events, pairs)
         if plithogenic_profile is not None:
             lvfm["plithogenic_fusion_profile"] = {
@@ -433,6 +467,21 @@ class CerebrumRuntimeBridge:
                 "hierarchy": penrose_hameroff_profile["hierarchy"],
                 "research_boundary": penrose_hameroff_profile["research_boundary"],
             }
+        if hydra_em_gpcn_profile is not None:
+            lvfm["hydra_em_gpcn_profile"] = {
+                "model": hydra_em_gpcn_profile["model"],
+                "source_ids": hydra_em_gpcn_profile["source_ids"],
+                "feature_vector": hydra_em_gpcn_profile["feature_vector"],
+                "feature_dimension": hydra_em_gpcn_profile["feature_dimension"],
+                "axiomatic_container": hydra_em_gpcn_profile["axiomatic_container"],
+                "objective_reduction": hydra_em_gpcn_profile["objective_reduction"],
+                "orchestration": hydra_em_gpcn_profile["orchestration"],
+                "quasicrystal_projection": hydra_em_gpcn_profile["quasicrystal_projection"],
+                "simulation_scores": hydra_em_gpcn_profile["simulation_scores"],
+                "verdict": hydra_em_gpcn_profile["verdict"],
+                "hierarchy": hydra_em_gpcn_profile["hierarchy"],
+                "research_boundary": hydra_em_gpcn_profile["research_boundary"],
+            }
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
             fractal_dimension_min,
@@ -476,6 +525,8 @@ class CerebrumRuntimeBridge:
                 neutro_algebra_payload=neutro_algebra_profile,
                 penrose_hameroff_features=penrose_hameroff_features,
                 penrose_hameroff_payload=penrose_hameroff_profile,
+                hydra_em_gpcn_features=hydra_em_gpcn_features,
+                hydra_em_gpcn_payload=hydra_em_gpcn_profile,
                 precomputed_plugin_payload=plithogenic_topology_plugin_payload,
             )
             qnn_result.pop("bundle", None)
@@ -497,6 +548,7 @@ class CerebrumRuntimeBridge:
             plithogenic_topology=plithogenic_topology_profile,
             neutro_algebra=neutro_algebra_profile,
             penrose_hameroff=penrose_hameroff_profile,
+            hydra_em_gpcn=hydra_em_gpcn_profile,
         )
 
     def _fractal_carrier_payload(

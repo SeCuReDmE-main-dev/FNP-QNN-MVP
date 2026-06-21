@@ -65,3 +65,11 @@ New source-backed study layer: Penrose objective reduction, combinatorial/spin g
 Simulator binding: `penrose_hameroff_enabled=true` attaches `penrose_hameroff_profile` to runtime, LVFM, and QNN payloads. The default runtime remains unchanged.
 
 Public-safe claim: the simulator can compare local coherence metadata with `tau_s = hbar / E_delta`, inspect spin-network admissibility, and append bounded study features for educational experiments. It does not claim physical quantum gravity, consciousness proof, biological validation, clinical behavior, security, or production readiness.
+
+## 2026-06-21 Hydra-EM-GPCN Orch OR Hypothesis Simulator
+
+New bounded study layer: `core/hydra_em_gpcn_math.py` implements a GPCN-Set_phi axiomatic chamber, deterministic quasicrystal-style proxy neighborhoods, MicrotubuleProxy_phi metadata, Hydra-EM-GPCN Orch OR-style profile scoring, and a bounded anesthesia damping sweep.
+
+Simulator binding: the profile is attached to runtime, LVFM, and QNN payloads only when `hydra_em_enabled=true`, `gpcn_set_phi_enabled=true`, and `orch_or_simulation_enabled=true`. The default runtime remains unchanged.
+
+Public-safe claim: the simulator can test hypothetical communication/decoherence verdicts for microtubule-like proxies under computational damping and quasicrystal/plithogenic/neutrosophic metadata. It does not claim biological microtubule validation, anesthesia guidance, consciousness proof, physical quantum-gravity behavior, clinical behavior, security, or production readiness.
