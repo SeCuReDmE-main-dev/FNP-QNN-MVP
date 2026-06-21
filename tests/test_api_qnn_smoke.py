@@ -191,6 +191,76 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertTrue(mean_payload["has_overset_membership"])
         self.assertTrue(mean_payload["has_underset_membership"])
 
+    def test_penrose_hameroff_endpoints_return_bounded_payloads(self):
+        client = TestClient(app)
+
+        status_response = client.get("/fnp-qnn/penrose-hameroff/status")
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["feature"], "penrose-hameroff-study-layer")
+
+        objective_response = client.post(
+            "/fnp-qnn/penrose-hameroff/objective-reduction/profile",
+            json={
+                "objective_reduction_energy_joule": 1.054571817e-34,
+                "reference_time_s": 1.0,
+            },
+        )
+        self.assertEqual(objective_response.status_code, 200)
+        objective = objective_response.json()["profile"]
+        self.assertAlmostEqual(objective["tau_s"], 1.0)
+        self.assertTrue(objective["finite_reduction_threshold"])
+
+        runtime_response = client.post(
+            "/fnp-qnn/penrose-hameroff/runtime/profile",
+            json={
+                "objective_reduction_energy_joule": 1.054571817e-34,
+                "coherence_time_s": 1.0,
+                "anesthetic_damping": 0.1,
+                "microtubule_frequency_hz": 100000000.0,
+                "spin_network_vertices": [[1.0, 1.0, 1.0]],
+                "memories": [
+                    {"modality": "audio", "starting_time": 0.0, "ending_time": 1.0, "value": 0.2},
+                    {"modality": "video", "starting_time": 0.2, "ending_time": 1.2, "value": 0.8},
+                ],
+            },
+        )
+        self.assertEqual(runtime_response.status_code, 200)
+        profile = runtime_response.json()["profile"]
+        self.assertEqual(profile["model"], "penrose_hameroff_runtime_profile_v1")
+        self.assertEqual(profile["feature_dimension"], len(profile["feature_vector"]))
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in profile["feature_vector"]))
+        self.assertIn("not a consciousness proof", profile["research_boundary"])
+
+    def test_qnn_smoke_accepts_penrose_hameroff_opt_in(self):
+        client = TestClient(app)
+
+        baseline = client.post("/qnn/smoke", json={"epochs": 2, "test_size": 0.0})
+        self.assertEqual(baseline.status_code, 200)
+        baseline_dim = baseline.json()["result"]["feature_dimension"]
+
+        response = client.post(
+            "/qnn/smoke",
+            json={
+                "epochs": 2,
+                "test_size": 0.0,
+                "penrose_hameroff_enabled": True,
+                "objective_reduction_energy_joule": 1.054571817e-34,
+                "coherence_time_s": 1.0,
+                "anesthetic_damping": 0.1,
+                "microtubule_frequency_hz": 100000000.0,
+                "spin_network_vertices": [[1.0, 1.0, 1.0]],
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = response.json()["result"]
+        self.assertIn("penrose_hameroff_profile", result)
+        self.assertGreater(result["feature_dimension"], baseline_dim)
+        self.assertEqual(
+            result["penrose_hameroff_profile"]["feature_dimension"],
+            len(result["penrose_hameroff_profile"]["feature_vector"]),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

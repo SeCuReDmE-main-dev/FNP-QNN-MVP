@@ -30,6 +30,12 @@ Boundary: alpha-local educational research simulator only. No clinical, diagnost
 | `FRACTAL_LOCAL` | `C:\Users\jeans\Desktop\livre pdf\Fractal_NeutroGeometry_Livre_V2_chapters_1_to_7.pdf` | Local manuscript source |
 | `NODE734_LOCAL` | `C:\Users\jeans\Desktop\Docs\pdf\livre\complain of quantum node #734\Complain-of-Quantum-Node-734{{ final }} .pdf` | Local manuscript source |
 | `LOCAL_RUNTIME` | Repository runtime contract | Local clean-room implementation source |
+| `PENROSE_GRAVITY_REDUCTION_1996` | `https://link.springer.com/article/10.1007/BF02105068` | Penrose objective-reduction source |
+| `PENROSE_QC_ENTANGLEMENT_REDUCTION_1998` | `https://royalsocietypublishing.org/doi/pdf/10.1098/rsta.1998.0256` | Penrose quantum computation / reduction source |
+| `PENROSE_GRAVITIZATION_QM_2014` | `https://link.springer.com/article/10.1007/s10701-013-9770-0` and `https://link.springer.com/article/10.1007/s10701-013-9763-z` | Penrose gravitization of quantum mechanics source |
+| `PENROSE_BELL_NONLOCALITY_2015` | `https://ijqf.org/wp-content/uploads/2015/01/Penrose-Bell-paper.pdf` | Penrose Bell nonlocality / twistor-context source |
+| `PENROSE_SPIN_NETWORK_SOURCES` | `https://math.ucr.edu/home/baez/penrose/Penrose-AngularMomentum.pdf`, `https://math.ucr.edu/home/baez/penrose/Penrose-OnTheNatureOfQuantumGeometry.pdf`, `https://math.ucr.edu/home/baez/penrose/Penrose-ApplicationsOfNegativeDimensionalTensors.pdf`, `https://math.ucr.edu/home/baez/penrose/Penrose-CombinatorialQuantumTheoryAndQuantizedDirections.pdf` | Penrose spin/combinatorial geometry sources |
+| `HAMEROFF_PENROSE_ORCH_OR_2014` | `https://pubmed.ncbi.nlm.nih.gov/24070914/` and `https://hameroff.arizona.edu/research-overview/orch-or` | Hameroff/Penrose Orch OR review and official publication list |
 
 ## Function Registry
 
@@ -80,6 +86,8 @@ Boundary: alpha-local educational research simulator only. No clinical, diagnost
 | `FfeDPluginBridge.run_mvp5()` | `core/ffed_plugin_bridge.py` | `NODE734_LOCAL`, `FRACTAL_LOCAL`, local pluginpack when available | Optional `plugin_hook_enabled`; maps plugin signals into local carrier metadata | `tests/test_ffed_plugin_bridge.py`, `tests/test_neurobit_gate_tunnel.py`, `tests/test_api_qnn_smoke.py` |
 | `build_plugin_payload_from_results()` | `core/ffed_plugin_bridge.py` | `NODE734_LOCAL`, `FRACTAL_LOCAL` | Plugin trace payload and impact verification | `tests/test_ffed_plugin_bridge.py` |
 | `CPAIMeshState`, `cpai_mesh_profile()` | `core/cpai_mesh.py` | `LOCAL_RUNTIME` | Optional `cpai_context`, routing decision, Datadog metric contract | `tests/test_cpai_mesh.py`, `tests/test_ffed_plugin_bridge.py`, `tests/test_api_qnn_smoke.py` |
+| `objective_reduction_profile()`, `orchestration_profile()`, `spin_network_admissibility_profile()`, `twistor_nonlocality_profile()`, `microtubule_signal_profile()` | `core/penrose_hameroff_math.py` | `PENROSE_GRAVITY_REDUCTION_1996`, `PENROSE_QC_ENTANGLEMENT_REDUCTION_1998`, `PENROSE_GRAVITIZATION_QM_2014`, `PENROSE_BELL_NONLOCALITY_2015`, `PENROSE_SPIN_NETWORK_SOURCES`, `HAMEROFF_PENROSE_ORCH_OR_2014` | Pure bounded Penrose/Hameroff study primitives for objective reduction timing, orchestration comparison, spin-network admissibility, nonlocality context, and microtubule metadata | `tests/test_penrose_hameroff_math.py` |
+| `penrose_hameroff_runtime_profile()` | `core/penrose_hameroff_math.py` | Composite Penrose/Hameroff source set plus `LOCAL_RUNTIME` | `POST /fnp-qnn/penrose-hameroff/runtime/profile`; optional runtime/LVFM/QNN metadata when `penrose_hameroff_enabled=true`; no default physics-engine behavior change | `tests/test_penrose_hameroff_math.py`, `tests/test_cerebrum_runtime_bridge.py`, `tests/test_api_qnn_smoke.py` |
 
 ## Guardrail
 

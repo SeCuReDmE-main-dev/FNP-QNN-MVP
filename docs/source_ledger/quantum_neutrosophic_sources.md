@@ -57,3 +57,11 @@ Guardrail baseline: the full function-to-source registry now lives in `docs/sour
 ## Append-Only Update Rule
 
 From the 2026-06-18 baseline forward, this ledger should record only new mathematical sources, new simulator functions, and new public-safe claims. Do not relist already-covered source/function mappings in every future update. Use `math_function_source_guardrail.md` as the canonical baseline.
+
+## 2026-06-21 Penrose/Hameroff Study Layer
+
+New source-backed study layer: Penrose objective reduction, combinatorial/spin geometry, twistor/nonlocality context, and Hameroff/Penrose Orch OR-style microtubule metadata are implemented as bounded opt-in simulator profiles in `core/penrose_hameroff_math.py`.
+
+Simulator binding: `penrose_hameroff_enabled=true` attaches `penrose_hameroff_profile` to runtime, LVFM, and QNN payloads. The default runtime remains unchanged.
+
+Public-safe claim: the simulator can compare local coherence metadata with `tau_s = hbar / E_delta`, inspect spin-network admissibility, and append bounded study features for educational experiments. It does not claim physical quantum gravity, consciousness proof, biological validation, clinical behavior, security, or production readiness.

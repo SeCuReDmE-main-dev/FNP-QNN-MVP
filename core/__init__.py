@@ -39,6 +39,14 @@ from .neutrosophic_quantum_primitives import (
     punctured_surface_state,
     punctured_wave_state,
 )
+from .penrose_hameroff_math import (
+    microtubule_signal_profile,
+    objective_reduction_profile,
+    orchestration_profile,
+    penrose_hameroff_runtime_profile,
+    spin_network_admissibility_profile,
+    twistor_nonlocality_profile,
+)
 from .neutro_algebra import (
     neutro_axiom_profile,
     neutro_function_profile,
@@ -129,6 +137,12 @@ __all__ = [
     "partial_entanglement_profile",
     "punctured_surface_state",
     "punctured_wave_state",
+    "microtubule_signal_profile",
+    "objective_reduction_profile",
+    "orchestration_profile",
+    "penrose_hameroff_runtime_profile",
+    "spin_network_admissibility_profile",
+    "twistor_nonlocality_profile",
     "neutro_axiom_profile",
     "neutro_function_profile",
     "neutro_operation_table_profile",

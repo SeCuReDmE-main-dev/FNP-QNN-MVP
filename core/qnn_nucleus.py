@@ -149,6 +149,8 @@ class QNNNucleus:
         plithogenic_topology_payload: Optional[Dict[str, Any]] = None,
         neutro_algebra_features: Optional[Sequence[float]] = None,
         neutro_algebra_payload: Optional[Dict[str, Any]] = None,
+        penrose_hameroff_features: Optional[Sequence[float]] = None,
+        penrose_hameroff_payload: Optional[Dict[str, Any]] = None,
         precomputed_plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
@@ -167,6 +169,7 @@ class QNNNucleus:
         external_features.extend(list(revolutionary_topology_features or []))
         external_features.extend(list(plithogenic_topology_features or []))
         external_features.extend(list(neutro_algebra_features or []))
+        external_features.extend(list(penrose_hameroff_features or []))
         plugin_kwargs = {
             "plugin_features": external_features or None,
             "plugin_payload": plugin_payload,
@@ -196,6 +199,7 @@ class QNNNucleus:
                 self._attach_revolutionary_topology_payload(result, revolutionary_topology_payload)
                 self._attach_plithogenic_topology_payload(result, plithogenic_topology_payload)
                 self._attach_neutro_algebra_payload(result, neutro_algebra_payload)
+                self._attach_penrose_hameroff_payload(result, penrose_hameroff_payload)
                 return result
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -216,6 +220,7 @@ class QNNNucleus:
                 self._attach_revolutionary_topology_payload(fallback, revolutionary_topology_payload)
                 self._attach_plithogenic_topology_payload(fallback, plithogenic_topology_payload)
                 self._attach_neutro_algebra_payload(fallback, neutro_algebra_payload)
+                self._attach_penrose_hameroff_payload(fallback, penrose_hameroff_payload)
                 return fallback
         result = self.fit_surrogate(
             [raw_events],
@@ -233,6 +238,7 @@ class QNNNucleus:
         self._attach_revolutionary_topology_payload(result, revolutionary_topology_payload)
         self._attach_plithogenic_topology_payload(result, plithogenic_topology_payload)
         self._attach_neutro_algebra_payload(result, neutro_algebra_payload)
+        self._attach_penrose_hameroff_payload(result, penrose_hameroff_payload)
         return result
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -847,6 +853,27 @@ class QNNNucleus:
                 "runtime_mapping": neutro_structure_payload["runtime_mapping"],
                 "hierarchy": neutro_structure_payload["hierarchy"],
             }
+
+    def _attach_penrose_hameroff_payload(
+        self,
+        result: Dict[str, Any],
+        penrose_hameroff_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not penrose_hameroff_payload:
+            return
+        result["penrose_hameroff_profile"] = {
+            "model": penrose_hameroff_payload["model"],
+            "source_ids": penrose_hameroff_payload["source_ids"],
+            "feature_vector": penrose_hameroff_payload["feature_vector"],
+            "feature_dimension": penrose_hameroff_payload["feature_dimension"],
+            "objective_reduction": penrose_hameroff_payload["objective_reduction"],
+            "orchestration": penrose_hameroff_payload["orchestration"],
+            "spin_network": penrose_hameroff_payload["spin_network"],
+            "twistor_nonlocality": penrose_hameroff_payload["twistor_nonlocality"],
+            "microtubule_signal": penrose_hameroff_payload["microtubule_signal"],
+            "hierarchy": penrose_hameroff_payload["hierarchy"],
+            "research_boundary": penrose_hameroff_payload["research_boundary"],
+        }
 
     def _fractal_carrier_payload(
         self,

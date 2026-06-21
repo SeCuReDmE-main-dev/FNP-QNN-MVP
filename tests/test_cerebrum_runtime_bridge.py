@@ -322,6 +322,47 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
             state.neutro_algebra["structure_system_profile"]["feature_dimension"],
         )
 
+    def test_penrose_hameroff_runtime_layer_is_opt_in(self):
+        default_state = self.bridge.build_state(self.bridge.default_payload())
+        enabled_state = self.bridge.build_state(
+            self.bridge.default_payload(),
+            penrose_hameroff_enabled=True,
+            objective_reduction_energy_joule=1.054571817e-34,
+            coherence_time_s=1.0,
+            anesthetic_damping=0.1,
+            microtubule_frequency_hz=1e8,
+            spin_network_vertices=[[1.0, 1.0, 1.0]],
+        )
+
+        self.assertIsNone(default_state.penrose_hameroff)
+        self.assertNotIn("penrose_hameroff", default_state.to_dict())
+        self.assertIsNotNone(enabled_state.penrose_hameroff)
+        self.assertIn("penrose_hameroff", enabled_state.to_dict())
+        self.assertIn("penrose_hameroff_profile", enabled_state.lvfm)
+        self.assertGreater(enabled_state.feature_vector.shape[0], default_state.feature_vector.shape[0])
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in enabled_state.penrose_hameroff["feature_vector"]))
+
+    def test_penrose_hameroff_features_reach_qnn_when_enabled(self):
+        nucleus = QNNNucleus(adapter=self.bridge.adapter)
+        state = self.bridge.build_state(
+            self.bridge.default_payload(),
+            qnn_nucleus=nucleus,
+            max_epochs=2,
+            penrose_hameroff_enabled=True,
+            objective_reduction_energy_joule=1.054571817e-34,
+            coherence_time_s=1.0,
+            anesthetic_damping=0.1,
+            microtubule_frequency_hz=1e8,
+            spin_network_vertices=[[1.0, 1.0, 1.0]],
+        )
+
+        self.assertIsNotNone(state.qnn_result)
+        self.assertIn("penrose_hameroff_profile", state.qnn_result)
+        self.assertEqual(
+            state.qnn_result["penrose_hameroff_profile"]["feature_dimension"],
+            state.penrose_hameroff["feature_dimension"],
+        )
+
     def test_life_science_statefield_port_is_opt_in(self):
         port = LifeScienceObservationPort()
         observations = port.statefield_to_observations({"mu": [0.2, 0.7], "nu": [0.1, 0.2], "pi": [0.7, 0.1]})

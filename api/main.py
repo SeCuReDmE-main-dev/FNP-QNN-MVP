@@ -6,8 +6,6 @@ import json
 import os
 import sys
 from typing import Any, Dict, List, Optional, Sequence
-
-import numpy as np
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -28,6 +26,7 @@ from api.schemas import (
     NidusTripletProfileRequest,
     NeuroBitProfileRequest,
     NeuroBitTunnelRequest,
+    PenroseHameroffObjectiveReductionRequest,
     QNNSmokeRequest,
     RuntimeRunRequest,
 )
@@ -40,7 +39,9 @@ from core import (
     PhiFramework,
     QNNNucleus,
     RuntimeStateStore,
+    objective_reduction_profile,
     partial_membership_mean,
+    penrose_hameroff_runtime_profile,
     plithogenic_runtime_fusion_profile,
     revolutionary_topology_runtime_profile,
     run_neurobit_gates,
@@ -238,6 +239,12 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         plithogenic_enabled=bool((payload or {}).get("plithogenic_enabled", False)),
         revolutionary_topology_enabled=bool((payload or {}).get("revolutionary_topology_enabled", False)),
         neutro_algebra_enabled=bool((payload or {}).get("neutro_algebra_enabled", False)),
+        penrose_hameroff_enabled=bool((payload or {}).get("penrose_hameroff_enabled", False)),
+        objective_reduction_energy_joule=(payload or {}).get("objective_reduction_energy_joule"),
+        coherence_time_s=(payload or {}).get("coherence_time_s"),
+        anesthetic_damping=(payload or {}).get("anesthetic_damping"),
+        microtubule_frequency_hz=(payload or {}).get("microtubule_frequency_hz"),
+        spin_network_vertices=(payload or {}).get("spin_network_vertices"),
     )
     result = state.to_dict()
     if run_qnn:
@@ -399,6 +406,18 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
     labels = payload.labels
     if not samples or not labels:
         samples, labels = build_demo_samples()
+    penrose_hameroff_profile = None
+    if payload.penrose_hameroff_enabled:
+        events, pairs, _warnings = cerebrum_runtime_bridge.ingest({"memories": samples[0]})
+        penrose_hameroff_profile = penrose_hameroff_runtime_profile(
+            events,
+            pairs,
+            objective_reduction_energy_joule=payload.objective_reduction_energy_joule,
+            coherence_time_s=payload.coherence_time_s,
+            anesthetic_damping=payload.anesthetic_damping,
+            microtubule_frequency_hz=payload.microtubule_frequency_hz,
+            spin_network_vertices=payload.spin_network_vertices,
+        )
     result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
         samples[0],
         label=float(labels[0]) if labels else 1.0,
@@ -418,6 +437,8 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         plugin_context=payload.plugin_context,
         cpai_context=payload.cpai_context,
         include_plugin_trace=payload.include_plugin_trace,
+        penrose_hameroff_features=None if penrose_hameroff_profile is None else penrose_hameroff_profile["feature_vector"],
+        penrose_hameroff_payload=penrose_hameroff_profile,
     ))
     return {
         "status": "ok",
@@ -482,6 +503,63 @@ async def nidus_status() -> Dict[str, Any]:
             "alpha-local educational simulation only; not clinical, diagnostic, "
             "therapeutic, security, production-public, or validated physical behavior"
         ),
+    }
+
+
+@app.get("/fnp-qnn/penrose-hameroff/status")
+async def penrose_hameroff_status() -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "mode": "alpha-local-research",
+        "feature": "penrose-hameroff-study-layer",
+        "available_primitives": [
+            "objective_reduction_profile",
+            "orchestration_profile",
+            "spin_network_admissibility_profile",
+            "twistor_nonlocality_profile",
+            "microtubule_signal_profile",
+            "penrose_hameroff_runtime_profile",
+        ],
+        "endpoints": [
+            "POST /fnp-qnn/penrose-hameroff/objective-reduction/profile",
+            "POST /fnp-qnn/penrose-hameroff/runtime/profile",
+        ],
+        "hierarchy": "I -> I_system^S -> D_f -> dF -> i_fractal",
+        "research_boundary": (
+            "alpha-local educational simulation only; not a consciousness proof, clinical system, "
+            "physical quantum-gravity engine, security system, or production-public claim"
+        ),
+    }
+
+
+@app.post("/fnp-qnn/penrose-hameroff/objective-reduction/profile")
+async def penrose_hameroff_objective_reduction_profile(
+    payload: PenroseHameroffObjectiveReductionRequest,
+) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": objective_reduction_profile(
+            payload.objective_reduction_energy_joule,
+            reference_time_s=payload.reference_time_s,
+        ),
+    }
+
+
+@app.post("/fnp-qnn/penrose-hameroff/runtime/profile")
+async def penrose_hameroff_runtime_profile_endpoint(payload: RuntimeRunRequest) -> Dict[str, Any]:
+    events, pairs, warnings = cerebrum_runtime_bridge.ingest(_runtime_payload(payload.to_runtime_payload()))
+    return {
+        "status": "ok",
+        "profile": penrose_hameroff_runtime_profile(
+            events,
+            pairs,
+            objective_reduction_energy_joule=payload.objective_reduction_energy_joule,
+            coherence_time_s=payload.coherence_time_s,
+            anesthetic_damping=payload.anesthetic_damping,
+            microtubule_frequency_hz=payload.microtubule_frequency_hz,
+            spin_network_vertices=payload.spin_network_vertices,
+        ),
+        "warnings": warnings,
     }
 
 
@@ -635,11 +713,29 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             plugin_context=request.plugin_context,
             cpai_context=request.cpai_context,
             include_plugin_trace=request.include_plugin_trace,
+            penrose_hameroff_enabled=request.penrose_hameroff_enabled,
+            objective_reduction_energy_joule=request.objective_reduction_energy_joule,
+            coherence_time_s=request.coherence_time_s,
+            anesthetic_damping=request.anesthetic_damping,
+            microtubule_frequency_hz=request.microtubule_frequency_hz,
+            spin_network_vertices=request.spin_network_vertices,
         )
         samples = qnn_request.dump_samples()
         labels = qnn_request.labels
         if not samples or not labels:
             samples, labels = build_demo_samples()
+        penrose_hameroff_profile = None
+        if qnn_request.penrose_hameroff_enabled:
+            events, pairs, _warnings = cerebrum_runtime_bridge.ingest({"memories": samples[0]})
+            penrose_hameroff_profile = penrose_hameroff_runtime_profile(
+                events,
+                pairs,
+                objective_reduction_energy_joule=qnn_request.objective_reduction_energy_joule,
+                coherence_time_s=qnn_request.coherence_time_s,
+                anesthetic_damping=qnn_request.anesthetic_damping,
+                microtubule_frequency_hz=qnn_request.microtubule_frequency_hz,
+                spin_network_vertices=qnn_request.spin_network_vertices,
+            )
         result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
             samples[0],
             label=float(labels[0]),
@@ -659,6 +755,8 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             plugin_context=qnn_request.plugin_context,
             cpai_context=qnn_request.cpai_context,
             include_plugin_trace=qnn_request.include_plugin_trace,
+            penrose_hameroff_features=None if penrose_hameroff_profile is None else penrose_hameroff_profile["feature_vector"],
+            penrose_hameroff_payload=penrose_hameroff_profile,
         ))
         return CommandResponse(
             success=True,

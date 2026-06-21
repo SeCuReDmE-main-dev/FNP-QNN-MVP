@@ -15,7 +15,7 @@ import json
 from importlib.util import find_spec
 from pathlib import Path
 import tempfile
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -25,6 +25,7 @@ from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
 from .neutrosophic_quantum_primitives import fractal_carrier_profile
 from .neutro_algebra import neutroalgebra_runtime_profile
 from .neutro_structure import runtime_neutrostructure_profile
+from .penrose_hameroff_math import penrose_hameroff_runtime_profile
 from .plithogenic_logic import plithogenic_runtime_fusion_profile
 from .plithogenic_probability_statistics import plithogenic_topology_wiring_profile
 from .qnn_nucleus import QNNNucleus
@@ -160,6 +161,7 @@ class CerebrumRuntimeState:
     revolutionary_topology: Optional[Dict[str, Any]] = None
     plithogenic_topology: Optional[Dict[str, Any]] = None
     neutro_algebra: Optional[Dict[str, Any]] = None
+    penrose_hameroff: Optional[Dict[str, Any]] = None
 
     def to_dict(self, include_bundle: bool = True) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -181,6 +183,8 @@ class CerebrumRuntimeState:
             payload["plithogenic_topology"] = self.plithogenic_topology
         if self.neutro_algebra is not None:
             payload["neutro_algebra"] = self.neutro_algebra
+        if self.penrose_hameroff is not None:
+            payload["penrose_hameroff"] = self.penrose_hameroff
         if include_bundle:
             payload["bundle"] = {
                 "sequence_length": self.feature_bundle.sequence_length,
@@ -260,6 +264,12 @@ class CerebrumRuntimeBridge:
         plithogenic_enabled: bool = False,
         revolutionary_topology_enabled: bool = False,
         neutro_algebra_enabled: bool = False,
+        penrose_hameroff_enabled: bool = False,
+        objective_reduction_energy_joule: Optional[float] = None,
+        coherence_time_s: Optional[float] = None,
+        anesthetic_damping: Optional[float] = None,
+        microtubule_frequency_hz: Optional[float] = None,
+        spin_network_vertices: Optional[Sequence[Sequence[float]]] = None,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
@@ -329,6 +339,20 @@ class CerebrumRuntimeBridge:
                 )
             ]
             vector = np.concatenate([vector, np.asarray(neutro_algebra_features, dtype=np.float32)]).astype(np.float32)
+        penrose_hameroff_profile = None
+        penrose_hameroff_features: Optional[List[float]] = None
+        if penrose_hameroff_enabled:
+            penrose_hameroff_profile = penrose_hameroff_runtime_profile(
+                events,
+                pairs,
+                objective_reduction_energy_joule=objective_reduction_energy_joule,
+                coherence_time_s=coherence_time_s,
+                anesthetic_damping=anesthetic_damping,
+                microtubule_frequency_hz=microtubule_frequency_hz,
+                spin_network_vertices=spin_network_vertices,
+            )
+            penrose_hameroff_features = [float(item) for item in penrose_hameroff_profile["feature_vector"]]
+            vector = np.concatenate([vector, np.asarray(penrose_hameroff_features, dtype=np.float32)]).astype(np.float32)
         lvfm = self._build_lvfm_snapshot(events, pairs)
         if plithogenic_profile is not None:
             lvfm["plithogenic_fusion_profile"] = {
@@ -395,6 +419,20 @@ class CerebrumRuntimeBridge:
                     "runtime_mapping": neutro_structure_profile["runtime_mapping"],
                     "hierarchy": neutro_structure_profile["hierarchy"],
                 }
+        if penrose_hameroff_profile is not None:
+            lvfm["penrose_hameroff_profile"] = {
+                "model": penrose_hameroff_profile["model"],
+                "source_ids": penrose_hameroff_profile["source_ids"],
+                "feature_vector": penrose_hameroff_profile["feature_vector"],
+                "feature_dimension": penrose_hameroff_profile["feature_dimension"],
+                "objective_reduction": penrose_hameroff_profile["objective_reduction"],
+                "orchestration": penrose_hameroff_profile["orchestration"],
+                "spin_network": penrose_hameroff_profile["spin_network"],
+                "twistor_nonlocality": penrose_hameroff_profile["twistor_nonlocality"],
+                "microtubule_signal": penrose_hameroff_profile["microtubule_signal"],
+                "hierarchy": penrose_hameroff_profile["hierarchy"],
+                "research_boundary": penrose_hameroff_profile["research_boundary"],
+            }
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
             fractal_dimension_min,
@@ -436,6 +474,8 @@ class CerebrumRuntimeBridge:
                 plithogenic_topology_payload=plithogenic_topology_profile,
                 neutro_algebra_features=neutro_algebra_features,
                 neutro_algebra_payload=neutro_algebra_profile,
+                penrose_hameroff_features=penrose_hameroff_features,
+                penrose_hameroff_payload=penrose_hameroff_profile,
                 precomputed_plugin_payload=plithogenic_topology_plugin_payload,
             )
             qnn_result.pop("bundle", None)
@@ -456,6 +496,7 @@ class CerebrumRuntimeBridge:
             revolutionary_topology=revolutionary_topology_profile,
             plithogenic_topology=plithogenic_topology_profile,
             neutro_algebra=neutro_algebra_profile,
+            penrose_hameroff=penrose_hameroff_profile,
         )
 
     def _fractal_carrier_payload(

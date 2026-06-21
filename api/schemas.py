@@ -96,6 +96,12 @@ class RuntimeRunRequest(BaseModel):
     plithogenic_enabled: bool = False
     revolutionary_topology_enabled: bool = False
     neutro_algebra_enabled: bool = False
+    penrose_hameroff_enabled: bool = False
+    objective_reduction_energy_joule: Optional[float] = None
+    coherence_time_s: Optional[float] = Field(default=None, ge=0.0)
+    anesthetic_damping: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    microtubule_frequency_hz: Optional[float] = Field(default=None, ge=0.0)
+    spin_network_vertices: Optional[List[List[float]]] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -114,12 +120,34 @@ class RuntimeRunRequest(BaseModel):
     def validate_label(cls, value: float) -> float:
         return _finite(value, "label")
 
-    @field_validator("fractal_dimension", "fractal_dimension_min", "fractal_dimension_max")
+    @field_validator(
+        "fractal_dimension",
+        "fractal_dimension_min",
+        "fractal_dimension_max",
+        "objective_reduction_energy_joule",
+        "coherence_time_s",
+        "anesthetic_damping",
+        "microtubule_frequency_hz",
+    )
     @classmethod
     def validate_fractal_numbers(cls, value: Optional[float], info):
         if value is None:
             return value
         return _finite(value, info.field_name)
+
+    @field_validator("spin_network_vertices")
+    @classmethod
+    def validate_spin_network_vertices(cls, value: Optional[List[List[float]]]):
+        if value is None:
+            return value
+        if len(value) > MAX_EVENTS:
+            raise ValueError(f"At most {MAX_EVENTS} spin vertices are accepted")
+        for vertex in value:
+            if len(vertex) != 3:
+                raise ValueError("spin network vertices must contain exactly three labels")
+            for label in vertex:
+                _finite(label, "spin_network_vertices")
+        return value
 
     def to_runtime_payload(self) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -136,6 +164,8 @@ class RuntimeRunRequest(BaseModel):
         payload["plithogenic_enabled"] = self.plithogenic_enabled
         payload["revolutionary_topology_enabled"] = self.revolutionary_topology_enabled
         payload["neutro_algebra_enabled"] = self.neutro_algebra_enabled
+        payload["penrose_hameroff_enabled"] = self.penrose_hameroff_enabled
+        payload.update(self.penrose_hameroff_payload())
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:
@@ -169,6 +199,20 @@ class RuntimeRunRequest(BaseModel):
             payload["fractal_scale"] = self.fractal_scale
         return payload
 
+    def penrose_hameroff_payload(self) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {}
+        if self.objective_reduction_energy_joule is not None:
+            payload["objective_reduction_energy_joule"] = self.objective_reduction_energy_joule
+        if self.coherence_time_s is not None:
+            payload["coherence_time_s"] = self.coherence_time_s
+        if self.anesthetic_damping is not None:
+            payload["anesthetic_damping"] = self.anesthetic_damping
+        if self.microtubule_frequency_hz is not None:
+            payload["microtubule_frequency_hz"] = self.microtubule_frequency_hz
+        if self.spin_network_vertices is not None:
+            payload["spin_network_vertices"] = self.spin_network_vertices
+        return payload
+
 
 class EncodeRequest(BaseModel):
     observations: List[Observation] = Field(default_factory=list)
@@ -200,6 +244,12 @@ class QNNSmokeRequest(BaseModel):
     plugin_context: Dict[str, Any] = Field(default_factory=dict)
     cpai_context: Dict[str, Any] = Field(default_factory=dict)
     include_plugin_trace: bool = True
+    penrose_hameroff_enabled: bool = False
+    objective_reduction_energy_joule: Optional[float] = None
+    coherence_time_s: Optional[float] = Field(default=None, ge=0.0)
+    anesthetic_damping: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    microtubule_frequency_hz: Optional[float] = Field(default=None, ge=0.0)
+    spin_network_vertices: Optional[List[List[float]]] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -218,18 +268,51 @@ class QNNSmokeRequest(BaseModel):
             raise ValueError(f"At most {MAX_EVENTS} samples are accepted")
         return self
 
-    @field_validator("fractal_dimension", "fractal_dimension_min", "fractal_dimension_max")
+    @field_validator(
+        "fractal_dimension",
+        "fractal_dimension_min",
+        "fractal_dimension_max",
+        "objective_reduction_energy_joule",
+        "coherence_time_s",
+        "anesthetic_damping",
+        "microtubule_frequency_hz",
+    )
     @classmethod
     def validate_fractal_numbers(cls, value: Optional[float], info):
         if value is None:
             return value
         return _finite(value, info.field_name)
 
+    @field_validator("spin_network_vertices")
+    @classmethod
+    def validate_qnn_spin_network_vertices(cls, value: Optional[List[List[float]]]):
+        if value is None:
+            return value
+        if len(value) > MAX_EVENTS:
+            raise ValueError(f"At most {MAX_EVENTS} spin vertices are accepted")
+        for vertex in value:
+            if len(vertex) != 3:
+                raise ValueError("spin network vertices must contain exactly three labels")
+            for label in vertex:
+                _finite(label, "spin_network_vertices")
+        return value
+
     def dump_samples(self) -> Optional[List[List[Dict[str, Any]]]]:
         if self.samples is None:
             return None
         return [[event.model_dump(exclude_none=True) for event in sample] for sample in self.samples]
 
+
+class PenroseHameroffObjectiveReductionRequest(BaseModel):
+    objective_reduction_energy_joule: float
+    reference_time_s: Optional[float] = Field(default=None, ge=0.0)
+
+    @field_validator("objective_reduction_energy_joule", "reference_time_s")
+    @classmethod
+    def validate_objective_reduction_numbers(cls, value: Optional[float], info):
+        if value is None:
+            return value
+        return _finite(value, info.field_name)
 
 class NeuroBitProfileRequest(BaseModel):
     truth: float = Field(default=0.55, ge=0.0)
@@ -442,6 +525,12 @@ class CommandRequest(BaseModel):
     cpai_context: Dict[str, Any] = Field(default_factory=dict)
     include_plugin_trace: bool = True
     neurobit: Optional[NeuroBitTunnelRequest] = None
+    penrose_hameroff_enabled: bool = False
+    objective_reduction_energy_joule: Optional[float] = None
+    coherence_time_s: Optional[float] = Field(default=None, ge=0.0)
+    anesthetic_damping: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    microtubule_frequency_hz: Optional[float] = Field(default=None, ge=0.0)
+    spin_network_vertices: Optional[List[List[float]]] = None
 
     @model_validator(mode="before")
     @classmethod
