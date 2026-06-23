@@ -11,6 +11,7 @@ from fnp_qnn_cli.auth import AUTH_HOME_ENV, login, logout, status, validate_toke
 from fnp_qnn_cli.celebrum import celebrum_clip_function
 from fnp_qnn_cli.doctor import run_doctor
 from fnp_qnn_cli.external_ai import control_simulator, inspect_openclaw, simulator_control_tasks
+from fnp_qnn_cli.gateway_bridge import gateway_deepsearch_skill
 from fnp_qnn_cli.mcp_bridge import mcp_control_simulator, provider_connection_status
 from fnp_qnn_cli.mcp_server import handle_request
 from fnp_qnn_cli.main import main
@@ -198,6 +199,79 @@ class CLITuiDoctorTests(unittest.TestCase):
                     os.environ.pop(AUTH_HOME_ENV, None)
                 else:
                     os.environ[AUTH_HOME_ENV] = old_home
+
+    def test_gateway_deepsearch_bridge_routes_ollama_native(self):
+        payload = gateway_deepsearch_skill(query="validate research", system="ollama-cloud")
+        self.assertTrue(payload["success"], payload)
+        self.assertEqual(payload["search_route"]["route"], "ollama-cloud-web-search")
+        self.assertFalse(payload["search_route"]["fallback_used"])
+        self.assertEqual(payload["simulator_gateway_block"]["entrypoint"], "fnp-qnn")
+        self.assertFalse(payload["raw_secret_stored"])
+
+    def test_gateway_deepsearch_cli_from_simulator(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(
+                [
+                    "--json",
+                    "gateway",
+                    "deepsearch-skill",
+                    "--query",
+                    "validate research",
+                    "--system",
+                    "ollama-cloud",
+                    "--dry-run",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(payload["search_route"]["route"], "ollama-cloud-web-search")
+        self.assertEqual(payload["simulator_gateway_block"]["delegated_to"], "fnpqnn_gateway_mvp.deepsearch_skill")
+
+    def test_function_deepsearch_cli_falls_back_for_docker(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(
+                [
+                    "--json",
+                    "function",
+                    "deepsearch",
+                    "--query",
+                    "validate research",
+                    "--system",
+                    "docker",
+                    "--dry-run",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(stdout.getvalue())
+        self.assertTrue(payload["search_route"]["fallback_used"])
+        self.assertEqual(payload["search_route"]["route"], "antigravity-gemini-google-search")
+
+    def test_skill_function_deepsearch_write_creates_gateway_contract(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            stdout = io.StringIO()
+            with contextlib.redirect_stdout(stdout):
+                exit_code = main(
+                    [
+                        "--json",
+                        "skill",
+                        "function",
+                        "deepsearch",
+                        "--query",
+                        "validate research",
+                        "--system",
+                        "antigravity",
+                        "--workspace",
+                        tmpdir,
+                        "--write",
+                    ]
+                )
+            self.assertEqual(exit_code, 0)
+            payload = json.loads(stdout.getvalue())
+            self.assertTrue(Path(payload["paths"]["contract_json"]).exists())
+            self.assertTrue(Path(payload["paths"]["contract_markdown"]).exists())
+            self.assertFalse((Path(tmpdir) / ".env").exists())
 
     def test_celebrum_clip_redacts_secret_keys(self):
         payload = celebrum_clip_function({"token": "abc", "nested": {"api_key": "secret", "value": 1}})

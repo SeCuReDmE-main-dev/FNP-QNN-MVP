@@ -86,6 +86,9 @@ fnp-qnn cloud-kit e2b-ingest-plan --source https://example.com/data.csv --title 
 fnp-qnn cloud-kit rag-keygen
 fnp-qnn cloud-kit rag-runtime --title "Admitted summary" --source e2b://sandbox/result --content "Sanitized summary only."
 fnp-qnn ffed p114-consensus --item "verified evidence passed" --item "partial risk pending"
+fnp-qnn gateway deepsearch-skill --query "validate this research" --system ollama-cloud --dry-run
+fnp-qnn function deepsearch --query "validate this research" --system docker --dry-run
+fnp-qnn skill function deepsearch --query "validate this research" --last-auth --write
 fnp-qnn tui
 ```
 
@@ -178,6 +181,21 @@ Codex connection intent:
   simulator, create simulator-facing skills, build gateway plans, and feed
   approved RAG admissions into LVFM, while the simulator still validates and
   interprets the payload.
+- Simulator-side gateway commands such as `gateway deepsearch-skill`,
+  `function deepsearch`, and `skill function deepsearch` delegate to the
+  separate `fnpqnn_gateway_MVP` package when installed or present as the repo
+  sibling. The gateway owns authlog/provider routing; the simulator remains the
+  user-facing entrypoint and downstream RAG/LVFM consumer.
+
+Native deepsearch routing:
+
+- `ollama-cloud` uses `ollama-cloud-web-search`.
+- `google` and `antigravity` use `antigravity-gemini-google-search`.
+- Providers without a declared native web-search surface, such as Docker or
+  Datadog, fall back to `antigravity-gemini-google-search`.
+- Contracts are written only when `--write` is used and remain under
+  `.fnpqnn_gateway/deepsearch`; raw tokens, cookies, API keys, and dotenv
+  material are not stored.
 
 After provider login, onboarding is explicit and approval-gated:
 

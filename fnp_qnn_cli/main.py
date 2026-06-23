@@ -21,6 +21,7 @@ from .external_ai import (
     inspect_openclaw,
     simulator_control_tasks,
 )
+from .gateway_bridge import gateway_deepsearch_skill
 from .operator import alpha_command, api_serve_command, panel_serve_command, run_operator_command, tests_command
 from .tui import BRAND_FACTS, RETRO_82_FLASH
 from .mcp_bridge import mcp_control_simulator, mcp_manifest, provider_connection_status
@@ -80,6 +81,18 @@ def _emit(payload: dict[str, Any], as_json: bool) -> int:
     else:
         _print_text(payload)
     return 0 if payload.get("success", True) else 1
+
+
+def _add_deepsearch_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--query", required=True)
+    parser.add_argument("--research-goal")
+    parser.add_argument("--workspace", default=".")
+    parser.add_argument("--system")
+    parser.add_argument("--last-auth", action="store_true")
+    parser.add_argument("--fingerprint")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--force", action="store_true")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -149,6 +162,14 @@ def build_parser() -> argparse.ArgumentParser:
     mcp_call.add_argument("--timeout", type=int, default=300)
     mcp_call.add_argument("--prompt")
     mcp_sub.add_parser("serve", help="Run the stdio MCP server.")
+
+    gateway = subparsers.add_parser("gateway", help="Simulator-facing gateway bridge commands.")
+    gateway_sub = gateway.add_subparsers(dest="gateway_command", required=True)
+    gateway_deepsearch = gateway_sub.add_parser(
+        "deepsearch-skill",
+        help="Create a provider-native web-search/deepsearch contract through the gateway.",
+    )
+    _add_deepsearch_args(gateway_deepsearch)
 
     onboarding = subparsers.add_parser("onboarding", help="Provider-approved user onboarding for simulator wiring.")
     onboarding_sub = onboarding.add_subparsers(dest="onboarding_command", required=True)
@@ -225,6 +246,11 @@ def build_parser() -> argparse.ArgumentParser:
     skill_ollama_login.add_argument("--token", required=True, help="Token/API key to fingerprint. Raw value is not stored.")
     skill_ollama_login.add_argument("--label", default="ollama-cloud")
     skill_google_login.add_argument("--label", default="google-ai-pro")
+    skill_deepsearch = skill_function_sub.add_parser(
+        "deepsearch",
+        help="Create a provider-native web-search/deepsearch skill contract through the gateway.",
+    )
+    _add_deepsearch_args(skill_deepsearch)
 
     function = subparsers.add_parser("function", help="Direct AI CLI function aliases.")
     function_sub = function.add_subparsers(dest="function_command", required=True)
@@ -246,6 +272,11 @@ def build_parser() -> argparse.ArgumentParser:
     function_ollama_login.add_argument("--token", required=True, help="Token/API key to fingerprint. Raw value is not stored.")
     function_ollama_login.add_argument("--label", default="ollama-cloud")
     function_google_login.add_argument("--label", default="google-ai-pro")
+    function_deepsearch = function_sub.add_parser(
+        "deepsearch",
+        help="Alias for gateway deepsearch-skill.",
+    )
+    _add_deepsearch_args(function_deepsearch)
 
     runtime = subparsers.add_parser("runtime", help="Runtime commands.")
     runtime_sub = runtime.add_subparsers(dest="runtime_command", required=True)
@@ -508,6 +539,22 @@ def run_args(args: argparse.Namespace) -> int:
 
             return mcp_main()
 
+    if args.section == "gateway":
+        if args.gateway_command == "deepsearch-skill":
+            return _emit(
+                gateway_deepsearch_skill(
+                    query=args.query,
+                    research_goal=args.research_goal,
+                    workspace=args.workspace,
+                    system=args.system,
+                    last_auth=args.last_auth,
+                    fingerprint=args.fingerprint,
+                    write=args.write and not args.dry_run,
+                    force=args.force,
+                ),
+                as_json,
+            )
+
     if args.section == "onboarding":
         if args.onboarding_command == "questions":
             return _emit(onboarding_questions(), as_json)
@@ -599,6 +646,20 @@ def run_args(args: argparse.Namespace) -> int:
             payload["provider"] = "ollama-cloud-token"
             payload["raw_token_stored"] = False
             return _emit(payload, as_json)
+        if args.skill_function_command == "deepsearch":
+            return _emit(
+                gateway_deepsearch_skill(
+                    query=args.query,
+                    research_goal=args.research_goal,
+                    workspace=args.workspace,
+                    system=args.system,
+                    last_auth=args.last_auth,
+                    fingerprint=args.fingerprint,
+                    write=args.write and not args.dry_run,
+                    force=args.force,
+                ),
+                as_json,
+            )
 
     if args.section == "function":
         if args.function_command == "login-chatgpt":
@@ -619,6 +680,20 @@ def run_args(args: argparse.Namespace) -> int:
             payload["provider"] = "ollama-cloud-token"
             payload["raw_token_stored"] = False
             return _emit(payload, as_json)
+        if args.function_command == "deepsearch":
+            return _emit(
+                gateway_deepsearch_skill(
+                    query=args.query,
+                    research_goal=args.research_goal,
+                    workspace=args.workspace,
+                    system=args.system,
+                    last_auth=args.last_auth,
+                    fingerprint=args.fingerprint,
+                    write=args.write and not args.dry_run,
+                    force=args.force,
+                ),
+                as_json,
+            )
 
     if args.section == "runtime" and args.runtime_command == "run":
         payload = _payload_with_overrides(args.payload, {"epochs": args.epochs})
