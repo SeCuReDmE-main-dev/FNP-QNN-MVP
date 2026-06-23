@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "fnp-qnn-ai-control": {
+      "args": [
+        "-m",
+        "fnp_qnn_cli.mcp_server"
+      ],
+      "command": "C:\\Users\\jeans\\Desktop\\Case study\\modele\\FNP-QNN-MVP\\FNP-QNN-MVP\\.venv\\Scripts\\python.exe",
+      "cwd": "C:\\Users\\jeans\\Desktop\\Case study\\modele\\FNP-QNN-MVP\\FNP-QNN-MVP",
+      "env": {
+        "FNP_QNN_MCP_PLUGIN": "1"
+      }
+    }
+  }
+}

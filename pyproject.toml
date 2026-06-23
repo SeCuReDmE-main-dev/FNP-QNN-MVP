@@ -16,7 +16,12 @@ dependencies = [
   "uvicorn>=0.23.0",
   "python-multipart>=0.0.6",
   "panel>=1.9.0",
+  "textual>=8.2,<9.0",
 ]
+
+[project.scripts]
+fnp-qnn = "fnp_qnn_cli.main:main"
+fnp-qnn-tui = "fnp_qnn_cli.tui:main"
 
 [project.optional-dependencies]
 qiskit = [
@@ -31,8 +36,8 @@ analysis = ["scipy>=1.10.0", "matplotlib>=3.6.0", "pandas>=2.0.0"]
 observability = ["ddtrace>=2.8.0"]
 dev = ["ruff>=0.5.0", "mypy>=1.8.0", "httpx>=0.24.0"]
 
-[tool.setuptools]
-packages = ["api", "core"]
+[tool.setuptools.packages.find]
+include = ["api*", "core*", "ui*", "fnp_qnn_cli*"]
 
 [tool.ruff]
 line-length = 120

@@ -405,8 +405,8 @@ class QNNNucleus:
 
         model.eval()
         with torch.no_grad():
-            train_logits = model(torch.tensor(X_train, dtype=torch.float32)).cpu().numpy()
-            test_logits = model(torch.tensor(X_test, dtype=torch.float32)).cpu().numpy()
+            train_logits = np.asarray(model(torch.tensor(X_train, dtype=torch.float32)).detach().cpu().tolist())
+            test_logits = np.asarray(model(torch.tensor(X_test, dtype=torch.float32)).detach().cpu().tolist())
             train_prob = self._sigmoid(train_logits)
             test_prob = self._sigmoid(test_logits)
 
@@ -507,8 +507,18 @@ class QNNNucleus:
 
         model.eval()
         with torch.no_grad():
-            train_prob = self._probability_from_qnn_output(model(torch.tensor(X_train, dtype=torch.float32)).squeeze()).cpu().numpy()
-            test_prob = self._probability_from_qnn_output(model(torch.tensor(X_test, dtype=torch.float32)).squeeze()).cpu().numpy()
+            train_prob = np.asarray(
+                self._probability_from_qnn_output(model(torch.tensor(X_train, dtype=torch.float32)).squeeze())
+                .detach()
+                .cpu()
+                .tolist()
+            )
+            test_prob = np.asarray(
+                self._probability_from_qnn_output(model(torch.tensor(X_test, dtype=torch.float32)).squeeze())
+                .detach()
+                .cpu()
+                .tolist()
+            )
 
         train_pred = (train_prob >= 0.5).astype(int)
         test_pred = (test_prob >= 0.5).astype(int)
@@ -520,7 +530,7 @@ class QNNNucleus:
             "predicted_probability": float(test_prob[-1] if len(test_prob) else train_prob[-1]),
             "feature_vector": vectors[-1].tolist(),
             "bundle_summary": self.adapter.build_bundle(samples[-1]).summary,
-            "initial_weights": initial_weights.detach().cpu().numpy().tolist(),
+            "initial_weights": initial_weights.detach().cpu().tolist(),
             "qiskit_num_weights": int(qnn.num_weights),
             "state_basis": state_basis,
             "puncture_delta": puncture_delta,
@@ -581,10 +591,10 @@ class QNNNucleus:
         vectors = self._vectorize_samples(samples, target_dim=self.QISKIT_QUBITS)
         qnn, initial_weights = self._build_qiskit_estimator(self.QISKIT_QUBITS)
         outputs = np.asarray(
-            qnn.forward(vectors, initial_weights.detach().cpu().numpy()),
+            qnn.forward(vectors, np.asarray(initial_weights.detach().cpu().tolist())),
             dtype=np.float32,
         ).reshape(-1)
-        probabilities = self._probability_from_qnn_output(outputs).cpu().numpy()
+        probabilities = np.asarray(self._probability_from_qnn_output(outputs).detach().cpu().tolist())
         predictions = (probabilities >= 0.5).astype(int)
         accuracy = float(accuracy_score(labels, predictions))
         return QNNBenchmarkResult(

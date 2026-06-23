@@ -1,0 +1,26 @@
+{
+  "author": {
+    "name": "FNP-QNN local maintainer"
+  },
+  "description": "MCP bridge that lets authenticated OpenAI/ChatGPT or Google/Gemini providers control the FNP-QNN simulator through Codex or Antigravity.",
+  "interface": {
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "category": "Developer",
+    "defaultPrompt": [
+      "Onboard my simulator with OpenAI.",
+      "Show FNP-QNN control tasks.",
+      "Apply onboarding without AI dependency."
+    ],
+    "developerName": "FNP-QNN local maintainer",
+    "displayName": "FNP-QNN AI Control MCP",
+    "longDescription": "Local MCP bridge for provider-approved FNP-QNN onboarding and optional simulator control through Codex, Antigravity, or Ollama.",
+    "shortDescription": "Provider-approved simulator onboarding and control."
+  },
+  "license": "SEE-REPOSITORY",
+  "mcpServers": "./.mcp.json",
+  "name": "fnp-qnn-ai-control-mcp",
+  "version": "0.1.0"
+}
