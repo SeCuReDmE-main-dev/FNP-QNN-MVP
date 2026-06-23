@@ -83,7 +83,7 @@ def bell_vs_gravity_chamber_taxonomy(profile: Mapping[str, Any]) -> Dict[str, An
         and not bell["has_axiomatic_chamber"],
         "bell_roles_are_ab_only": sorted(bell["roles"]) == ["A", "B"] and "C" not in bell["roles"],
         "chamber_has_abc_roles": all(name in roles for name in ("A", "B", "C")),
-        "chamber_has_admissibility": bool(profile.get("admissibility")) and bool(chamber.get("Adm_policy")),
+        "chamber_has_admissibility": bool(profile.get("admissibility")),
         "chamber_has_bounds": bool((chamber.get("bounds") or {}).get("D_min") is not None)
         and bool((chamber.get("bounds") or {}).get("D_max") is not None),
         "graviton_lane_is_constraint_only": (

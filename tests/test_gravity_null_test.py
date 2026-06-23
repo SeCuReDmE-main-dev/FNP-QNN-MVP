@@ -3,6 +3,8 @@ import unittest
 from core.axiomatic_chamber import ChamberBounds, dmin_dmax_chamber_bounds
 from core.gravity_null_test import (
     GravityNullTestConfig,
+    bell_state_reference_profile,
+    bell_vs_gravity_chamber_taxonomy,
     graviton_constraint_profile,
     run_gravity_null_test,
 )
@@ -93,6 +95,60 @@ class GravityNullTestTests(unittest.TestCase):
         self.assertIn("e2b_datadog_review", profile)
         self.assertEqual(profile["e2b_datadog_review"]["model"], "e2b_datadog_gravity_review_v1")
         self.assertIn("fnp_qnn.gravity_null_test.entangled_pair_resistance", profile["e2b_datadog_review"]["datadog_telemetry"]["metrics"])
+
+    def test_bell_state_is_not_the_gravity_chamber(self):
+        bell = bell_state_reference_profile(correlation=1.0)
+
+        self.assertEqual(bell["object_type"], "two_particle_entangled_state_reference")
+        self.assertEqual(sorted(bell["roles"]), ["A", "B"])
+        self.assertIn("C", bell["excluded_roles"])
+        self.assertFalse(bell["has_axiomatic_chamber"])
+        self.assertFalse(bell["has_admissibility_gate"])
+        self.assertFalse(bell["has_graviton_constraint"])
+        self.assertIn("state preparation only", bell["interpretation"])
+
+    def test_gravity_chamber_wraps_bell_state_with_probe_and_admissibility(self):
+        profile = run_gravity_null_test(GravityNullTestConfig(seed=19, shots=512))
+        taxonomy = profile["bell_vs_chamber_taxonomy"]
+
+        self.assertTrue(taxonomy["all_invariants_hold"])
+        self.assertEqual(taxonomy["bell_state"]["object_type"], "two_particle_entangled_state_reference")
+        self.assertEqual(
+            taxonomy["gravity_null_test_chamber"]["object_type"],
+            "axiomatic_measurement_and_classification_chamber",
+        )
+        self.assertTrue(taxonomy["gravity_null_test_chamber"]["adds_uncorrelated_probe_C"])
+        self.assertTrue(taxonomy["gravity_null_test_chamber"]["adds_Adm_gate"])
+        self.assertEqual(profile["partial_entanglement"]["C_probe"]["raw"]["separability"], 1.0)
+
+    def test_bell_state_correlation_does_not_create_graviton_mass_claim(self):
+        profile = run_gravity_null_test(
+            GravityNullTestConfig(
+                seed=23,
+                shots=512,
+                entanglement_correlation=1.0,
+                local_noise=0.0,
+                leakage=0.0,
+                mass_dispersion=0.0,
+            )
+        )
+
+        self.assertEqual(profile["bell_vs_chamber_taxonomy"]["bell_state"]["correlation"], 1.0)
+        self.assertIsNone(profile["graviton_constraint"]["exact_graviton_mass_ev"])
+        self.assertEqual(
+            profile["graviton_constraint"]["status"],
+            "constraint_profile_pending_external_data",
+        )
+
+    def test_taxonomy_function_marks_bell_and_chamber_as_separate_objects(self):
+        profile = run_gravity_null_test(GravityNullTestConfig(seed=29, shots=512))
+        taxonomy = bell_vs_gravity_chamber_taxonomy(profile)
+        differences = {item["axis"]: item for item in taxonomy["differences"]}
+
+        self.assertTrue(taxonomy["testable_invariants"]["bell_is_state_not_room"])
+        self.assertTrue(taxonomy["testable_invariants"]["chamber_has_abc_roles"])
+        self.assertEqual(differences["roles"]["bell_state"], "A and B only")
+        self.assertEqual(differences["roles"]["gravity_chamber"], "A, B, and uncorrelated local probe/source C")
 
 
 if __name__ == "__main__":

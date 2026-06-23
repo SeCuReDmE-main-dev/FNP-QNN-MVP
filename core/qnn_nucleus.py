@@ -928,6 +928,7 @@ class QNNNucleus:
             "admissibility": gravity_null_test_payload["admissibility"],
             "gq_super_equation": gravity_null_test_payload["gq_super_equation"],
             "graviton_constraint": gravity_null_test_payload["graviton_constraint"],
+            "bell_vs_chamber_taxonomy": gravity_null_test_payload.get("bell_vs_chamber_taxonomy"),
             "hierarchy": gravity_null_test_payload["hierarchy"],
             "research_boundary": gravity_null_test_payload["research_boundary"],
         }

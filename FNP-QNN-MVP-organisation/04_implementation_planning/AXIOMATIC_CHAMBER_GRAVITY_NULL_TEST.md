@@ -33,11 +33,20 @@ The local PDF confirms the chamber discipline used here:
 ## Code Anchors
 
 - `core/axiomatic_chamber.py`: chamber context, bounds, source-role taxonomy, and admissibility rules.
-- `core/gravity_null_test.py`: deterministic seeded simulation functions, residual scoring, frustration scoring, SeQUeNCe export, Qiskit preview, E2B/Datadog review metadata, and graviton-constraint placeholder.
+- `core/gravity_null_test.py`: Bell-state reference taxonomy, deterministic seeded simulation functions, residual scoring, frustration scoring, SeQUeNCe export, Qiskit preview, E2B/Datadog review metadata, and graviton-constraint placeholder.
 - `api/schemas.py`: `GravityNullTestRequest` and optional QNN smoke fields.
 - `api/main.py`: `GET /fnp-qnn/gravity-null-test/status`, `POST /fnp-qnn/gravity-null-test/run`, and QNN smoke integration.
 - `core/qnn_nucleus.py`: attaches gravity-null-test features and profile metadata when explicitly enabled.
 - `core/network_designer/presets.py`: `gravity_null_test` Network Designer preset.
+
+## Bell State Is Not The Chamber
+
+The implementation now includes a specific test lane for the distinction the maintainer requested:
+
+- `bell_state_reference_profile()` returns the Bell state reference. It is an `A-B` state/correlation profile only. It excludes `C`, `Adm`, `D_min/D_max`, chamber residuals, and graviton constraints.
+- `bell_vs_gravity_chamber_taxonomy()` returns executable invariants showing that the gravity/null-test chamber is a different object. The chamber wraps the Bell input with `C`, bounds, no-signalling residuals, frustration scoring, `Adm`, telemetry, and constraint-only graviton metadata.
+
+This matters because a Bell pair answers "are `A` and `B` correlated?" The graviton-node/null-test chamber asks "after we isolate sources in an axiomatic room, is any residual on `B` still present, and how should it be classified?" The second question uses the first object as an input, but it is not the same object.
 
 ## E2B And Datadog Review Lane
 

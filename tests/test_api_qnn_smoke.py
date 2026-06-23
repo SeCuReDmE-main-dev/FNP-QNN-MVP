@@ -362,6 +362,7 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertIn("sequence_event_spec", profile)
         self.assertIn("qiskit_circuit_preview", profile)
         self.assertIn("e2b_datadog_review", profile)
+        self.assertTrue(profile["bell_vs_chamber_taxonomy"]["all_invariants_hold"])
         self.assertIsNone(profile["graviton_constraint"]["exact_graviton_mass_ev"])
         self.assertIn("not physical quantum-gravity proof", profile["research_boundary"])
 
@@ -394,6 +395,7 @@ class QNNSmokeApiTests(unittest.TestCase):
             result["gravity_null_test_profile"]["feature_dimension"],
             len(result["gravity_null_test_profile"]["feature_vector"]),
         )
+        self.assertTrue(result["gravity_null_test_profile"]["bell_vs_chamber_taxonomy"]["all_invariants_hold"])
         self.assertIn("not physical quantum-gravity proof", result["gravity_null_test_profile"]["research_boundary"])
 
 

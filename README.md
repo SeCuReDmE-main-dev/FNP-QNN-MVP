@@ -638,8 +638,10 @@ Current Mechanism Layer v2 validation:
 - `observer_effect_profile()` adds an optional partial-observer T/I/F profile;
 - NeuroBit gate runs now include optional gate semantics, reversibility-risk
   metadata, surface puncture metadata, and observer-effect metadata;
-- targeted unit tests cover these source-backed layers, and the alpha-local
-  readiness validator remains the release gate for public-facing claims.
+- latest branch validation passed with
+  `python -m unittest discover -s tests -p "test_*.py"`: 192 tests;
+  the alpha-local readiness validator remains the release gate for
+  public-facing claims.
 
 These additions are local educational simulation primitives only. They do not
 claim a physical neutrosophic quantum computer, clinical system, security
@@ -893,6 +895,15 @@ The experiment uses three roles:
 - `A`: remote entangled partner;
 - `B`: local target particle entangled with `A`;
 - `C`: local uncorrelated probe or mass-source candidate near `B`.
+
+The Bell entangled state and the gravity/null-test chamber are deliberately
+different objects. The Bell state is only the `A-B` state-preparation reference:
+it asks whether `A` and `B` are correlated as an entangled pair. The chamber is
+the full axiomatic room around the test: it adds uncorrelated local `C`, local
+distance/bound metadata, `Delta_NS`, `F_chamber`, `D_f_hat`, `Adm`, telemetry,
+and the graviton-constraint placeholder. In code this is enforced by
+`bell_state_reference_profile()` and `bell_vs_gravity_chamber_taxonomy()`, and
+the taxonomy is returned under `bell_vs_chamber_taxonomy`.
 
 The core question is not "did the simulator prove gravity?" It is narrower:
 when `A-B` is simulated as an entangled pair and `C` is kept separable but local

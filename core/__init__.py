@@ -63,6 +63,8 @@ from .axiomatic_chamber import (
 )
 from .gravity_null_test import (
     GravityNullTestConfig,
+    bell_state_reference_profile,
+    bell_vs_gravity_chamber_taxonomy,
     e2b_datadog_review_profile,
     gravity_null_test_status,
     graviton_constraint_profile,
@@ -176,6 +178,8 @@ __all__ = [
     "admissibility_profile",
     "dmin_dmax_chamber_bounds",
     "GravityNullTestConfig",
+    "bell_state_reference_profile",
+    "bell_vs_gravity_chamber_taxonomy",
     "e2b_datadog_review_profile",
     "gravity_null_test_status",
     "graviton_constraint_profile",

@@ -93,6 +93,31 @@ Conceptual bridge:
 - Hydra-EM-GPCN microtubule simulation: asks whether proxy microtubule states communicate, decohere, suspend, or reject inside `GPCN-Set_phi`.
 - Both can be reviewed by the same Datadog-style metrics: residual, contradiction, damping, admissibility, and resistance/stability across repeated runs.
 
+## Bell State Vs Graviton-Node Chamber
+
+The implementation deliberately separates the Bell entangled state from the
+gravity/null-test chamber. They are two different objects:
+
+| Axis | Bell entangled state | Graviton-node / gravity null-test chamber |
+| --- | --- | --- |
+| Object type | Two-particle state/correlation reference | Axiomatic measurement and classification room |
+| Roles | `A` and `B` only | `A`, `B`, and uncorrelated local probe/source `C` |
+| Question | Are `A` and `B` correlated as an entangled pair? | Does `B` show a residual after source isolation? |
+| Outputs | Correlation and separability metadata | `Delta_NS`, `F_chamber`, `D_f_hat`, `Adm`, `GQ_super_equation`, telemetry |
+| Forbidden inference | Does not imply gravity or signalling | Does not infer exact graviton mass or physical quantum-gravity proof |
+
+Code anchors:
+
+- `bell_state_reference_profile()` returns the Bell-state reference. It has
+  roles `A-B`, excludes `C`, and has no `Adm`, `D_min/D_max`, chamber, or
+  graviton-constraint metadata.
+- `bell_vs_gravity_chamber_taxonomy()` returns executable invariants proving
+  that the chamber wraps the Bell input with `C`, bounds, residual tests,
+  admissibility, and constraint-only graviton metadata.
+- `run_gravity_null_test()` embeds this taxonomy under
+  `bell_vs_chamber_taxonomy` so API and QNN smoke responses keep the distinction
+  visible.
+
 ## API
 
 Status:
