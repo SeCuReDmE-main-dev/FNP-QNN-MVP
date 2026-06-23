@@ -278,6 +278,72 @@ def _build_logic_decision_preset() -> NetworkGraph:
     return graph
 
 
+def _build_gravity_null_test_preset() -> NetworkGraph:
+    graph = NetworkGraph(
+        family=NetworkFamily.GRAVITY_NULL_TEST.value,
+        metadata={
+            "preset": "gravity_null_test_v1",
+            "sequence_export": "optional",
+            "qiskit_preview": "optional",
+            "e2b_datadog_review": "optional",
+        },
+    )
+    source_node = _node(
+        "source_ledger",
+        NetworkFamily.GRAVITY_NULL_TEST,
+        "video_source_ledger",
+        "Video Source Ledger",
+        ports=(("out", NetworkPortDirection.OUTPUT),),
+    )
+    entangled_node = _node(
+        "entangled_ab",
+        NetworkFamily.GRAVITY_NULL_TEST,
+        "entangled_pair",
+        "A-B Entangled Pair",
+        ports=(("in", NetworkPortDirection.INPUT), ("out", NetworkPortDirection.OUTPUT)),
+    )
+    probe_node = _node(
+        "probe_c",
+        NetworkFamily.GRAVITY_NULL_TEST,
+        "uncorrelated_probe",
+        "C Probe",
+        ports=(("out", NetworkPortDirection.OUTPUT),),
+    )
+    chamber_node = _node(
+        "axiomatic_chamber",
+        NetworkFamily.GRAVITY_NULL_TEST,
+        "gpcn_chamber",
+        "Axiomatic Chamber",
+        ports=(
+            ("ab_in", NetworkPortDirection.INPUT),
+            ("c_in", NetworkPortDirection.INPUT),
+            ("out", NetworkPortDirection.OUTPUT),
+        ),
+    )
+    classifier_node = _node(
+        "residual_classifier",
+        NetworkFamily.GRAVITY_NULL_TEST,
+        "residual_frustration_classifier",
+        "Residual Classifier",
+        ports=(("in", NetworkPortDirection.INPUT), ("out", NetworkPortDirection.OUTPUT)),
+    )
+    review_node = _node(
+        "e2b_datadog_review",
+        NetworkFamily.GRAVITY_NULL_TEST,
+        "micro_vm_telemetry_review",
+        "E2B Datadog Review",
+        ports=(("in", NetworkPortDirection.INPUT),),
+    )
+    for node in (source_node, entangled_node, probe_node, chamber_node, classifier_node, review_node):
+        graph.add_node(node)
+    graph.add_edge(NetworkEdge("source_ledger", "out", "entangled_ab", "in", 1.0))
+    graph.add_edge(NetworkEdge("entangled_ab", "out", "axiomatic_chamber", "ab_in", 1.0))
+    graph.add_edge(NetworkEdge("probe_c", "out", "axiomatic_chamber", "c_in", 0.7))
+    graph.add_edge(NetworkEdge("axiomatic_chamber", "out", "residual_classifier", "in", 1.0))
+    graph.add_edge(NetworkEdge("residual_classifier", "out", "e2b_datadog_review", "in", 1.0))
+    return graph
+
+
 def _build_custom_network_preset() -> NetworkGraph:
     graph = NetworkGraph(family=NetworkFamily.CUSTOM_NETWORK.value, metadata={"preset": "custom_network_v1"})
     input_node = _node(
@@ -360,6 +426,14 @@ _PRESETS: Dict[NetworkFamily, NetworkPreset] = {
         description="Deterministic rule/decision path placeholder.",
         graph_builder=_build_logic_decision_preset,
         metadata={"qiskit_available": "false"},
+    ),
+    NetworkFamily.GRAVITY_NULL_TEST: NetworkPreset(
+        family=NetworkFamily.GRAVITY_NULL_TEST,
+        preset_id="gravity_null_test_v1",
+        name="Gravity Null-Test Preset",
+        description="Axiomatic chamber workflow for entangled-pair residual and telemetry review.",
+        graph_builder=_build_gravity_null_test_preset,
+        metadata={"qiskit_available": "optional", "e2b_datadog_review": "true"},
     ),
     NetworkFamily.CUSTOM_NETWORK: NetworkPreset(
         family=NetworkFamily.CUSTOM_NETWORK,

@@ -334,6 +334,70 @@ class QNNSmokeApiTests(unittest.TestCase):
             len(result["hydra_em_gpcn_profile"]["feature_vector"]),
         )
 
+    def test_gravity_null_test_endpoints_return_bounded_payloads(self):
+        client = TestClient(app)
+
+        status_response = client.get("/fnp-qnn/gravity-null-test/status")
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["feature"], "axiomatic-chamber-gravity-null-test")
+
+        run_response = client.post(
+            "/fnp-qnn/gravity-null-test/run",
+            json={
+                "seed": 11,
+                "shots": 512,
+                "local_noise": 0.0,
+                "leakage": 0.0,
+                "mass_dispersion": 0.0,
+                "delta_ns_threshold": 0.12,
+                "include_sequence_export": True,
+                "include_qiskit_preview": True,
+            },
+        )
+        self.assertEqual(run_response.status_code, 200)
+        profile = run_response.json()["profile"]
+        self.assertEqual(profile["model"], "axiomatic_chamber_gravity_null_test_v1")
+        self.assertEqual(profile["feature_dimension"], len(profile["feature_vector"]))
+        self.assertIn(profile["classification"], {"no_detected_remote_influence", "anomaly_requires_external_validation"})
+        self.assertIn("sequence_event_spec", profile)
+        self.assertIn("qiskit_circuit_preview", profile)
+        self.assertIn("e2b_datadog_review", profile)
+        self.assertTrue(profile["bell_vs_chamber_taxonomy"]["all_invariants_hold"])
+        self.assertIsNone(profile["graviton_constraint"]["exact_graviton_mass_ev"])
+        self.assertIn("not physical quantum-gravity proof", profile["research_boundary"])
+
+    def test_qnn_smoke_accepts_gravity_null_test_opt_in(self):
+        client = TestClient(app)
+
+        baseline = client.post("/qnn/smoke", json={"epochs": 2, "test_size": 0.0})
+        self.assertEqual(baseline.status_code, 200)
+        baseline_dim = baseline.json()["result"]["feature_dimension"]
+
+        response = client.post(
+            "/qnn/smoke",
+            json={
+                "epochs": 2,
+                "test_size": 0.0,
+                "gravity_null_test_enabled": True,
+                "gravity_null_test_seed": 11,
+                "gravity_null_test_shots": 512,
+                "gravity_null_test_local_noise": 0.0,
+                "gravity_null_test_leakage": 0.0,
+                "gravity_null_test_mass_dispersion": 0.0,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = response.json()["result"]
+        self.assertIn("gravity_null_test_profile", result)
+        self.assertGreater(result["feature_dimension"], baseline_dim)
+        self.assertEqual(
+            result["gravity_null_test_profile"]["feature_dimension"],
+            len(result["gravity_null_test_profile"]["feature_vector"]),
+        )
+        self.assertTrue(result["gravity_null_test_profile"]["bell_vs_chamber_taxonomy"]["all_invariants_hold"])
+        self.assertIn("not physical quantum-gravity proof", result["gravity_null_test_profile"]["research_boundary"])
+
 
 if __name__ == "__main__":
     unittest.main()

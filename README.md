@@ -595,6 +595,11 @@ Recent quantum-neutrosophic learning additions:
   proxies, deterministic quasicrystal neighborhoods, computational anesthesia
   damping sweeps, and simulator verdicts: `communicates`, `decoheres`,
   `suspended`, or `rejected`.
+- `core/axiomatic_chamber.py` and `core/gravity_null_test.py` add a bounded
+  axiomatic-chamber gravity null-test layer. It models roles `A`, `B`, and `C`,
+  computes `Delta_NS`, `F_chamber`, `D_f_hat`, `Adm`, and
+  `GQ_super_equation`, and can emit optional SeQUeNCe, Qiskit-preview,
+  E2B micro-VM, and Datadog telemetry review metadata.
 - `docs/source_ledger/quantum_neutrosophic_sources.md` maps each source PDF
   to the exact simulator mechanism, accepted educational claim, and forbidden
   public claim.
@@ -620,6 +625,9 @@ Source-backed topics now available for education and code reading:
 - Hydra-EM-GPCN proxy simulation using `GPCN-Set_phi`,
   quasicrystal-style neighborhoods, plithogenic contradiction, cubic
   neutrosophic `T/I/F`, and computational damping sweeps.
+- axiomatic-chamber null-test simulation for an `A-B` entangled pair and an
+  uncorrelated local probe/source `C`, including no-signalling residuals,
+  local-contamination classification, frustration scoring, and telemetry review.
 
 Current Mechanism Layer v2 validation:
 
@@ -630,8 +638,10 @@ Current Mechanism Layer v2 validation:
 - `observer_effect_profile()` adds an optional partial-observer T/I/F profile;
 - NeuroBit gate runs now include optional gate semantics, reversibility-risk
   metadata, surface puncture metadata, and observer-effect metadata;
-- the full local test suite currently passes with 179 tests, and the
-  alpha-local readiness validator passes.
+- latest branch validation passed with
+  `python -m unittest discover -s tests -p "test_*.py"`: 192 tests;
+  the alpha-local readiness validator remains the release gate for
+  public-facing claims.
 
 These additions are local educational simulation primitives only. They do not
 claim a physical neutrosophic quantum computer, clinical system, security
@@ -858,6 +868,146 @@ The implementation report lives at
 Both layers are disabled by default and do not change QNN, NeuroBit, Nidus,
 Plithogenic, Revolutionary Topology, NeutroAlgebra, runtime, or Panel behavior
 unless requested.
+
+### Axiomatic-chamber gravity null-test experiment
+
+`core/axiomatic_chamber.py` and `core/gravity_null_test.py` implement a new
+bounded experiment lane inspired by two official Prof. Vlatko Vedral video
+pages from the Quantum Foundations Podcast with Dr. Maria Violaris:
+
+- [Testing Quantum Gravity & Reality with Prof. Vlatko Vedral](https://www.vlatkovedral.com/videos/testing-quantum-gravity-reality-with-prof-vlatko-vedral-quantum-foundations-podcast-with-dr-maria-violaris/),
+  published February 3, 2025. The local ledger focuses on the maintainer's
+  requested 48:00-to-end segment before any video-specific formula is treated
+  as implemented math.
+- [This Quantum Gravity Experiment Will Rewrite Physics](https://www.vlatkovedral.com/videos/this-quantum-gravity-experiment-will-rewrite-physics/),
+  published July 9, 2025. The local ledger treats the mass-superposition and
+  entangling-masses discussion as source inspiration until transcript notes are
+  completed.
+
+Prof. Vlatko Vedral is listed by the University of Oxford Department of Physics
+as Professor of Quantum Information Science. This repository is not affiliated
+with, endorsed by, or reviewed by Prof. Vedral, Oxford, or the podcast. The code
+uses the public material as an educational research prompt and keeps every
+claim inside the simulator boundary.
+
+The experiment uses three roles:
+
+- `A`: remote entangled partner;
+- `B`: local target particle entangled with `A`;
+- `C`: local uncorrelated probe or mass-source candidate near `B`.
+
+The Bell entangled state and the gravity/null-test chamber are deliberately
+different objects. The Bell state is only the `A-B` state-preparation reference:
+it asks whether `A` and `B` are correlated as an entangled pair. The chamber is
+the full axiomatic room around the test: it adds uncorrelated local `C`, local
+distance/bound metadata, `Delta_NS`, `F_chamber`, `D_f_hat`, `Adm`, telemetry,
+and the graviton-constraint placeholder. In code this is enforced by
+`bell_state_reference_profile()` and `bell_vs_gravity_chamber_taxonomy()`, and
+the taxonomy is returned under `bell_vs_chamber_taxonomy`.
+
+The core question is not "did the simulator prove gravity?" It is narrower:
+when `A-B` is simulated as an entangled pair and `C` is kept separable but local
+to `B`, does the chamber classify any residual on `B` as null, local
+contamination/shared noise, suspended, or externally validated frustration
+candidate? The main observables are:
+
+- `Delta_NS`: no-signalling residual on `B`;
+- `F_chamber`: frustration from competing local/nonlocal explanatory sources;
+- `D_min`, `D_max`, and `D_f_hat`: chamber-bounded carrier values, not universal
+  physical constants;
+- `Adm`: the admissibility gate from the Fractal NeutroGeometry chamber;
+- `GQ_super_equation`: a bounded explanatory score, not a law of nature.
+
+The local Fractal NeutroGeometry final PDF supplies the chamber discipline. In
+Chapter 5, `D_f_hat` may carry `I_fractal` only after `I_system` and `Adm`
+authorize the source. Chapters 6 and 7 frame `GPCN-Set_phi` as a test chamber
+whose objects must have a domain, scale, method, membership, local dimension,
+normalization, and non-universality test. The implementation keeps the hierarchy:
+
+```text
+I -> I_system^S -> D_f -> dF -> i_fractal
+```
+
+Run the experiment through:
+
+- `GET /fnp-qnn/gravity-null-test/status`
+- `POST /fnp-qnn/gravity-null-test/run`
+
+Example payload:
+
+```json
+{
+  "seed": 11,
+  "shots": 512,
+  "local_noise": 0.0,
+  "leakage": 0.0,
+  "mass_dispersion": 0.0,
+  "delta_ns_threshold": 0.12,
+  "include_sequence_export": true,
+  "include_qiskit_preview": true
+}
+```
+
+Attach the feature vector to QNN smoke with:
+
+```json
+{
+  "epochs": 2,
+  "test_size": 0.0,
+  "gravity_null_test_enabled": true,
+  "gravity_null_test_seed": 11,
+  "gravity_null_test_shots": 512
+}
+```
+
+The optional SeQUeNCe lane exports a topology/event-spec JSON using the
+[SeQUeNCe project](https://github.com/sequence-toolbox/SeQUeNCe) and paper
+(`arXiv:2009.12000`) as the target contract. SeQUeNCe is not required at runtime.
+The optional Qiskit preview is a circuit sketch only and stays behind optional
+dependency gates.
+
+### E2B and Datadog physics-review lane
+
+The null-test makes practical use of the existing E2B and Datadog partner
+surface:
+
+- E2B is treated as an ephemeral micro-VM reviewer. The profile emits a
+  suggested `scripts/e2b_datadog_audit/audit_e2b.py` command so the same
+  experiment can be rerun in a clean sandbox.
+- Datadog is treated as the telemetry board for repeated experiment review.
+  The profile names metrics for `Delta_NS`, `F_chamber`,
+  `GQ_super_equation`, `local_contamination`, and
+  `entangled_pair_resistance`.
+- The "resistance" metric is a simulator health/review signal: high residual,
+  high local contamination, or high frustration lowers the computed resistance
+  of the entangled-pair explanation. It is not a measured physical resistance.
+
+No Datadog API key, E2B key, or raw environment value is serialized into the
+experiment payload. This lane is designed to show why E2B and Datadog are
+strong tools for scientific software review: independent micro-VM reruns,
+repeatable logs, drift visibility, and explicit monitor thresholds.
+
+### Relationship to Penrose/Hameroff microtubule simulation
+
+The gravity null-test and the Penrose/Hameroff/Hydra-EM-GPCN lane are sister
+experiments. The existing code in `core/penrose_hameroff_math.py` already
+models bounded objective-reduction timing, spin-network admissibility,
+twistor/nonlocality metadata, and microtubule signal metadata. The existing
+code in `core/hydra_em_gpcn_math.py` places microtubule-like proxy objects
+inside `GPCN-Set_phi`, runs deterministic quasicrystal-style neighborhoods,
+and classifies the proxy outcome as `communicates`, `decoheres`, `suspended`,
+or `rejected`.
+
+The shared method is the valuable part:
+
+```text
+measure -> normalize -> classify source -> apply Adm -> admit/suspend/reject
+```
+
+The microtubule lane is not a biological microtubule validation, anesthesia
+guide, consciousness proof, or quantum-gravity proof. It is a controlled
+simulation project that can test how an axiomatic chamber handles coherence,
+damping, contradiction, and `I_fractal` eligibility.
 
 ### Math source guardrail baseline
 
