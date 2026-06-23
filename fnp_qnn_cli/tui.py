@@ -18,7 +18,7 @@ from .registry import (
 from core.ffed_plugin_bridge import FfeDPluginBridge
 
 
-FNPQNN_VECTOR_LOGO = r"""
+FNPQNN_VECTOR_LOGO = r'''
         .-------------------------------.     FNP-QNN
      .-'     .-""""""""""""""""-.       |     QUANTUM SIMULATOR
    .'      .'    .----------.    '.     |
@@ -29,7 +29,7 @@ FNPQNN_VECTOR_LOGO = r"""
    '.      '.    '--------'    .'      |
      '-.      '--------------'      .-'
         '--------------------------'
-"""
+'''
 
 RETRO_82_FLASH = r"""
   FNP-QNN RETRO 82 FLASH
