@@ -62,6 +62,13 @@ _REGISTRY: Dict[NetworkFamily, FamilyDescriptor] = {
         description="Logic / decision-path placeholder with deterministic decisions.",
         default_node_type="logic_node",
     ),
+    NetworkFamily.GRAVITY_NULL_TEST: FamilyDescriptor(
+        family=NetworkFamily.GRAVITY_NULL_TEST,
+        supports_qiskit_lane=True,
+        allows_cycles=False,
+        description="Axiomatic chamber null-test for entanglement residual, frustration, and telemetry review.",
+        default_node_type="gravity_null_test_node",
+    ),
     NetworkFamily.CUSTOM_NETWORK: FamilyDescriptor(
         family=NetworkFamily.CUSTOM_NETWORK,
         supports_qiskit_lane=False,

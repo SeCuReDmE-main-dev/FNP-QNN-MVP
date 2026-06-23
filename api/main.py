@@ -188,6 +188,7 @@ def _gravity_config_from_request(payload: GravityNullTestRequest) -> GravityNull
         frustration_threshold=payload.frustration_threshold,
         include_sequence_export=payload.include_sequence_export,
         include_qiskit_preview=payload.include_qiskit_preview,
+        include_e2b_datadog_review=payload.include_e2b_datadog_review,
         source_i=payload.source_i,
         graviton_external_bound_ev=payload.graviton_external_bound_ev,
         graviton_bound_source=payload.graviton_bound_source,
@@ -204,6 +205,7 @@ def _gravity_config_from_qnn_payload(payload: QNNSmokeRequest | CommandRequest) 
         chamber_contradiction=payload.gravity_null_test_chamber_contradiction,
         include_sequence_export=False,
         include_qiskit_preview=False,
+        include_e2b_datadog_review=True,
     )
 
 
@@ -454,6 +456,19 @@ async def qnn_candidates() -> Dict[str, Any]:
             }
             for candidate in qnn_nucleus.candidate_matrix()
         ],
+    }
+
+
+@app.get("/fnp-qnn/gravity-null-test/status")
+async def gravity_null_test_status_endpoint() -> Dict[str, Any]:
+    return gravity_null_test_status()
+
+
+@app.post("/fnp-qnn/gravity-null-test/run")
+async def gravity_null_test_run(payload: GravityNullTestRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": run_gravity_null_test(_gravity_config_from_request(payload)),
     }
 
 
@@ -919,6 +934,13 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             lattice_seed=request.lattice_seed,
             observation_scale_min=request.observation_scale_min,
             observation_scale_max=request.observation_scale_max,
+            gravity_null_test_enabled=request.gravity_null_test_enabled,
+            gravity_null_test_seed=request.gravity_null_test_seed,
+            gravity_null_test_shots=request.gravity_null_test_shots,
+            gravity_null_test_local_noise=request.gravity_null_test_local_noise,
+            gravity_null_test_leakage=request.gravity_null_test_leakage,
+            gravity_null_test_mass_dispersion=request.gravity_null_test_mass_dispersion,
+            gravity_null_test_chamber_contradiction=request.gravity_null_test_chamber_contradiction,
         )
         samples = qnn_request.dump_samples()
         labels = qnn_request.labels
@@ -954,6 +976,9 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
                 observation_scale_min=qnn_request.observation_scale_min,
                 observation_scale_max=qnn_request.observation_scale_max,
             )
+        gravity_null_test_profile = None
+        if qnn_request.gravity_null_test_enabled:
+            gravity_null_test_profile = run_gravity_null_test(_gravity_config_from_qnn_payload(qnn_request))
         result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
             samples[0],
             label=float(labels[0]),
@@ -977,6 +1002,10 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             penrose_hameroff_payload=penrose_hameroff_profile,
             hydra_em_gpcn_features=None if hydra_em_gpcn_profile is None else hydra_em_gpcn_profile["feature_vector"],
             hydra_em_gpcn_payload=hydra_em_gpcn_profile,
+            gravity_null_test_features=None
+            if gravity_null_test_profile is None
+            else gravity_null_test_profile["feature_vector"],
+            gravity_null_test_payload=gravity_null_test_profile,
         ))
         return CommandResponse(
             success=True,

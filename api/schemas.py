@@ -389,6 +389,7 @@ class GravityNullTestRequest(BaseModel):
     frustration_threshold: float = Field(default=0.55, ge=0.0, le=1.0)
     include_sequence_export: bool = False
     include_qiskit_preview: bool = False
+    include_e2b_datadog_review: bool = True
     source_i: str = Field(default="fractal_boundary", max_length=120)
     graviton_external_bound_ev: Optional[float] = Field(default=None, ge=0.0)
     graviton_bound_source: Optional[str] = Field(default=None, max_length=240)

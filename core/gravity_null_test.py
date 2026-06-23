@@ -58,6 +58,7 @@ class GravityNullTestConfig:
     frustration_threshold: float = 0.55
     include_sequence_export: bool = False
     include_qiskit_preview: bool = False
+    include_e2b_datadog_review: bool = True
     source_i: str = "fractal_boundary"
     graviton_external_bound_ev: Optional[float] = None
     graviton_bound_source: Optional[str] = None
@@ -367,6 +368,63 @@ def qiskit_circuit_preview() -> Dict[str, Any]:
     }
 
 
+def e2b_datadog_review_profile(profile: Mapping[str, Any]) -> Dict[str, Any]:
+    """Return an optional E2B micro-VM plus Datadog telemetry review contract."""
+
+    delta_ns = clamp01(
+        float((profile.get("no_signalling") or {}).get("Delta_NS", 0.0))
+        / max(float((profile.get("chamber") or {}).get("bounds", {}).get("delta_ns_threshold", 0.05)), 1e-12)
+    )
+    frustration = clamp01((profile.get("frustrated_state") or {}).get("F_chamber", 0.0))
+    config = profile.get("config") or {}
+    contamination = clamp01(float(config.get("leakage", 0.0)) + float(config.get("mass_dispersion", 0.0)))
+    resistance = clamp01(1.0 - (0.45 * delta_ns + 0.35 * contamination + 0.20 * frustration))
+    metrics = {
+        "fnp_qnn.gravity_null_test.delta_ns": (profile.get("no_signalling") or {}).get("Delta_NS", 0.0),
+        "fnp_qnn.gravity_null_test.f_chamber": frustration,
+        "fnp_qnn.gravity_null_test.gq_super_equation": (
+            profile.get("gq_super_equation") or {}
+        ).get("GQ_super_equation", 0.0),
+        "fnp_qnn.gravity_null_test.entangled_pair_resistance": resistance,
+        "fnp_qnn.gravity_null_test.local_contamination": contamination,
+    }
+    return {
+        "model": "e2b_datadog_gravity_review_v1",
+        "status": "optional_review_contract_ready",
+        "e2b_micro_vm": {
+            "role": "ephemeral reproducibility reviewer for the null-test profile",
+            "script": "scripts/e2b_datadog_audit/audit_e2b.py",
+            "suggested_command": (
+                "python scripts/e2b_datadog_audit/audit_e2b.py --service "
+                "fnp-qnn-gravity-null-test-review --dd-env experiment "
+                "--extra-tag experiment=gravity_null_test "
+                "--metadata delta_ns={delta_ns} --metadata f_chamber={f_chamber} "
+                "--metadata entangled_pair_resistance={resistance}"
+            ).format(
+                delta_ns=metrics["fnp_qnn.gravity_null_test.delta_ns"],
+                f_chamber=frustration,
+                resistance=resistance,
+            ),
+            "secret_policy": "requires E2B_API_KEY and optional DD_API_KEY/DD_SITE outside payload; secrets are not serialized",
+        },
+        "datadog_telemetry": {
+            "service": "fnp-qnn-gravity-null-test-review",
+            "dashboard_suggestion": "Gravity Null-Test Residual Review",
+            "metrics": metrics,
+            "monitor_queries": [
+                "avg:last_5m:fnp_qnn.gravity_null_test.delta_ns{experiment:gravity_null_test} > 0.05",
+                "avg:last_5m:fnp_qnn.gravity_null_test.local_contamination{experiment:gravity_null_test} > 0",
+                "avg:last_5m:fnp_qnn.gravity_null_test.entangled_pair_resistance{experiment:gravity_null_test} < 0.6",
+            ],
+        },
+        "review_use": (
+            "Use E2B to rerun the experiment in a clean micro-VM and Datadog to review residual, "
+            "frustration, contamination, and resistance telemetry across repeated runs."
+        ),
+        "research_boundary": RESEARCH_BOUNDARY,
+    }
+
+
 def run_gravity_null_test(config: Optional[GravityNullTestConfig] = None, **kwargs: Any) -> Dict[str, Any]:
     """Run the complete deterministic null-test profile."""
 
@@ -496,6 +554,8 @@ def run_gravity_null_test(config: Optional[GravityNullTestConfig] = None, **kwar
         profile["sequence_event_spec"] = sequence_event_spec(profile)
     if active_config.include_qiskit_preview:
         profile["qiskit_circuit_preview"] = qiskit_circuit_preview()
+    if active_config.include_e2b_datadog_review:
+        profile["e2b_datadog_review"] = e2b_datadog_review_profile(profile)
     return profile
 
 
@@ -513,6 +573,7 @@ def gravity_null_test_status() -> Dict[str, Any]:
             "graviton_constraint_profile",
             "sequence_event_spec",
             "qiskit_circuit_preview",
+            "e2b_datadog_review_profile",
         ],
         "endpoints": [
             "GET /fnp-qnn/gravity-null-test/status",
