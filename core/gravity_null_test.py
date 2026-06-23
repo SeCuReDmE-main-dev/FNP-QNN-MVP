@@ -35,6 +35,113 @@ VIDEO_SOURCE_IDS = [
 SEQUENCE_SOURCE_ID = "SEQUENCE_QUANTUM_NETWORK_SIMULATOR"
 
 
+def bell_state_reference_profile(
+    correlation: float = 1.0,
+    *,
+    phase_pi_units: float = 0.0,
+    label: str = "PhiPlus",
+) -> Dict[str, Any]:
+    """Return a Bell-state reference profile separate from chamber metadata."""
+
+    corr = clamp01(correlation)
+    phase = finite_float(phase_pi_units, "phase_pi_units")
+    return {
+        "model": "bell_state_reference_profile_v1",
+        "object_type": "two_particle_entangled_state_reference",
+        "state_family": "Bell",
+        "label": str(label),
+        "formal_reference": "(|00> + exp(i*pi*phase)|11>) / sqrt(2)",
+        "phase_pi_units": phase,
+        "roles": {"A": "first Bell-pair subsystem", "B": "second Bell-pair subsystem"},
+        "excluded_roles": ["C"],
+        "has_uncorrelated_probe": False,
+        "has_axiomatic_chamber": False,
+        "has_admissibility_gate": False,
+        "has_graviton_constraint": False,
+        "correlation": corr,
+        "separability": clamp01(1.0 - corr),
+        "feature_vector": [corr, clamp01(1.0 - corr), clamp01(abs(phase) % 2.0 / 2.0)],
+        "interpretation": (
+            "Bell-state metadata describes the A-B entangled state preparation only; "
+            "it is not the gravity/null-test chamber and does not include C, Adm, "
+            "D_min/D_max, F_chamber, or graviton-mass inference."
+        ),
+        "research_boundary": RESEARCH_BOUNDARY,
+    }
+
+
+def bell_vs_gravity_chamber_taxonomy(profile: Mapping[str, Any]) -> Dict[str, Any]:
+    """Explain and test the separation between Bell state and chamber object."""
+
+    bell = bell_state_reference_profile(
+        correlation=float((profile.get("config") or {}).get("entanglement_correlation", 0.0))
+    )
+    chamber = profile.get("chamber") or {}
+    roles = profile.get("roles") or {}
+    invariants = {
+        "bell_is_state_not_room": bell["object_type"] == "two_particle_entangled_state_reference"
+        and not bell["has_axiomatic_chamber"],
+        "bell_roles_are_ab_only": sorted(bell["roles"]) == ["A", "B"] and "C" not in bell["roles"],
+        "chamber_has_abc_roles": all(name in roles for name in ("A", "B", "C")),
+        "chamber_has_admissibility": bool(profile.get("admissibility")) and bool(chamber.get("Adm_policy")),
+        "chamber_has_bounds": bool((chamber.get("bounds") or {}).get("D_min") is not None)
+        and bool((chamber.get("bounds") or {}).get("D_max") is not None),
+        "graviton_lane_is_constraint_only": (
+            (profile.get("graviton_constraint") or {}).get("exact_graviton_mass_ev") is None
+        ),
+    }
+    return {
+        "model": "bell_vs_gravity_chamber_taxonomy_v1",
+        "bell_state": bell,
+        "gravity_null_test_chamber": {
+            "object_type": "axiomatic_measurement_and_classification_chamber",
+            "alias": "graviton-node-null-test-chamber",
+            "roles": roles,
+            "uses_bell_state_as_input": True,
+            "adds_uncorrelated_probe_C": True,
+            "adds_D_min_D_max_bounds": True,
+            "adds_Adm_gate": True,
+            "adds_no_signalling_residual": True,
+            "adds_frustration_index": True,
+            "graviton_mass_status": (profile.get("graviton_constraint") or {}).get("status"),
+            "interpretation": (
+                "The chamber is the simulator room that surrounds the Bell-pair input with "
+                "C, local bounds, residual tests, and admissibility classification."
+            ),
+        },
+        "differences": [
+            {
+                "axis": "mathematical object",
+                "bell_state": "state vector/correlation reference for A-B",
+                "gravity_chamber": "experimental container and classifier for A-B plus C",
+            },
+            {
+                "axis": "roles",
+                "bell_state": "A and B only",
+                "gravity_chamber": "A, B, and uncorrelated local probe/source C",
+            },
+            {
+                "axis": "question asked",
+                "bell_state": "are A and B correlated as an entangled pair?",
+                "gravity_chamber": "does B show a residual after chamber source isolation?",
+            },
+            {
+                "axis": "outputs",
+                "bell_state": "correlation/separability metadata",
+                "gravity_chamber": "Delta_NS, F_chamber, D_f_hat, Adm, GQ_super_equation, telemetry",
+            },
+            {
+                "axis": "forbidden inference",
+                "bell_state": "does not imply gravity or signalling",
+                "gravity_chamber": "does not infer exact graviton mass or physical quantum-gravity proof",
+            },
+        ],
+        "testable_invariants": invariants,
+        "all_invariants_hold": all(invariants.values()),
+        "research_boundary": RESEARCH_BOUNDARY,
+    }
+
+
 @dataclass(frozen=True)
 class GravityNullTestConfig:
     """Input parameters for the deterministic proof-of-principle run."""
@@ -550,6 +657,7 @@ def run_gravity_null_test(config: Optional[GravityNullTestConfig] = None, **kwar
         "hierarchy": HIERARCHY,
         "research_boundary": RESEARCH_BOUNDARY,
     }
+    profile["bell_vs_chamber_taxonomy"] = bell_vs_gravity_chamber_taxonomy(profile)
     if active_config.include_sequence_export:
         profile["sequence_event_spec"] = sequence_event_spec(profile)
     if active_config.include_qiskit_preview:
@@ -565,6 +673,8 @@ def gravity_null_test_status() -> Dict[str, Any]:
         "feature": "axiomatic-chamber-gravity-null-test",
         "available_primitives": [
             "simulate_entangled_pair",
+            "bell_state_reference_profile",
+            "bell_vs_gravity_chamber_taxonomy",
             "simulate_uncorrelated_probe",
             "simulate_local_coupling",
             "no_signalling_residual",
@@ -586,6 +696,8 @@ def gravity_null_test_status() -> Dict[str, Any]:
 
 __all__ = [
     "GravityNullTestConfig",
+    "bell_state_reference_profile",
+    "bell_vs_gravity_chamber_taxonomy",
     "e2b_datadog_review_profile",
     "gravity_null_test_status",
     "graviton_constraint_profile",

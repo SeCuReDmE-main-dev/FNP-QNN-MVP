@@ -35,6 +35,21 @@ class NetworkDesignerExecutorTests(unittest.TestCase):
             result = execute_network(graph, backend="qiskit")
         self.assertIn(result.status, {"unavailable", "placeholder", "ok"})
 
+    def test_gravity_null_test_preset_executes_and_exposes_qiskit_lane(self):
+        graph = build_graph(NetworkFamily.GRAVITY_NULL_TEST)
+
+        result = execute_network(
+            graph,
+            input_features={"source_ledger": 1.0, "probe_c": 0.35},
+            backend="torch_surrogate",
+        )
+        backends = {item["name"]: item["available"] for item in list_available_backends(graph.family)}
+
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.family, NetworkFamily.GRAVITY_NULL_TEST.value)
+        self.assertIn("e2b_datadog_review", result.outputs)
+        self.assertIn("qiskit", backends)
+
     def test_qiskit_gate_dependency_helper_is_deterministic(self):
         self.assertIsInstance(is_qiskit_available(), bool)
 

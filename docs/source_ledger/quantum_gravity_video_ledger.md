@@ -10,6 +10,7 @@ This ledger records the source boundary for the FNP-QNN axiomatic-chamber gravit
 | `VEDRAL_VIDEO_2_THIS_QUANTUM_GRAVITY_EXPERIMENT` | https://www.vlatkovedral.com/videos/this-quantum-gravity-experiment-will-rewrite-physics/ | Quantum Foundations Podcast with Dr. Maria Violaris, featuring Prof. Vlatko Vedral. Published July 9, 2025. | Source-led mathematical framing for mass superposition, entangling masses, and near-future quantum-gravity experiment ideas. | Do not claim exact graviton mass or physical validation from local simulation. |
 | `VEDRAL_OXFORD_PROFILE` | https://www.physics.ox.ac.uk/our-people/vedral | Oxford Department of Physics lists Vlatko Vedral FInstP as Professor of Quantum Information Science. | Public attribution and scientific context. | Do not imply Oxford endorsement of this simulator. |
 | `SEQUENCE_QUANTUM_NETWORK_SIMULATOR` | https://github.com/sequence-toolbox/SeQUeNCe and https://arxiv.org/abs/2009.12000 | Open source quantum-network simulator. | Optional event-spec export target after the local FNP-QNN contract is stable. | Do not claim SeQUeNCe itself proves quantum gravity. |
+| `FNG_GPCN_SET_PHI_FINAL_PDF` | `C:\Users\jeans\Desktop\livre pdf\final_english_book\final clean version\FractalNeutroGeometry_FINAL_VERSION.pdf` | Local final Fractal NeutroGeometry manuscript. Chapters 5-7 define `I_fractal`, `GPCN-Set_phi`, `I_system`, `Adm`, and chamber validation. | Supplies the axiomatic-room discipline used to classify residuals. | Do not collapse `D_f_hat`, `dF`, or `i_fractal` into universal `I`. |
 
 ## Timestamp Ledger Template
 
@@ -27,3 +28,4 @@ Each detailed video note must use this structure before a formula is implemented
 - E2B may rerun the experiment in a clean micro-VM as an optional reproducibility reviewer.
 - Datadog may collect review telemetry such as `Delta_NS`, `F_chamber`, `local_contamination`, and `entangled_pair_resistance`.
 - None of these outputs are physical proof, faster-than-light signalling, or exact graviton mass.
+- The Penrose/Hameroff and Hydra-EM-GPCN code paths are related by method: they also use a bounded axiomatic chamber and admissibility gate for microtubule-like proxy simulation, not biological validation or consciousness proof.

@@ -13,6 +13,13 @@ This experiment turns the Vedral/Quantum Foundations video lane into a bounded F
 
 It does not prove quantum gravity, faster-than-light signalling, or exact graviton mass.
 
+The axiomatic-chamber discipline is grounded in the local final manuscript
+`C:\Users\jeans\Desktop\livre pdf\final_english_book\final clean version\FractalNeutroGeometry_FINAL_VERSION.pdf`:
+Chapter 5 defines `I_fractal` as a conditional carrier authorized by `I_system`
+and `Adm`; Chapter 6 builds `GPCN-Set_phi` as a test chamber; Chapter 7 makes
+validation depend on existence, membership, boundary, scale, local dimension,
+fractal indeterminacy, normalization, and non-universality tests.
+
 ## Taxonomy
 
 | Symbol | Meaning | Simulator field |
