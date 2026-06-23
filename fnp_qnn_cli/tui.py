@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from .doctor import run_doctor
@@ -18,7 +20,13 @@ from .registry import (
 from core.ffed_plugin_bridge import FfeDPluginBridge
 
 
-FNPQNN_VECTOR_LOGO = r'''
+LOGO_ASSETS = {
+    "main_big": "assets/logo/ASCII full logo.png",
+    "top_small": "assets/logo/ASCII logo 1.png",
+    "bottom_center": "assets/logo/ASCII logo 5.png",
+}
+
+FNPQNN_VECTOR_LOGO_FALLBACK = r'''
         .-------------------------------.     FNP-QNN
      .-'     .-""""""""""""""""-.       |     QUANTUM SIMULATOR
    .'      .'    .----------.    '.     |
@@ -30,6 +38,37 @@ FNPQNN_VECTOR_LOGO = r'''
      '-.      '--------------'      .-'
         '--------------------------'
 '''
+
+FNPQNN_TOP_LOGO_FALLBACK = "FNP-QNN | QUANTUM SIMULATOR"
+FNPQNN_BOTTOM_LOGO_FALLBACK = "FNP-QNN | INSPIRED BY THE COSMOS"
+
+FNPQNN_MAIN_TERMINAL_LOGO = r"""
+        .------------------------------------------------------------------.
+     .-'        .------------------.                                      '-.
+   .'         .'    collider dome   '.        FNP-QNN                       '.
+  /          /   .----------------.   \       QUANTUM SIMULATOR              \
+ |          |   |  .------------.  |   |                                      |
+ |          |   |  |  Q  CORE   |  |   |       PROJECT GWNRE                 |
+ |          |   |  '------------'  |   |       INSPIRED BY LARGE HADRON       |
+  \          \   '----------------'   /        COLLIDER                       /
+   '.         '.   chamber geometry .'                                      .'
+     '-.        '------------------'        KNOWLEDGE  *  INNOVATION    .-'
+        '--------------------------------------------------* COLLABORATION'
+"""
+
+FNPQNN_TOP_TERMINAL_LOGO = r"""
+      /\/\        .================================.
+     /_/\_\------<|   FNP-QNN  QUANTUM SIMULATOR   |>
+       ||         '================================'
+"""
+
+FNPQNN_BOTTOM_TERMINAL_LOGO = r"""
+          .----------------.
+       .-'   FNP - QNN     '-.
+      /   INSPIRED BY COSMOS   \
+      \    DRIVEN BY SCIENCE   /
+       '-.__________________.-'
+"""
 
 RETRO_82_FLASH = r"""
   FNP-QNN RETRO 82 FLASH
@@ -46,10 +85,9 @@ RETRO_82_FLASH = r"""
 
 BRAND_FACTS = {
     "palette_source": [
-        "assets/logo/Logo version 2.png",
-        "assets/logo/Logo 3 .png",
-        "assets/logo/banner small.png",
-        "assets/logo/FNP-QNN logo.png",
+        LOGO_ASSETS["main_big"],
+        LOGO_ASSETS["top_small"],
+        LOGO_ASSETS["bottom_center"],
     ],
     "ink": "#001020",
     "paper": "#f4efe6",
@@ -59,6 +97,70 @@ BRAND_FACTS = {
     "graphite": "#101820",
     "line_gray": "#d8d2c8",
 }
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def logo_asset_path(name: str) -> Path:
+    return _repo_root() / LOGO_ASSETS[name]
+
+
+@lru_cache(maxsize=8)
+def _image_to_terminal_ascii(asset_name: str, width: int, max_height: int) -> str:
+    path = logo_asset_path(asset_name)
+    fallback = {
+        "main_big": FNPQNN_VECTOR_LOGO_FALLBACK,
+        "top_small": FNPQNN_TOP_LOGO_FALLBACK,
+        "bottom_center": FNPQNN_BOTTOM_LOGO_FALLBACK,
+    }[asset_name]
+    try:
+        from PIL import Image, ImageOps
+    except Exception:
+        return fallback
+    if not path.exists():
+        return fallback
+    try:
+        with Image.open(path) as image:
+            grayscale = image.convert("L")
+            bright_pixels = grayscale.point(lambda value: 255 if value > 22 else 0)
+            bbox = bright_pixels.getbbox()
+            if bbox:
+                grayscale = grayscale.crop(bbox)
+            grayscale = ImageOps.autocontrast(grayscale, cutoff=1)
+            source_width, source_height = grayscale.size
+            target_height = max(1, int((width / source_width) * source_height * 0.42))
+            target_height = min(max_height, target_height)
+            resized = grayscale.resize((width, target_height))
+            pixels = list(resized.getdata())
+    except Exception:
+        return fallback
+    ramp = " .:-=+*#%@"
+    rows: list[str] = []
+    for y in range(target_height):
+        row = []
+        for x in range(width):
+            value = pixels[y * width + x]
+            if value < 28:
+                row.append(" ")
+            else:
+                row.append(ramp[min(len(ramp) - 1, int(value / 256 * len(ramp)))])
+        rows.append("".join(row).rstrip())
+    rendered = "\n".join(line for line in rows if line.strip())
+    return rendered or fallback
+
+
+def main_logo_terminal() -> str:
+    return FNPQNN_MAIN_TERMINAL_LOGO
+
+
+def top_logo_terminal() -> str:
+    return FNPQNN_TOP_TERMINAL_LOGO
+
+
+def bottom_logo_terminal() -> str:
+    return FNPQNN_BOTTOM_TERMINAL_LOGO
 
 
 class TextualUnavailable(RuntimeError):
@@ -116,12 +218,31 @@ def create_app():
             border: tall #b08a3c;
             padding: 1 2;
         }
-        #brand-logo {
+        #brand-top {
+            height: auto;
+            background: #001020;
+            color: #f4efe6;
+            border-bottom: solid #b08a3c;
+            padding: 0 1;
+        }
+        #brand-top-mark {
+            width: 50;
             color: #f4efe6;
             text-style: bold;
         }
+        #brand-top-meta {
+            width: 1fr;
+            color: #b08a3c;
+            padding: 1 2;
+        }
+        #brand-logo {
+            color: #f4efe6;
+            text-style: bold;
+            text-align: center;
+        }
         #brand-meta {
             color: #b08a3c;
+            text-align: center;
         }
         #gate-strip {
             height: auto;
@@ -157,6 +278,12 @@ def create_app():
             dock: bottom;
             border: solid #b08a3c;
             margin-top: 1;
+        }
+        #brand-footer-logo {
+            height: auto;
+            color: #d8d2c8;
+            text-align: center;
+            padding: 0 1;
         }
         #output {
             height: 1fr;
@@ -200,10 +327,17 @@ def create_app():
 
         def compose(self) -> ComposeResult:
             yield Header()
-            with Vertical(id="brand"):
-                yield Static(FNPQNN_VECTOR_LOGO, id="brand-logo")
+            with Horizontal(id="brand-top"):
+                yield Static(top_logo_terminal(), id="brand-top-mark")
                 yield Static(
-                    "Logo sources: Logo version 2.png grand | Logo 3 .png, banner small.png, FNP-QNN logo.png petits",
+                    f"Top bar asset: {LOGO_ASSETS['top_small']}\n"
+                    "Gateway-ready simulator terminal | provider-native research handoff",
+                    id="brand-top-meta",
+                )
+            with Vertical(id="brand"):
+                yield Static(main_logo_terminal(), id="brand-logo")
+                yield Static(
+                    f"Main asset: {LOGO_ASSETS['main_big']}",
                     id="brand-meta",
                 )
             yield Static(
@@ -244,6 +378,7 @@ def create_app():
                         id="output",
                     )
                     yield Input(placeholder="Type /status, /doctor, /runtime, /qnn, /p114, /celebrum clip ...", id="prompt")
+                    yield Static(bottom_logo_terminal(), id="brand-footer-logo")
                     yield Static(RESEARCH_BOUNDARY + "\n" + HIERARCHY_BOUNDARY, classes="boundary")
             yield Footer()
 

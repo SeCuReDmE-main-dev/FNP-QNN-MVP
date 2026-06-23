@@ -99,16 +99,17 @@ slash commands such as `/status`, `/runtime`, `/qnn`, `/neurobit`, `/doctor`,
 The TUI branding is derived from the checked-in logo assets, not from an
 external theme:
 
-- large logo source: `assets/logo/Logo version 2.png`;
-- small logo sources: `assets/logo/Logo 3 .png`,
-  `assets/logo/banner small.png`, and `assets/logo/FNP-QNN logo.png`;
+- main large logo source: `assets/logo/ASCII full logo.png`;
+- top bar logo source: `assets/logo/ASCII logo 1.png`;
+- bottom center logo source: `assets/logo/ASCII logo 5.png`;
 - terminal identity: ink navy, off-white paper, fine gold linework, and
   restrained quantum-blue accents.
 
 Because a normal terminal TUI cannot portably render PNG logos, the interface
-uses a vector-style ASCII imprint that mirrors the large logo's collider/cube
-language and lists the logo source files in the brand strip. A hidden maintainer
-flash exists for the 1982 birthday/operator easter egg:
+uses terminal ASCII blocks that mirror the selected source images: a large
+collider-inspired header, a compact top-bar mark, and a small seal centered
+under the chat input. A hidden maintainer flash exists for the 1982
+birthday/operator easter egg:
 
 ```powershell
 fnp-qnn --json tui --retro-82

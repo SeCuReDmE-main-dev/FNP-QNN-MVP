@@ -494,6 +494,26 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertIn("RETRO 82", payload["output"])
         self.assertIn("trademark_boundary", payload)
 
+    def test_tui_uses_requested_ascii_logo_assets(self):
+        from fnp_qnn_cli.tui import (
+            BRAND_FACTS,
+            LOGO_ASSETS,
+            bottom_logo_terminal,
+            logo_asset_path,
+            main_logo_terminal,
+            top_logo_terminal,
+        )
+
+        self.assertEqual(LOGO_ASSETS["main_big"], "assets/logo/ASCII full logo.png")
+        self.assertEqual(LOGO_ASSETS["top_small"], "assets/logo/ASCII logo 1.png")
+        self.assertEqual(LOGO_ASSETS["bottom_center"], "assets/logo/ASCII logo 5.png")
+        for name in ("main_big", "top_small", "bottom_center"):
+            self.assertTrue(logo_asset_path(name).exists(), name)
+            self.assertIn(LOGO_ASSETS[name], BRAND_FACTS["palette_source"])
+        self.assertGreater(len(main_logo_terminal().strip()), 200)
+        self.assertGreater(len(top_logo_terminal().strip()), 50)
+        self.assertGreater(len(bottom_logo_terminal().strip()), 50)
+
     def test_cloud_kit_rag_runtime_cli_feeds_lvfm(self):
         stdout = io.StringIO()
         with contextlib.redirect_stdout(stdout):
