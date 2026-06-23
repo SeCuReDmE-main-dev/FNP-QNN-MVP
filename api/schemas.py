@@ -291,6 +291,13 @@ class QNNSmokeRequest(BaseModel):
     lattice_seed: int = Field(default=0, ge=0)
     observation_scale_min: float = Field(default=0.01, gt=0.0)
     observation_scale_max: float = Field(default=1.0, gt=0.0)
+    gravity_null_test_enabled: bool = False
+    gravity_null_test_seed: int = Field(default=734, ge=0)
+    gravity_null_test_shots: int = Field(default=512, ge=16, le=100000)
+    gravity_null_test_local_noise: float = Field(default=0.02, ge=0.0, le=1.0)
+    gravity_null_test_leakage: float = Field(default=0.0, ge=0.0, le=1.0)
+    gravity_null_test_mass_dispersion: float = Field(default=0.0, ge=0.0, le=1.0)
+    gravity_null_test_chamber_contradiction: float = Field(default=0.25, ge=0.0, le=1.0)
 
     @model_validator(mode="before")
     @classmethod
@@ -360,6 +367,63 @@ class PenroseHameroffObjectiveReductionRequest(BaseModel):
         if value is None:
             return value
         return _finite(value, info.field_name)
+
+
+class GravityNullTestRequest(BaseModel):
+    seed: int = Field(default=734, ge=0)
+    shots: int = Field(default=512, ge=16, le=100000)
+    entanglement_correlation: float = Field(default=0.92, ge=0.0, le=1.0)
+    probe_bias: float = Field(default=0.5, ge=0.0, le=1.0)
+    local_noise: float = Field(default=0.02, ge=0.0, le=1.0)
+    leakage: float = Field(default=0.0, ge=0.0, le=1.0)
+    mass_dispersion: float = Field(default=0.0, ge=0.0, le=1.0)
+    chamber_contradiction: float = Field(default=0.25, ge=0.0, le=1.0)
+    alpha_wave_frequency: float = Field(default=1.0, ge=0.0)
+    beta_wave_frequency: float = Field(default=1.0, ge=0.0)
+    omega_wave_frequency: float = Field(default=1.0, ge=0.0)
+    d_min: float = Field(default=0.1, ge=0.0)
+    d_max: float = Field(default=10.0, gt=0.0)
+    D_min: float = 1.0
+    D_max: float = 2.0
+    delta_ns_threshold: float = Field(default=0.05, gt=0.0)
+    frustration_threshold: float = Field(default=0.55, ge=0.0, le=1.0)
+    include_sequence_export: bool = False
+    include_qiskit_preview: bool = False
+    source_i: str = Field(default="fractal_boundary", max_length=120)
+    graviton_external_bound_ev: Optional[float] = Field(default=None, ge=0.0)
+    graviton_bound_source: Optional[str] = Field(default=None, max_length=240)
+
+    @field_validator(
+        "entanglement_correlation",
+        "probe_bias",
+        "local_noise",
+        "leakage",
+        "mass_dispersion",
+        "chamber_contradiction",
+        "alpha_wave_frequency",
+        "beta_wave_frequency",
+        "omega_wave_frequency",
+        "d_min",
+        "d_max",
+        "D_min",
+        "D_max",
+        "delta_ns_threshold",
+        "frustration_threshold",
+        "graviton_external_bound_ev",
+    )
+    @classmethod
+    def validate_gravity_numbers(cls, value: Optional[float], info):
+        if value is None:
+            return value
+        return _finite(value, info.field_name)
+
+    @model_validator(mode="after")
+    def validate_bounds(self):
+        if self.d_max <= self.d_min:
+            raise ValueError("d_max must be greater than d_min")
+        if self.D_max <= self.D_min:
+            raise ValueError("D_max must be greater than D_min")
+        return self
 
 
 class HydraEMGPCNAnesthesiaSweepRequest(RuntimeRunRequest):
@@ -606,6 +670,13 @@ class CommandRequest(BaseModel):
     lattice_seed: int = Field(default=0, ge=0)
     observation_scale_min: float = Field(default=0.01, gt=0.0)
     observation_scale_max: float = Field(default=1.0, gt=0.0)
+    gravity_null_test_enabled: bool = False
+    gravity_null_test_seed: int = Field(default=734, ge=0)
+    gravity_null_test_shots: int = Field(default=512, ge=16, le=100000)
+    gravity_null_test_local_noise: float = Field(default=0.02, ge=0.0, le=1.0)
+    gravity_null_test_leakage: float = Field(default=0.0, ge=0.0, le=1.0)
+    gravity_null_test_mass_dispersion: float = Field(default=0.0, ge=0.0, le=1.0)
+    gravity_null_test_chamber_contradiction: float = Field(default=0.25, ge=0.0, le=1.0)
 
     @model_validator(mode="before")
     @classmethod

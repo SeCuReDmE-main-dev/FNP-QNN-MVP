@@ -54,6 +54,20 @@ from .hydra_em_gpcn_math import (
     microtubule_proxy_phi_profile,
     quasicrystal_gpcn_projection_profile,
 )
+from .axiomatic_chamber import (
+    AxiomaticChamberContext,
+    ChamberBounds,
+    SourceRole,
+    admissibility_profile,
+    dmin_dmax_chamber_bounds,
+)
+from .gravity_null_test import (
+    GravityNullTestConfig,
+    gravity_null_test_status,
+    graviton_constraint_profile,
+    run_gravity_null_test,
+    sequence_event_spec,
+)
 from .neutro_algebra import (
     neutro_axiom_profile,
     neutro_function_profile,
@@ -155,6 +169,16 @@ __all__ = [
     "hydra_em_gpcn_orch_profile",
     "microtubule_proxy_phi_profile",
     "quasicrystal_gpcn_projection_profile",
+    "AxiomaticChamberContext",
+    "ChamberBounds",
+    "SourceRole",
+    "admissibility_profile",
+    "dmin_dmax_chamber_bounds",
+    "GravityNullTestConfig",
+    "gravity_null_test_status",
+    "graviton_constraint_profile",
+    "run_gravity_null_test",
+    "sequence_event_spec",
     "neutro_axiom_profile",
     "neutro_function_profile",
     "neutro_operation_table_profile",

@@ -21,6 +21,7 @@ from api.schemas import (
     CommandRequest,
     CommandResponse,
     EncodeRequest,
+    GravityNullTestRequest,
     HydraEMGPCNAnesthesiaSweepRequest,
     NidusFusionProfileRequest,
     NidusPartialMembershipMeanRequest,
@@ -40,13 +41,16 @@ from core import (
     PhiFramework,
     QNNNucleus,
     RuntimeStateStore,
+    GravityNullTestConfig,
     anesthesia_sweep_profile,
+    gravity_null_test_status,
     hydra_em_gpcn_orch_profile,
     objective_reduction_profile,
     partial_membership_mean,
     penrose_hameroff_runtime_profile,
     plithogenic_runtime_fusion_profile,
     revolutionary_topology_runtime_profile,
+    run_gravity_null_test,
     run_neurobit_gates,
     run_neurobit_tunnel_demo,
     source_weighted_triplet_fusion,
@@ -161,6 +165,46 @@ def build_demo_samples() -> tuple[list[list[dict[str, Any]]], list[int]]:
         {"modality": "stimuli", "value": 0.91, "timestamp": 2.5, "label": "trigger", "source": "demo"},
     ]
     return [sample_a, sample_b, sample_c], [0, 1, 1]
+
+
+def _gravity_config_from_request(payload: GravityNullTestRequest) -> GravityNullTestConfig:
+    return GravityNullTestConfig(
+        seed=payload.seed,
+        shots=payload.shots,
+        entanglement_correlation=payload.entanglement_correlation,
+        probe_bias=payload.probe_bias,
+        local_noise=payload.local_noise,
+        leakage=payload.leakage,
+        chamber_contradiction=payload.chamber_contradiction,
+        mass_dispersion=payload.mass_dispersion,
+        alpha_wave_frequency=payload.alpha_wave_frequency,
+        beta_wave_frequency=payload.beta_wave_frequency,
+        omega_wave_frequency=payload.omega_wave_frequency,
+        d_min=payload.d_min,
+        d_max=payload.d_max,
+        D_min=payload.D_min,
+        D_max=payload.D_max,
+        delta_ns_threshold=payload.delta_ns_threshold,
+        frustration_threshold=payload.frustration_threshold,
+        include_sequence_export=payload.include_sequence_export,
+        include_qiskit_preview=payload.include_qiskit_preview,
+        source_i=payload.source_i,
+        graviton_external_bound_ev=payload.graviton_external_bound_ev,
+        graviton_bound_source=payload.graviton_bound_source,
+    )
+
+
+def _gravity_config_from_qnn_payload(payload: QNNSmokeRequest | CommandRequest) -> GravityNullTestConfig:
+    return GravityNullTestConfig(
+        seed=payload.gravity_null_test_seed,
+        shots=payload.gravity_null_test_shots,
+        local_noise=payload.gravity_null_test_local_noise,
+        leakage=payload.gravity_null_test_leakage,
+        mass_dispersion=payload.gravity_null_test_mass_dispersion,
+        chamber_contradiction=payload.gravity_null_test_chamber_contradiction,
+        include_sequence_export=False,
+        include_qiskit_preview=False,
+    )
 
 
 def _encode_observations(observations: Sequence[Any]) -> Dict[str, Any]:
@@ -449,6 +493,9 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
             observation_scale_min=payload.observation_scale_min,
             observation_scale_max=payload.observation_scale_max,
         )
+    gravity_null_test_profile = None
+    if payload.gravity_null_test_enabled:
+        gravity_null_test_profile = run_gravity_null_test(_gravity_config_from_qnn_payload(payload))
     result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
         samples[0],
         label=float(labels[0]) if labels else 1.0,
@@ -472,6 +519,10 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         penrose_hameroff_payload=penrose_hameroff_profile,
         hydra_em_gpcn_features=None if hydra_em_gpcn_profile is None else hydra_em_gpcn_profile["feature_vector"],
         hydra_em_gpcn_payload=hydra_em_gpcn_profile,
+        gravity_null_test_features=None
+        if gravity_null_test_profile is None
+        else gravity_null_test_profile["feature_vector"],
+        gravity_null_test_payload=gravity_null_test_profile,
     ))
     return {
         "status": "ok",

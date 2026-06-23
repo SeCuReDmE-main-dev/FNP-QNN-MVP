@@ -153,6 +153,8 @@ class QNNNucleus:
         penrose_hameroff_payload: Optional[Dict[str, Any]] = None,
         hydra_em_gpcn_features: Optional[Sequence[float]] = None,
         hydra_em_gpcn_payload: Optional[Dict[str, Any]] = None,
+        gravity_null_test_features: Optional[Sequence[float]] = None,
+        gravity_null_test_payload: Optional[Dict[str, Any]] = None,
         precomputed_plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
@@ -173,6 +175,7 @@ class QNNNucleus:
         external_features.extend(list(neutro_algebra_features or []))
         external_features.extend(list(penrose_hameroff_features or []))
         external_features.extend(list(hydra_em_gpcn_features or []))
+        external_features.extend(list(gravity_null_test_features or []))
         plugin_kwargs = {
             "plugin_features": external_features or None,
             "plugin_payload": plugin_payload,
@@ -204,6 +207,7 @@ class QNNNucleus:
                 self._attach_neutro_algebra_payload(result, neutro_algebra_payload)
                 self._attach_penrose_hameroff_payload(result, penrose_hameroff_payload)
                 self._attach_hydra_em_gpcn_payload(result, hydra_em_gpcn_payload)
+                self._attach_gravity_null_test_payload(result, gravity_null_test_payload)
                 return result
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -226,6 +230,7 @@ class QNNNucleus:
                 self._attach_neutro_algebra_payload(fallback, neutro_algebra_payload)
                 self._attach_penrose_hameroff_payload(fallback, penrose_hameroff_payload)
                 self._attach_hydra_em_gpcn_payload(fallback, hydra_em_gpcn_payload)
+                self._attach_gravity_null_test_payload(fallback, gravity_null_test_payload)
                 return fallback
         result = self.fit_surrogate(
             [raw_events],
@@ -245,6 +250,7 @@ class QNNNucleus:
         self._attach_neutro_algebra_payload(result, neutro_algebra_payload)
         self._attach_penrose_hameroff_payload(result, penrose_hameroff_payload)
         self._attach_hydra_em_gpcn_payload(result, hydra_em_gpcn_payload)
+        self._attach_gravity_null_test_payload(result, gravity_null_test_payload)
         return result
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -901,6 +907,29 @@ class QNNNucleus:
             "verdict": hydra_em_gpcn_payload["verdict"],
             "hierarchy": hydra_em_gpcn_payload["hierarchy"],
             "research_boundary": hydra_em_gpcn_payload["research_boundary"],
+        }
+
+    def _attach_gravity_null_test_payload(
+        self,
+        result: Dict[str, Any],
+        gravity_null_test_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not gravity_null_test_payload:
+            return
+        result["gravity_null_test_profile"] = {
+            "model": gravity_null_test_payload["model"],
+            "source_ids": gravity_null_test_payload["source_ids"],
+            "feature_vector": gravity_null_test_payload["feature_vector"],
+            "feature_dimension": gravity_null_test_payload["feature_dimension"],
+            "classification": gravity_null_test_payload["classification"],
+            "no_signalling": gravity_null_test_payload["no_signalling"],
+            "frustrated_state": gravity_null_test_payload["frustrated_state"],
+            "fractal_carrier": gravity_null_test_payload["fractal_carrier"],
+            "admissibility": gravity_null_test_payload["admissibility"],
+            "gq_super_equation": gravity_null_test_payload["gq_super_equation"],
+            "graviton_constraint": gravity_null_test_payload["graviton_constraint"],
+            "hierarchy": gravity_null_test_payload["hierarchy"],
+            "research_boundary": gravity_null_test_payload["research_boundary"],
         }
 
     def _fractal_carrier_payload(
