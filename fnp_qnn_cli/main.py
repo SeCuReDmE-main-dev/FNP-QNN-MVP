@@ -43,8 +43,10 @@ from core.cloud_rag_bridge import (
     cloud_kit_status,
     decrypt_admission,
     e2b_ingest_plan,
+    e2b_smoke,
     encrypt_admission,
     generate_rag_key,
+    load_env_file,
 )
 
 
@@ -256,6 +258,8 @@ def build_parser() -> argparse.ArgumentParser:
     cloud_e2b.add_argument("--source", required=True)
     cloud_e2b.add_argument("--title", required=True)
     cloud_e2b.add_argument("--tool-route", default="gateway")
+    cloud_smoke = cloud_kit_sub.add_parser("e2b-smoke", help="Run a real minimal E2B sandbox smoke test.")
+    cloud_smoke.add_argument("--env-file", default=str(Path.home() / ".openclaw" / "workspace" / ".env"))
     cloud_kit_sub.add_parser("rag-keygen", help="Generate a Fernet key for FNP_QNN_RAG_ENCRYPTION_KEY.")
     rag_encrypt = cloud_kit_sub.add_parser("rag-encrypt", help="Encrypt a sanitized RAG admission envelope.")
     rag_encrypt.add_argument("--title", required=True)
@@ -549,6 +553,8 @@ def run_args(args: argparse.Namespace) -> int:
             return _emit({"success": True, "data": cloud_kit_status()}, as_json)
         if args.cloud_kit_command == "e2b-ingest-plan":
             return _emit(e2b_ingest_plan(args.source, args.title, args.tool_route), as_json)
+        if args.cloud_kit_command == "e2b-smoke":
+            return _emit(e2b_smoke(args.env_file), as_json)
         if args.cloud_kit_command == "rag-keygen":
             return _emit(generate_rag_key(), as_json)
         if args.cloud_kit_command == "rag-encrypt":

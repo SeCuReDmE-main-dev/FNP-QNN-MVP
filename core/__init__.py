@@ -8,9 +8,11 @@ from .cloud_rag_bridge import (
     cloud_kit_status,
     decrypt_admission,
     e2b_ingest_plan,
+    e2b_smoke,
     encrypt_admission,
     envelope_to_runtime_payload,
     generate_rag_key,
+    load_env_file,
 )
 from .cerebrum_runtime_bridge import CerebrumMemoryEvent, CerebrumRuntimeBridge, CerebrumRuntimeState, CrossModalPair
 from .cpai_mesh import CPAIMeshState, cpai_mesh_profile
@@ -141,9 +143,11 @@ __all__ = [
     "cloud_kit_status",
     "decrypt_admission",
     "e2b_ingest_plan",
+    "e2b_smoke",
     "encrypt_admission",
     "envelope_to_runtime_payload",
     "generate_rag_key",
+    "load_env_file",
     "CerebrumMemoryEvent",
     "CrossModalPair",
     "CerebrumRuntimeState",

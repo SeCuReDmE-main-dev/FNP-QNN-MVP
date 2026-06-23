@@ -15,6 +15,7 @@ from core import (
     cloud_kit_status,
     decrypt_admission,
     e2b_ingest_plan,
+    e2b_smoke,
     encrypt_admission,
     generate_rag_key,
 )
@@ -462,6 +463,21 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
         self.assertFalse(payload["writes_files"])
         self.assertFalse(payload["raw_secret_stored"])
         self.assertIn("sanitized summary", " ".join(payload["plan"]).lower())
+
+    def test_e2b_real_smoke_when_openclaw_key_is_available(self):
+        env_file = Path.home() / ".openclaw" / "workspace" / ".env"
+        if not env_file.exists():
+            self.skipTest("OpenClaw .env is not available")
+        has_key = any(
+            line.strip().startswith("E2B_API_KEY=") and bool(line.split("=", 1)[1].strip())
+            for line in env_file.read_text(encoding="utf-8").splitlines()
+        )
+        if not has_key:
+            self.skipTest("E2B_API_KEY is not present in OpenClaw .env")
+        payload = e2b_smoke(env_file)
+        self.assertTrue(payload["success"], payload)
+        self.assertTrue(payload["stdout_contains_expected_marker"])
+        self.assertFalse(payload["raw_token_stored"])
 
     def test_cloud_rag_admission_encrypts_and_converts_to_lvfm_payload(self):
         key = generate_rag_key()["key"]

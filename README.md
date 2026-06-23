@@ -80,6 +80,11 @@ fnp-qnn agent wake-prompt ollama
 fnp-qnn onboarding questions
 fnp-qnn onboarding apply openai --approve-fingerprint
 fnp-qnn plugin create-ai-control-mcp --force
+fnp-qnn cloud-kit status
+fnp-qnn cloud-kit e2b-smoke --env-file "C:\Users\jeans\.openclaw\workspace\.env"
+fnp-qnn cloud-kit e2b-ingest-plan --source https://example.com/data.csv --title "External data" --tool-route codex
+fnp-qnn cloud-kit rag-keygen
+fnp-qnn cloud-kit rag-runtime --title "Admitted summary" --source e2b://sandbox/result --content "Sanitized summary only."
 ```
 
 The TUI is prompt-driven, with OpenClaw-style local clarity and Codex/Gemini-like
@@ -134,6 +139,21 @@ style routing. The bridge requires a provider connection signal before control:
 a provider fingerprint from `auth login-provider`, a valid Codex login status for
 OpenAI, local Google application-default credentials for Google, or
 `OLLAMA_API_KEY` for Ollama. The MCP server never stores raw tokens.
+
+Codex connection intent:
+
+- Codex remains Codex. It keeps its native skills, plugins, git behavior, local
+  file access, and review/debug workflow.
+- FNP-QNN remains the simulator. It owns Cerebrum event normalization, LVFM
+  graph construction, QNN smoke logic, source hierarchy, and safety boundaries.
+- The bridge between them is explicit: `external-ai control`, `mcp control`,
+  and the separate `fnpqnn_gateway_MVP` gateway expose allowlisted simulator
+  commands and context files. They do not make Codex become the simulator, and
+  they do not make the simulator become Codex.
+- A connected Codex session can use native Codex skills to inspect the
+  simulator, create simulator-facing skills, build gateway plans, and feed
+  approved RAG admissions into LVFM, while the simulator still validates and
+  interprets the payload.
 
 After provider login, onboarding is explicit and approval-gated:
 
@@ -380,6 +400,12 @@ Core HTTP endpoints:
 - `POST /cerebrum/runtime/pairs`
 - `POST /cerebrum/runtime/run`
 - `GET /cerebrum/runtime/legacy-demo`
+- `GET /cloud-kit/status`
+- `POST /cloud-kit/e2b/ingest-plan`
+- `GET /cloud-kit/rag/keygen`
+- `POST /cloud-kit/rag/encrypt`
+- `POST /cloud-kit/rag/runtime`
+- `POST /cloud-kit/rag/decrypt-runtime`
 - `GET /qnn/candidates`
 - `POST /qnn/smoke`
 - `GET /fnp-qnn/neurobit/status`
@@ -484,9 +510,72 @@ special Python wheel is required for CPAI in this kit. Vercel is primarily an
 npm CLI, so it is documented as an external toolchain dependency rather than a
 Python package.
 
+CloudKit now also owns the optional E2B-to-RAG-to-LVFM handoff. The current
+contract is:
+
+```text
+approved external source
+-> E2B sandbox normalization or inspection
+-> sanitized RAG admission
+-> optional Fernet encrypted RAG envelope
+-> simulator decrypts inside approved boundary
+-> Cerebrum text memory event
+-> LVFMRuntimeGraph snapshot and QNN-ready feature path
+```
+
+E2B is not a login provider for the simulator. It is an isolated compute lane
+for external data work. The simulator reads `E2B_API_KEY` only from the process
+environment or an approved dotenv file such as
+`C:\Users\jeans\.openclaw\workspace\.env`; it never prints or serializes the
+key. The real smoke command is:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit e2b-smoke --env-file "C:\Users\jeans\.openclaw\workspace\.env"
+```
+
+A successful smoke creates a real E2B sandbox, runs a minimal Python marker
+command, returns a non-secret sandbox id, and reports
+`stdout_contains_expected_marker=true`. If `E2B_API_KEY` is missing or empty,
+the command fails explicitly instead of silently falling back to a simulation.
+
+For encrypted RAG transport, install CloudKit and generate a Fernet key:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements\local-cloud-kit.txt
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit rag-keygen
+$env:FNP_QNN_RAG_ENCRYPTION_KEY = "<generated-fernet-key>"
+```
+
+Then encrypt an admitted summary:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit rag-encrypt `
+  --title "E2B normalized data" `
+  --source "e2b://sandbox/result" `
+  --tool-route codex `
+  --content-file .\summary.md
+```
+
+To feed the simulator, decrypt inside the approved runtime boundary and convert
+the admission into a Cerebrum/LVFM payload:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit rag-decrypt-runtime --envelope .\envelope.json
+```
+
+The plain local path is also available for debug:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit rag-runtime `
+  --title "Admitted summary" `
+  --source "manual://operator-note" `
+  --tool-route codex `
+  --content "Sanitized summary only."
+```
+
 CloudKit must not upload secrets, private documents, raw images, clinical data,
 or private CeLeBrUm material. It is for controlled smoke tests, public-safe
-metadata, and future reproducibility work.
+metadata, approved external data normalization, and reproducibility work.
 
 All validation commands in this README assume `.venv`:
 

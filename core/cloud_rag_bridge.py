@@ -14,11 +14,13 @@ import hashlib
 from importlib.util import find_spec
 import json
 import os
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 
 RAG_KEY_ENV = "FNP_QNN_RAG_ENCRYPTION_KEY"
 E2B_KEY_ENV = "E2B_API_KEY"
+DEFAULT_OPENCLAW_ENV = Path.home() / ".openclaw" / "workspace" / ".env"
 MAX_RAG_CONTENT_CHARS = 65536
 
 
@@ -77,7 +79,82 @@ def cloud_kit_status() -> dict[str, Any]:
             "Cerebrum event conversion",
             "LVFMRuntimeGraph ingestion owned by simulator",
         ],
+}
+
+
+def load_env_file(path: str | os.PathLike[str] | None = None, keys: Sequence[str] | None = None) -> dict[str, Any]:
+    """Load selected environment variables from a dotenv-style file.
+
+    This intentionally returns only key names and presence booleans. Values are
+    placed into os.environ for the current process but never serialized.
+    """
+    env_path = Path(path).expanduser() if path else DEFAULT_OPENCLAW_ENV
+    selected = set(keys or (E2B_KEY_ENV, RAG_KEY_ENV))
+    loaded: list[str] = []
+    if not env_path.exists():
+        return {"success": False, "path": str(env_path), "loaded": loaded, "error": "env file not found"}
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key not in selected:
+            continue
+        value = value.strip().strip('"').strip("'")
+        if value:
+            os.environ[key] = value
+            loaded.append(key)
+    return {
+        "success": True,
+        "path": str(env_path),
+        "loaded": sorted(set(loaded)),
+        "presence": {key: bool(os.environ.get(key)) for key in selected},
+        "raw_values_printed": False,
     }
+
+
+def e2b_smoke(env_file: str | os.PathLike[str] | None = None) -> dict[str, Any]:
+    """Run a minimal real E2B sandbox smoke when E2B_API_KEY is available."""
+    env_result = load_env_file(env_file, keys=(E2B_KEY_ENV,))
+    if not os.environ.get(E2B_KEY_ENV):
+        return {
+            "success": False,
+            "provider": "e2b",
+            "env_load": env_result,
+            "error": f"{E2B_KEY_ENV} is missing or empty",
+            "raw_token_stored": False,
+        }
+    try:
+        from e2b import Sandbox
+    except Exception as exc:
+        return {
+            "success": False,
+            "provider": "e2b",
+            "env_load": env_result,
+            "error": f"e2b package unavailable: {type(exc).__name__}: {exc}",
+            "raw_token_stored": False,
+        }
+    try:
+        with Sandbox.create() as sandbox:
+            result = sandbox.commands.run("python - <<'PY'\nprint('fnpqnn-e2b-smoke-ok')\nPY")
+            sandbox_id = getattr(sandbox, "sandbox_id", None)
+        stdout = str(getattr(result, "stdout", ""))
+        return {
+            "success": "fnpqnn-e2b-smoke-ok" in stdout,
+            "provider": "e2b",
+            "sandbox_id": sandbox_id,
+            "stdout_contains_expected_marker": "fnpqnn-e2b-smoke-ok" in stdout,
+            "raw_token_stored": False,
+        }
+    except Exception as exc:
+        return {
+            "success": False,
+            "provider": "e2b",
+            "env_load": env_result,
+            "error": f"{type(exc).__name__}: {exc}",
+            "raw_token_stored": False,
+        }
 
 
 def generate_rag_key() -> dict[str, Any]:
