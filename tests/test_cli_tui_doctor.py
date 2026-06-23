@@ -409,6 +409,17 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertIn("consensus", payload)
         self.assertIn("cli_gate", payload)
 
+    def test_tui_retro_82_hidden_flash(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(["--json", "tui", "--retro-82"])
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(payload["type"], "operator-easter-egg")
+        self.assertEqual(payload["year"], 1982)
+        self.assertIn("RETRO 82", payload["output"])
+        self.assertIn("trademark_boundary", payload)
+
     def test_cloud_kit_rag_runtime_cli_feeds_lvfm(self):
         stdout = io.StringIO()
         with contextlib.redirect_stdout(stdout):

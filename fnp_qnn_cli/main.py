@@ -22,6 +22,7 @@ from .external_ai import (
     simulator_control_tasks,
 )
 from .operator import alpha_command, api_serve_command, panel_serve_command, run_operator_command, tests_command
+from .tui import BRAND_FACTS, RETRO_82_FLASH
 from .mcp_bridge import mcp_control_simulator, mcp_manifest, provider_connection_status
 from .onboarding import apply_onboarding, onboarding_questions
 from .plugin_creator import create_ai_control_mcp_plugin, create_plugin_scaffold
@@ -364,6 +365,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     tui = subparsers.add_parser("tui", help="Open the interactive Textual TUI.")
     tui.add_argument("--dry-run", action="store_true", help="Verify TUI import without launching.")
+    tui.add_argument("--retro-82", action="store_true", help=argparse.SUPPRESS)
+
+    retro = subparsers.add_parser("retro-82", help=argparse.SUPPRESS)
+    retro.add_argument("--flash", action="store_true", help=argparse.SUPPRESS)
 
     return parser
 
@@ -773,11 +778,48 @@ def run_args(args: argparse.Namespace) -> int:
     if args.section == "tui":
         from .tui import create_app
 
+        if args.retro_82:
+            return _emit(
+                {
+                    "success": True,
+                    "type": "operator-easter-egg",
+                    "year": 1982,
+                    "style": "retro mountain lens flash",
+                    "output": RETRO_82_FLASH,
+                    "palette": {
+                        "ink": BRAND_FACTS["ink"],
+                        "paper": BRAND_FACTS["paper"],
+                        "gold": BRAND_FACTS["neuro_gold"],
+                        "deep_navy": BRAND_FACTS["deep_navy"],
+                    },
+                    "trademark_boundary": "No external brand artwork or logos are embedded.",
+                },
+                as_json,
+            )
         app = create_app()
         if args.dry_run:
             return 0
         app.run()
         return 0
+
+    if args.section == "retro-82":
+        return _emit(
+            {
+                "success": True,
+                "type": "operator-easter-egg",
+                "year": 1982,
+                "style": "retro mountain lens flash",
+                "output": RETRO_82_FLASH,
+                "palette": {
+                    "ink": BRAND_FACTS["ink"],
+                    "paper": BRAND_FACTS["paper"],
+                    "gold": BRAND_FACTS["neuro_gold"],
+                    "deep_navy": BRAND_FACTS["deep_navy"],
+                },
+                "trademark_boundary": "No external brand artwork or logos are embedded.",
+            },
+            as_json,
+        )
 
     raise ValueError("unsupported command")
 
