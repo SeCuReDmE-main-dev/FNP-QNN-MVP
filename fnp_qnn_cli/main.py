@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 import sys
 from typing import Any
 
@@ -36,6 +37,15 @@ from .registry import (
     runtime_run,
 )
 from .support import all_provider_support_reports, provider_support_report
+from core.cloud_rag_bridge import (
+    admission_to_runtime_payload,
+    build_admission,
+    cloud_kit_status,
+    decrypt_admission,
+    e2b_ingest_plan,
+    encrypt_admission,
+    generate_rag_key,
+)
 
 
 def _print_json(payload: dict[str, Any]) -> None:
@@ -239,6 +249,31 @@ def build_parser() -> argparse.ArgumentParser:
     runtime_run_parser.add_argument("--payload", help="Path to runtime JSON payload.")
     runtime_run_parser.add_argument("--epochs", type=int, default=None, help="Override runtime epochs.")
 
+    cloud_kit = subparsers.add_parser("cloud-kit", help="Optional E2B and encrypted RAG bridge commands.")
+    cloud_kit_sub = cloud_kit.add_subparsers(dest="cloud_kit_command", required=True)
+    cloud_kit_sub.add_parser("status", help="Show cloud kit and encrypted RAG readiness.")
+    cloud_e2b = cloud_kit_sub.add_parser("e2b-ingest-plan", help="Plan E2B external data ingestion into RAG/LVFM.")
+    cloud_e2b.add_argument("--source", required=True)
+    cloud_e2b.add_argument("--title", required=True)
+    cloud_e2b.add_argument("--tool-route", default="gateway")
+    cloud_kit_sub.add_parser("rag-keygen", help="Generate a Fernet key for FNP_QNN_RAG_ENCRYPTION_KEY.")
+    rag_encrypt = cloud_kit_sub.add_parser("rag-encrypt", help="Encrypt a sanitized RAG admission envelope.")
+    rag_encrypt.add_argument("--title", required=True)
+    rag_encrypt.add_argument("--source", required=True)
+    rag_encrypt.add_argument("--tool-route", default="gateway")
+    rag_encrypt.add_argument("--content")
+    rag_encrypt.add_argument("--content-file")
+    rag_encrypt.add_argument("--tag", action="append", default=[])
+    rag_runtime = cloud_kit_sub.add_parser("rag-runtime", help="Convert a sanitized RAG admission into a LVFM runtime result.")
+    rag_runtime.add_argument("--title", required=True)
+    rag_runtime.add_argument("--source", required=True)
+    rag_runtime.add_argument("--tool-route", default="gateway")
+    rag_runtime.add_argument("--content")
+    rag_runtime.add_argument("--content-file")
+    rag_runtime.add_argument("--tag", action="append", default=[])
+    rag_decrypt = cloud_kit_sub.add_parser("rag-decrypt-runtime", help="Decrypt an envelope and convert it into a LVFM runtime result.")
+    rag_decrypt.add_argument("--envelope", required=True, help="Path to encrypted RAG envelope JSON.")
+
     qnn = subparsers.add_parser("qnn", help="QNN commands.")
     qnn_sub = qnn.add_subparsers(dest="qnn_command", required=True)
     qnn_smoke_parser = qnn_sub.add_parser("smoke", help="Run deterministic QNN smoke path.")
@@ -311,6 +346,14 @@ def _payload_with_overrides(path: str | None, overrides: dict[str, Any]) -> dict
         if value is not None:
             payload[key] = value
     return payload
+
+
+def _content_arg(content: str | None, content_file: str | None) -> str:
+    if content_file:
+        return Path(content_file).read_text(encoding="utf-8")
+    if content is not None:
+        return content
+    raise ValueError("--content or --content-file is required")
 
 
 def run_args(args: argparse.Namespace) -> int:
@@ -500,6 +543,63 @@ def run_args(args: argparse.Namespace) -> int:
     if args.section == "runtime" and args.runtime_command == "run":
         payload = _payload_with_overrides(args.payload, {"epochs": args.epochs})
         return _emit(runtime_run(payload), as_json)
+
+    if args.section == "cloud-kit":
+        if args.cloud_kit_command == "status":
+            return _emit({"success": True, "data": cloud_kit_status()}, as_json)
+        if args.cloud_kit_command == "e2b-ingest-plan":
+            return _emit(e2b_ingest_plan(args.source, args.title, args.tool_route), as_json)
+        if args.cloud_kit_command == "rag-keygen":
+            return _emit(generate_rag_key(), as_json)
+        if args.cloud_kit_command == "rag-encrypt":
+            content = _content_arg(args.content, args.content_file)
+            admission = build_admission(args.title, content, args.source, args.tool_route, args.tag)
+            return _emit(
+                {
+                    "success": True,
+                    "admission": {key: admission[key] for key in ("title", "source", "tool_route", "content_sha256")},
+                    "envelope": encrypt_admission(admission),
+                },
+                as_json,
+            )
+        if args.cloud_kit_command == "rag-runtime":
+            content = _content_arg(args.content, args.content_file)
+            admission = build_admission(args.title, content, args.source, args.tool_route, args.tag)
+            runtime_payload = admission_to_runtime_payload(admission)
+            return _emit(
+                {
+                    "success": True,
+                    "type": "cloud-rag",
+                    "admission": {
+                        "title": admission["title"],
+                        "source": admission["source"],
+                        "tool_route": admission["tool_route"],
+                        "content_sha256": admission["content_sha256"],
+                    },
+                    "runtime_payload": runtime_payload,
+                    "runtime": runtime_run(runtime_payload),
+                },
+                as_json,
+            )
+        if args.cloud_kit_command == "rag-decrypt-runtime":
+            envelope = load_json_payload(args.envelope)
+            admission = decrypt_admission(envelope)
+            runtime_payload = admission_to_runtime_payload(admission)
+            return _emit(
+                {
+                    "success": True,
+                    "type": "cloud-rag",
+                    "admission": {
+                        "title": admission.get("title"),
+                        "source": admission.get("source"),
+                        "tool_route": admission.get("tool_route"),
+                        "content_sha256": admission.get("content_sha256"),
+                    },
+                    "runtime_payload": runtime_payload,
+                    "runtime": runtime_run(runtime_payload),
+                },
+                as_json,
+            )
 
     if args.section == "qnn" and args.qnn_command == "smoke":
         payload = _payload_with_overrides(args.payload, {"epochs": args.epochs, "test_size": args.test_size})

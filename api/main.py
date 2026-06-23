@@ -18,9 +18,11 @@ WEB_ROOT = os.path.join(PROJECT_ROOT, "web")
 sys.path.append(PROJECT_ROOT)
 
 from api.schemas import (
+    CloudRAGAdmissionRequest,
     CommandRequest,
     CommandResponse,
     EncodeRequest,
+    EncryptedRAGEnvelopeRequest,
     GravityNullTestRequest,
     HydraEMGPCNAnesthesiaSweepRequest,
     NidusFusionProfileRequest,
@@ -41,6 +43,14 @@ from core import (
     PhiFramework,
     QNNNucleus,
     RuntimeStateStore,
+    admission_to_runtime_payload,
+    build_admission,
+    cloud_kit_status,
+    decrypt_admission,
+    e2b_ingest_plan,
+    encrypt_admission,
+    envelope_to_runtime_payload,
+    generate_rag_key,
     GravityNullTestConfig,
     anesthesia_sweep_profile,
     gravity_null_test_status,
@@ -108,6 +118,7 @@ STATE_KEYS = {
     "runtime_ingest": "/runtime/ingest/latest",
     "runtime_pairs": "/runtime/pairs/latest",
     "runtime_run": "/runtime/run/latest",
+    "cloud_rag": "/cloud-rag/latest",
 }
 
 
@@ -440,6 +451,91 @@ async def cerebrum_runtime_state_latest() -> Dict[str, Any]:
 @app.get("/cerebrum/runtime/legacy-demo")
 async def cerebrum_runtime_legacy_demo() -> Dict[str, Any]:
     return {"status": "ok", "runtime": _legacy_runtime_result()}
+
+
+@app.get("/cloud-kit/status")
+async def cloud_kit_status_endpoint() -> Dict[str, Any]:
+    return cloud_kit_status()
+
+
+@app.post("/cloud-kit/e2b/ingest-plan")
+async def cloud_kit_e2b_ingest_plan(payload: CloudRAGAdmissionRequest) -> Dict[str, Any]:
+    return e2b_ingest_plan(payload.source, payload.title, payload.tool_route)
+
+
+@app.get("/cloud-kit/rag/keygen")
+async def cloud_kit_rag_keygen() -> Dict[str, Any]:
+    try:
+        return generate_rag_key()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+
+
+@app.post("/cloud-kit/rag/encrypt")
+async def cloud_kit_rag_encrypt(payload: CloudRAGAdmissionRequest) -> Dict[str, Any]:
+    admission = build_admission(
+        payload.title,
+        payload.content,
+        payload.source,
+        tool_route=payload.tool_route,
+        tags=payload.tags,
+    )
+    try:
+        envelope = encrypt_admission(admission)
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+    response = {"status": "ok", "admission": admission, "envelope": envelope}
+    response["persistence"] = _persist_runtime_state(STATE_KEYS["cloud_rag"], response)
+    return response
+
+
+@app.post("/cloud-kit/rag/decrypt-runtime")
+async def cloud_kit_rag_decrypt_runtime(payload: EncryptedRAGEnvelopeRequest) -> Dict[str, Any]:
+    try:
+        admission = decrypt_admission(payload.to_envelope())
+        runtime_payload = admission_to_runtime_payload(admission)
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+    runtime = _runtime_result(runtime_payload, run_qnn=True)
+    response = {
+        "status": "ok",
+        "admission": {
+            "title": admission.get("title"),
+            "source": admission.get("source"),
+            "tool_route": admission.get("tool_route"),
+            "content_sha256": admission.get("content_sha256"),
+        },
+        "runtime_payload": runtime_payload,
+        "runtime": runtime,
+    }
+    response["persistence"] = _persist_runtime_state(STATE_KEYS["cloud_rag"], response)
+    return response
+
+
+@app.post("/cloud-kit/rag/runtime")
+async def cloud_kit_rag_runtime(payload: CloudRAGAdmissionRequest) -> Dict[str, Any]:
+    admission = build_admission(
+        payload.title,
+        payload.content,
+        payload.source,
+        tool_route=payload.tool_route,
+        tags=payload.tags,
+    )
+    runtime_payload = admission_to_runtime_payload(admission)
+    runtime = _runtime_result(runtime_payload, run_qnn=True)
+    response = {
+        "status": "ok",
+        "admission": {
+            "title": admission.get("title"),
+            "source": admission.get("source"),
+            "tool_route": admission.get("tool_route"),
+            "content_sha256": admission.get("content_sha256"),
+        },
+        "runtime_payload": runtime_payload,
+        "runtime": runtime,
+    }
+    response["persistence"] = _persist_runtime_state(STATE_KEYS["cloud_rag"], response)
+    return response
 
 
 @app.get("/qnn/candidates")

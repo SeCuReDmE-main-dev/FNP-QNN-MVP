@@ -245,6 +245,35 @@ class RuntimeRunRequest(BaseModel):
         return self
 
 
+class CloudRAGAdmissionRequest(BaseModel):
+    title: str = Field(max_length=120)
+    content: str = Field(max_length=65536)
+    source: str = Field(max_length=240)
+    tool_route: str = Field(default="gateway", max_length=80)
+    tags: List[str] = Field(default_factory=list)
+
+    @field_validator("tags")
+    @classmethod
+    def validate_tags(cls, value: List[str]) -> List[str]:
+        if len(value) > 24:
+            raise ValueError("At most 24 tags are accepted")
+        return [item[:64] for item in value]
+
+
+class EncryptedRAGEnvelopeRequest(BaseModel):
+    version: int = 1
+    kind: str = Field(default="fnpqnn-encrypted-rag-envelope", max_length=80)
+    algorithm: Literal["fernet"] = "fernet"
+    key_env: str = Field(default="FNP_QNN_RAG_ENCRYPTION_KEY", max_length=120)
+    ciphertext: str = Field(max_length=200000)
+    plaintext_sha256: Optional[str] = Field(default=None, max_length=128)
+    encrypted_at: Optional[str] = Field(default=None, max_length=64)
+    raw_key_stored: bool = False
+
+    def to_envelope(self) -> Dict[str, Any]:
+        return self.model_dump(exclude_none=True)
+
+
 class EncodeRequest(BaseModel):
     observations: List[Observation] = Field(default_factory=list)
 

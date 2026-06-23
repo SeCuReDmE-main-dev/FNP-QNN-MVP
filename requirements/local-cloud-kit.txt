@@ -5,6 +5,7 @@
 python-dotenv>=1.0.1
 requests>=2.32.4
 httpx>=0.24.0
+cryptography>=42.0.0
 
 # CPAI / CodeProject.AI is reached by HTTP on the local mesh; no official Python
 # package is required for the current simulator bridge.

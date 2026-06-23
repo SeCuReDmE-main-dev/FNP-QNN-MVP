@@ -1,6 +1,17 @@
 """Core primitives for the FNP-QNN research prototype."""
 
 from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, CrossModalEvent
+from .cloud_rag_bridge import (
+    RAG_KEY_ENV,
+    admission_to_runtime_payload,
+    build_admission,
+    cloud_kit_status,
+    decrypt_admission,
+    e2b_ingest_plan,
+    encrypt_admission,
+    envelope_to_runtime_payload,
+    generate_rag_key,
+)
 from .cerebrum_runtime_bridge import CerebrumMemoryEvent, CerebrumRuntimeBridge, CerebrumRuntimeState, CrossModalPair
 from .cpai_mesh import CPAIMeshState, cpai_mesh_profile
 from .lvfm_runtime_graph import (
@@ -124,6 +135,15 @@ __all__ = [
     "CrossModalEvent",
     "CerebrumFeatureBundle",
     "CerebrumAdapter",
+    "RAG_KEY_ENV",
+    "admission_to_runtime_payload",
+    "build_admission",
+    "cloud_kit_status",
+    "decrypt_admission",
+    "e2b_ingest_plan",
+    "encrypt_admission",
+    "envelope_to_runtime_payload",
+    "generate_rag_key",
     "CerebrumMemoryEvent",
     "CrossModalPair",
     "CerebrumRuntimeState",

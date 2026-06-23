@@ -6,7 +6,18 @@ import numpy as np
 from fastapi.testclient import TestClient
 
 from api.main import app
-from core import CerebrumRuntimeBridge, LifeScienceObservationPort, QNNNucleus
+from core import (
+    CerebrumRuntimeBridge,
+    LifeScienceObservationPort,
+    QNNNucleus,
+    admission_to_runtime_payload,
+    build_admission,
+    cloud_kit_status,
+    decrypt_admission,
+    e2b_ingest_plan,
+    encrypt_admission,
+    generate_rag_key,
+)
 
 
 class CerebrumRuntimeBridgeTests(unittest.TestCase):
@@ -437,6 +448,39 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
         # pi defaults to the residual 1 - mu - nu = 1.0, so value = 0 * 1 + 0.5 * 1 = 0.5.
         self.assertAlmostEqual(observations[0]["value"], 0.5)
 
+    def test_cloud_kit_status_is_secret_safe(self):
+        payload = cloud_kit_status()
+        self.assertEqual(payload["status"], "ok")
+        self.assertIn("e2b", payload)
+        self.assertFalse(payload["e2b"]["api_key_value_printed"])
+        self.assertFalse(payload["rag_encryption"]["raw_key_value_printed"])
+
+    def test_e2b_ingest_plan_keeps_external_data_outside_core(self):
+        payload = e2b_ingest_plan("https://example.com/data.csv", "External data", "codex")
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["provider"], "e2b")
+        self.assertFalse(payload["writes_files"])
+        self.assertFalse(payload["raw_secret_stored"])
+        self.assertIn("sanitized summary", " ".join(payload["plan"]).lower())
+
+    def test_cloud_rag_admission_encrypts_and_converts_to_lvfm_payload(self):
+        key = generate_rag_key()["key"]
+        admission = build_admission(
+            "E2B normalized data",
+            "Rows inspected in E2B. Admit only the stable feature summary.",
+            "e2b://sandbox/result",
+            tool_route="codex",
+            tags=["e2b", "lvfm"],
+        )
+        envelope = encrypt_admission(admission, key=key)
+        self.assertEqual(envelope["algorithm"], "fernet")
+        self.assertNotIn("Rows inspected", envelope["ciphertext"])
+        restored = decrypt_admission(envelope, key=key)
+        self.assertEqual(restored["content_sha256"], admission["content_sha256"])
+        runtime_payload = admission_to_runtime_payload(restored)
+        self.assertEqual(runtime_payload["memories"][0]["modality"], "text")
+        self.assertEqual(runtime_payload["memories"][0]["provenance"]["bridge"], "cloud-rag-to-lvfm")
+
 
 class CerebrumRuntimeApiTests(unittest.TestCase):
     def setUp(self):
@@ -666,6 +710,31 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertTrue(runtime["legacy_cerebrum_path_exists"])
         self.assertGreaterEqual(len(runtime["events"]), 1)
         self.assertGreaterEqual(len(runtime["pairs"]), 1)
+
+    def test_cloud_kit_status_endpoint(self):
+        response = self.client.get("/cloud-kit/status")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "ok")
+        self.assertIn("rag_encryption", payload)
+
+    def test_cloud_rag_runtime_endpoint_feeds_lvfm(self):
+        response = self.client.post(
+            "/cloud-kit/rag/runtime",
+            json={
+                "title": "Gateway RAG summary",
+                "content": "External source was normalized in the cloud kit and admitted as a small RAG note.",
+                "source": "e2b://sandbox/result",
+                "tool_route": "openclaw",
+                "tags": ["e2b", "rag", "lvfm"],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "ok")
+        self.assertEqual(payload["runtime_payload"]["memories"][0]["provenance"]["bridge"], "cloud-rag-to-lvfm")
+        self.assertIn("lvfm", payload["runtime"])
+        self.assertIn("persistence", payload)
 
     def test_execute_command_runtime_routes(self):
         response = self.client.post(

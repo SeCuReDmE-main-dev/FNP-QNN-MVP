@@ -355,6 +355,64 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertTrue(payload["success"])
         self.assertEqual(payload["data"]["D_f_hat"], 0.5)
 
+    def test_cloud_kit_status_cli_is_secret_safe(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(["--json", "cloud-kit", "status"])
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(stdout.getvalue())
+        self.assertTrue(payload["success"])
+        self.assertIn("e2b", payload["data"])
+        self.assertFalse(payload["data"]["e2b"]["api_key_value_printed"])
+
+    def test_cloud_kit_e2b_plan_cli(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(
+                [
+                    "--json",
+                    "cloud-kit",
+                    "e2b-ingest-plan",
+                    "--source",
+                    "https://example.com/data.csv",
+                    "--title",
+                    "External data",
+                    "--tool-route",
+                    "codex",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(payload["provider"], "e2b")
+        self.assertFalse(payload["raw_secret_stored"])
+        self.assertIn("E2B_API_KEY", payload["confirmed_source_behavior"]["api_key"])
+
+    def test_cloud_kit_rag_runtime_cli_feeds_lvfm(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(
+                [
+                    "--json",
+                    "cloud-kit",
+                    "rag-runtime",
+                    "--title",
+                    "Gateway RAG summary",
+                    "--source",
+                    "e2b://sandbox/result",
+                    "--tool-route",
+                    "openclaw",
+                    "--content",
+                    "Small admitted RAG note for LVFM.",
+                    "--tag",
+                    "lvfm",
+                ]
+            )
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(payload["type"], "cloud-rag")
+        self.assertEqual(payload["runtime_payload"]["memories"][0]["provenance"]["bridge"], "cloud-rag-to-lvfm")
+        self.assertIn("lvfm", payload["runtime"]["data"])
+
     def test_tui_constructs_when_textual_is_available(self):
         try:
             from fnp_qnn_cli.tui import create_app
