@@ -40,7 +40,7 @@ def list_available_backends(family: str) -> Tuple[Dict[str, Any], ...]:
     ]
     if family == NetworkFamily.SPIDERWEB_NETWORK.value:
         backends.append({"name": "spiderweb", "available": True, "label": "Spiderweb local propagation"})
-    if family == NetworkFamily.QUANTUM_QNN.value:
+    if family in {NetworkFamily.QUANTUM_QNN.value, NetworkFamily.GRAVITY_NULL_TEST.value}:
         backends.append(
             {
                 "name": "qiskit",
@@ -163,7 +163,7 @@ def _execute_qiskit_placeholder(
     graph: NetworkGraph,
     input_features: Mapping[str, float] | Sequence[float] | None,
 ) -> NetworkExecutionResult:
-    if graph.family != NetworkFamily.QUANTUM_QNN.value:
+    if graph.family not in {NetworkFamily.QUANTUM_QNN.value, NetworkFamily.GRAVITY_NULL_TEST.value}:
         return NetworkExecutionResult(
             status="invalid",
             family=graph.family,
@@ -171,7 +171,7 @@ def _execute_qiskit_placeholder(
             outputs={},
             trace=(),
             warnings=(),
-            errors=("qiskit backend is only available for quantum_qnn family",),
+            errors=("qiskit backend is only available for quantum_qnn or gravity_null_test family",),
         )
 
     if not is_qiskit_available():

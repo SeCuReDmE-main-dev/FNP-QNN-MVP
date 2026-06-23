@@ -63,6 +63,7 @@ from .axiomatic_chamber import (
 )
 from .gravity_null_test import (
     GravityNullTestConfig,
+    e2b_datadog_review_profile,
     gravity_null_test_status,
     graviton_constraint_profile,
     run_gravity_null_test,
@@ -175,6 +176,7 @@ __all__ = [
     "admissibility_profile",
     "dmin_dmax_chamber_bounds",
     "GravityNullTestConfig",
+    "e2b_datadog_review_profile",
     "gravity_null_test_status",
     "graviton_constraint_profile",
     "run_gravity_null_test",
