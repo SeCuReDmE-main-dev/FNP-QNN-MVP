@@ -85,11 +85,35 @@ fnp-qnn cloud-kit e2b-smoke --env-file "C:\Users\jeans\.openclaw\workspace\.env"
 fnp-qnn cloud-kit e2b-ingest-plan --source https://example.com/data.csv --title "External data" --tool-route codex
 fnp-qnn cloud-kit rag-keygen
 fnp-qnn cloud-kit rag-runtime --title "Admitted summary" --source e2b://sandbox/result --content "Sanitized summary only."
+fnp-qnn ffed p114-consensus --item "verified evidence passed" --item "partial risk pending"
+fnp-qnn tui
 ```
 
 The TUI is prompt-driven, with OpenClaw-style local clarity and Codex/Gemini-like
 slash commands such as `/status`, `/runtime`, `/qnn`, `/neurobit`, `/doctor`,
-`/core list`, and `/celebrum clip`.
+`/p114`, `/core list`, and `/celebrum clip`.
+
+The TUI branding is derived from the checked-in logo assets, not from an
+external theme:
+
+- large logo source: `assets/logo/Logo version 2.png`;
+- small logo sources: `assets/logo/Logo 3 .png`,
+  `assets/logo/banner small.png`, and `assets/logo/FNP-QNN logo.png`;
+- terminal identity: ink navy, off-white paper, fine gold linework, and
+  restrained quantum-blue accents.
+
+Because a normal terminal TUI cannot portably render PNG logos, the interface
+uses a vector-style ASCII imprint that mirrors the large logo's collider/cube
+language and lists the logo source files in the brand strip. A hidden maintainer
+flash exists for the 1982 birthday/operator easter egg:
+
+```powershell
+fnp-qnn --json tui --retro-82
+fnp-qnn --json retro-82
+```
+
+Inside the TUI prompt, `/82`, `/retro-82`, or `/vuarnet` opens the same private
+retro flash. It embeds no external brand artwork or logos.
 
 Token login for local AI CLI testing stores only a SHA-256 fingerprint under
 `.codex/fnp-qnn-cli` by default; the raw token is not stored or printed:
@@ -300,6 +324,20 @@ MVP5 plugins:
 - `p114_ffed_neutrosophic_consensus`: produces the native local `T/I/F`
   consensus. Example: evidence items with high indeterminacy raise only the
   local `I_system_component`, never the full global `I`.
+
+p114 is also exposed as a direct CLI mechanism:
+
+```powershell
+fnp-qnn --json ffed p114-consensus --item "verified evidence passed" --item "partial risk pending"
+```
+
+`cloud-kit rag-runtime` and `cloud-kit rag-decrypt-runtime` attach this p114
+gate to the generated LVFM payload by default. The gate records
+`truth`, `indeterminacy`, `falsity`, `action`, and `cli_gate.status` under
+`plugin_context.p114_consensus`, and each generated memory receives a
+`provenance.p114_gate` block. Use `--skip-p114-gate` only when you need a raw
+transport test. Use `--require-p114-approval` when the CLI must fail instead of
+admitting a note that p114 classifies as `needs_clarification` or `blocked`.
 
 The global plugin carrier is:
 
