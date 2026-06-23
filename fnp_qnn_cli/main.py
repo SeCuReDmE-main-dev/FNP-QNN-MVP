@@ -37,6 +37,7 @@ from .registry import (
     runtime_run,
 )
 from .support import all_provider_support_reports, provider_support_report
+from core.ffed_plugin_bridge import FfeDPluginBridge, P114_PLUGIN_ID
 from core.cloud_rag_bridge import (
     admission_to_runtime_payload,
     build_admission,
@@ -251,6 +252,17 @@ def build_parser() -> argparse.ArgumentParser:
     runtime_run_parser.add_argument("--payload", help="Path to runtime JSON payload.")
     runtime_run_parser.add_argument("--epochs", type=int, default=None, help="Override runtime epochs.")
 
+    ffed = subparsers.add_parser("ffed", help="FfeD plugin gates and consensus helpers.")
+    ffed_sub = ffed.add_subparsers(dest="ffed_command", required=True)
+    p114 = ffed_sub.add_parser("p114-consensus", help="Run native p114 neutrosophic T/I/F consensus.")
+    p114.add_argument("--payload", help="JSON file with items/evidence and optional thresholds.")
+    p114.add_argument("--item", action="append", default=[], help="Evidence text item to score.")
+    p114.add_argument(
+        "--mode",
+        choices=["consensus", "decision", "score_evidence", "case_study_audit"],
+        default="score_evidence",
+    )
+
     cloud_kit = subparsers.add_parser("cloud-kit", help="Optional E2B and encrypted RAG bridge commands.")
     cloud_kit_sub = cloud_kit.add_subparsers(dest="cloud_kit_command", required=True)
     cloud_kit_sub.add_parser("status", help="Show cloud kit and encrypted RAG readiness.")
@@ -275,8 +287,20 @@ def build_parser() -> argparse.ArgumentParser:
     rag_runtime.add_argument("--content")
     rag_runtime.add_argument("--content-file")
     rag_runtime.add_argument("--tag", action="append", default=[])
+    rag_runtime.add_argument("--skip-p114-gate", action="store_true", help="Do not run p114 before LVFM admission.")
+    rag_runtime.add_argument(
+        "--require-p114-approval",
+        action="store_true",
+        help="Fail instead of admitting when p114 asks for clarification or rejection.",
+    )
     rag_decrypt = cloud_kit_sub.add_parser("rag-decrypt-runtime", help="Decrypt an envelope and convert it into a LVFM runtime result.")
     rag_decrypt.add_argument("--envelope", required=True, help="Path to encrypted RAG envelope JSON.")
+    rag_decrypt.add_argument("--skip-p114-gate", action="store_true", help="Do not run p114 before LVFM admission.")
+    rag_decrypt.add_argument(
+        "--require-p114-approval",
+        action="store_true",
+        help="Fail instead of admitting when p114 asks for clarification or rejection.",
+    )
 
     qnn = subparsers.add_parser("qnn", help="QNN commands.")
     qnn_sub = qnn.add_subparsers(dest="qnn_command", required=True)
@@ -358,6 +382,53 @@ def _content_arg(content: str | None, content_file: str | None) -> str:
     if content is not None:
         return content
     raise ValueError("--content or --content-file is required")
+
+
+def _p114_items_from_admission(admission: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {
+            "label": str(admission.get("title") or "cloud-rag-admission"),
+            "text": str(admission.get("content") or ""),
+        },
+        {
+            "label": "source",
+            "text": f"source evidence {admission.get('source', '')}",
+        },
+        {
+            "label": "tool-route",
+            "text": f"gateway route {admission.get('tool_route', 'gateway')}",
+        },
+    ]
+
+
+def _attach_p114_gate(
+    runtime_payload: dict[str, Any],
+    admission: dict[str, Any],
+    *,
+    skip_gate: bool = False,
+) -> dict[str, Any] | None:
+    if skip_gate:
+        return None
+    gate = FfeDPluginBridge().run_p114_consensus(_p114_items_from_admission(admission), mode="score_evidence")
+    runtime_payload.setdefault("plugin_context", {})["p114_consensus"] = gate
+    for memory in runtime_payload.get("memories", []):
+        if isinstance(memory, dict):
+            memory.setdefault("provenance", {})["p114_gate"] = {
+                "plugin_id": P114_PLUGIN_ID,
+                "status": gate.get("cli_gate", {}).get("status"),
+                "action": gate.get("action"),
+                "consensus": gate.get("consensus"),
+            }
+    return gate
+
+
+def _ffed_payload_items(payload_path: str | None, cli_items: list[str]) -> tuple[list[Any], dict[str, Any] | None]:
+    payload = load_json_payload(payload_path)
+    raw_items = payload.get("items", payload.get("evidence", [])) if isinstance(payload, dict) else []
+    items = list(raw_items or [])
+    items.extend(cli_items or [])
+    thresholds = payload.get("thresholds") if isinstance(payload, dict) else None
+    return items, thresholds if isinstance(thresholds, dict) else None
 
 
 def run_args(args: argparse.Namespace) -> int:
@@ -548,6 +619,14 @@ def run_args(args: argparse.Namespace) -> int:
         payload = _payload_with_overrides(args.payload, {"epochs": args.epochs})
         return _emit(runtime_run(payload), as_json)
 
+    if args.section == "ffed":
+        if args.ffed_command == "p114-consensus":
+            items, thresholds = _ffed_payload_items(args.payload, args.item)
+            return _emit(
+                FfeDPluginBridge().run_p114_consensus(items, mode=args.mode, thresholds=thresholds),
+                as_json,
+            )
+
     if args.section == "cloud-kit":
         if args.cloud_kit_command == "status":
             return _emit({"success": True, "data": cloud_kit_status()}, as_json)
@@ -572,6 +651,23 @@ def run_args(args: argparse.Namespace) -> int:
             content = _content_arg(args.content, args.content_file)
             admission = build_admission(args.title, content, args.source, args.tool_route, args.tag)
             runtime_payload = admission_to_runtime_payload(admission)
+            p114_gate = _attach_p114_gate(runtime_payload, admission, skip_gate=args.skip_p114_gate)
+            if args.require_p114_approval and p114_gate and not p114_gate.get("cli_gate", {}).get("allow_lvfm_admission"):
+                return _emit(
+                    {
+                        "success": False,
+                        "type": "cloud-rag",
+                        "blocked_by": P114_PLUGIN_ID,
+                        "p114_consensus": p114_gate,
+                        "admission": {
+                            "title": admission["title"],
+                            "source": admission["source"],
+                            "tool_route": admission["tool_route"],
+                            "content_sha256": admission["content_sha256"],
+                        },
+                    },
+                    as_json,
+                )
             return _emit(
                 {
                     "success": True,
@@ -582,6 +678,7 @@ def run_args(args: argparse.Namespace) -> int:
                         "tool_route": admission["tool_route"],
                         "content_sha256": admission["content_sha256"],
                     },
+                    "p114_consensus": p114_gate,
                     "runtime_payload": runtime_payload,
                     "runtime": runtime_run(runtime_payload),
                 },
@@ -591,6 +688,23 @@ def run_args(args: argparse.Namespace) -> int:
             envelope = load_json_payload(args.envelope)
             admission = decrypt_admission(envelope)
             runtime_payload = admission_to_runtime_payload(admission)
+            p114_gate = _attach_p114_gate(runtime_payload, admission, skip_gate=args.skip_p114_gate)
+            if args.require_p114_approval and p114_gate and not p114_gate.get("cli_gate", {}).get("allow_lvfm_admission"):
+                return _emit(
+                    {
+                        "success": False,
+                        "type": "cloud-rag",
+                        "blocked_by": P114_PLUGIN_ID,
+                        "p114_consensus": p114_gate,
+                        "admission": {
+                            "title": admission.get("title"),
+                            "source": admission.get("source"),
+                            "tool_route": admission.get("tool_route"),
+                            "content_sha256": admission.get("content_sha256"),
+                        },
+                    },
+                    as_json,
+                )
             return _emit(
                 {
                     "success": True,
@@ -601,6 +715,7 @@ def run_args(args: argparse.Namespace) -> int:
                         "tool_route": admission.get("tool_route"),
                         "content_sha256": admission.get("content_sha256"),
                     },
+                    "p114_consensus": p114_gate,
                     "runtime_payload": runtime_payload,
                     "runtime": runtime_run(runtime_payload),
                 },

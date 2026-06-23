@@ -54,6 +54,9 @@ PLUGIN_WEIGHTS = {
     "p011_fractales_atomiques": 0.15,
     "p109_dual_triplex": 0.15,
 }
+P114_PLUGIN_ID = "p114_ffed_neutrosophic_consensus"
+
+
 def _clamp01(value: Any) -> float:
     try:
         numeric = float(value)
@@ -225,6 +228,64 @@ class FfeDPluginBridge:
         payload["plugin_errors"] = errors
         return payload
 
+    def run_p114_consensus(
+        self,
+        items: Optional[Iterable[Any]] = None,
+        *,
+        mode: str = "score_evidence",
+        thresholds: Optional[Mapping[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Run p114 as a first-class CLI/admission gate.
+
+        The full MVP5 hook maps p114 into QNN feature carriers. This narrower
+        method is for transport decisions: should a CLI admission proceed,
+        proceed with caveats, ask for clarification, or be blocked before LVFM.
+        """
+
+        base_status = self.status()
+        if not self.pluginpack_path.exists():
+            return p114_gate_payload(
+                plugin_result={
+                    "status": "disabled",
+                    "plugin_id": P114_PLUGIN_ID,
+                    "outputs": {},
+                    "metrics": {},
+                    "metadata": {"message": "pluginpack path not found"},
+                },
+                bridge_status={**base_status, "enabled": False, "reason": "pluginpack path not found"},
+            )
+        try:
+            run_plugin = self._load_runtime()
+        except Exception as exc:
+            return p114_gate_payload(
+                plugin_result={
+                    "status": "disabled",
+                    "plugin_id": P114_PLUGIN_ID,
+                    "outputs": {},
+                    "metrics": {},
+                    "metadata": {"message": f"plugin runtime import failed: {exc}"},
+                },
+                bridge_status={**base_status, "enabled": False, "reason": f"plugin runtime import failed: {exc}"},
+            )
+
+        config: Dict[str, Any] = {"mode": mode, "items": list(items or [])[:100]}
+        if thresholds:
+            config["thresholds"] = dict(thresholds)
+        try:
+            result = run_plugin(P114_PLUGIN_ID, config)
+        except Exception as exc:
+            result = {
+                "status": "error",
+                "plugin_id": P114_PLUGIN_ID,
+                "outputs": {},
+                "metrics": {},
+                "metadata": {"message": str(exc), "mode": mode},
+            }
+        return p114_gate_payload(
+            plugin_result=result,
+            bridge_status={**base_status, "enabled": True, "runtime_importable": True, "effective_config": config},
+        )
+
     def _build_plugin_configs(self, context: Mapping[str, Any]) -> Dict[str, Dict[str, Any]]:
         events = context.get("events") or context.get("observations") or []
         series = context.get("series") or numeric_series_from_events(events)
@@ -344,6 +405,73 @@ def build_plugin_payload_from_results(
             "cpai_mesh_base": mesh_profile,
             "secrets_exposed": False,
         },
+    }
+
+
+def p114_gate_payload(plugin_result: Mapping[str, Any], bridge_status: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
+    outputs = dict(plugin_result.get("outputs") or {})
+    metrics = dict(plugin_result.get("metrics") or {})
+    consensus = dict(outputs.get("consensus") or {})
+    truth = _clamp01(consensus.get("truth", metrics.get("truth")))
+    indeterminacy = _clamp01(consensus.get("indeterminacy", metrics.get("indeterminacy", 1.0)))
+    falsity = _clamp01(consensus.get("falsity", metrics.get("falsity")))
+    action = str(outputs.get("action") or _p114_action_from_consensus(truth, indeterminacy, falsity))
+    gate = _p114_cli_gate(action, truth, indeterminacy, falsity)
+    status = str(plugin_result.get("status") or "error")
+    return {
+        "success": status == "success",
+        "plugin_id": P114_PLUGIN_ID,
+        "status": status,
+        "consensus": {
+            "truth": truth,
+            "indeterminacy": indeterminacy,
+            "falsity": falsity,
+        },
+        "action": action,
+        "explanation": outputs.get("explanation") or gate["reason"],
+        "items": outputs.get("items", []),
+        "cli_gate": gate,
+        "bridge_status": dict(bridge_status or {}),
+        "metadata": dict(plugin_result.get("metadata") or {}),
+        "raw_token_stored": False,
+        "hierarchy": SOURCE_HIERARCHY,
+        "research_boundary": RESEARCH_BOUNDARY,
+    }
+
+
+def _p114_action_from_consensus(truth: float, indeterminacy: float, falsity: float) -> str:
+    if indeterminacy > 0.6:
+        return "ask_clarification"
+    if falsity > 0.5:
+        return "escalate_or_reject"
+    if truth > 0.7:
+        return "respond_with_confidence"
+    return "respond_with_caveat"
+
+
+def _p114_cli_gate(action: str, truth: float, indeterminacy: float, falsity: float) -> Dict[str, Any]:
+    if action == "ask_clarification":
+        return {
+            "status": "needs_clarification",
+            "allow_lvfm_admission": False,
+            "reason": "p114 indeterminacy is high; request more evidence before admitting to LVFM.",
+        }
+    if action == "escalate_or_reject":
+        return {
+            "status": "blocked",
+            "allow_lvfm_admission": False,
+            "reason": "p114 falsity is high; block or escalate the admission before LVFM.",
+        }
+    if action == "respond_with_confidence":
+        return {
+            "status": "accepted",
+            "allow_lvfm_admission": True,
+            "reason": "p114 truth is high; admit with confidence while preserving provenance.",
+        }
+    return {
+        "status": "accepted_with_caveat",
+        "allow_lvfm_admission": True,
+        "reason": "p114 did not cross a blocking threshold; admit with explicit caveats.",
     }
 
 
@@ -536,9 +664,11 @@ __all__ = [
     "FfeDPluginBridge",
     "MVP5_PLUGIN_IDS",
     "NEXT5_PLUGIN_IDS",
+    "P114_PLUGIN_ID",
     "PLUGIN_WEIGHTS",
     "build_plugin_payload_from_results",
     "consensus_items_from_events",
     "cpai_mesh_profile",
     "numeric_series_from_events",
+    "p114_gate_payload",
 ]

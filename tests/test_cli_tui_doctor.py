@@ -387,6 +387,28 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertFalse(payload["raw_secret_stored"])
         self.assertIn("E2B_API_KEY", payload["confirmed_source_behavior"]["api_key"])
 
+    def test_ffed_p114_consensus_cli(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(
+                [
+                    "--json",
+                    "ffed",
+                    "p114-consensus",
+                    "--item",
+                    "verified evidence passed with implementation proof",
+                    "--item",
+                    "partial risk remains pending",
+                ]
+            )
+        payload = json.loads(stdout.getvalue())
+        if payload["status"] == "disabled":
+            self.skipTest(payload["metadata"].get("message", "p114 pluginpack disabled"))
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(payload["plugin_id"], "p114_ffed_neutrosophic_consensus")
+        self.assertIn("consensus", payload)
+        self.assertIn("cli_gate", payload)
+
     def test_cloud_kit_rag_runtime_cli_feeds_lvfm(self):
         stdout = io.StringIO()
         with contextlib.redirect_stdout(stdout):
@@ -411,6 +433,8 @@ class CLITuiDoctorTests(unittest.TestCase):
         payload = json.loads(stdout.getvalue())
         self.assertEqual(payload["type"], "cloud-rag")
         self.assertEqual(payload["runtime_payload"]["memories"][0]["provenance"]["bridge"], "cloud-rag-to-lvfm")
+        self.assertIn("p114_consensus", payload)
+        self.assertIn("p114_gate", payload["runtime_payload"]["memories"][0]["provenance"])
         self.assertIn("lvfm", payload["runtime"]["data"])
 
     def test_tui_constructs_when_textual_is_available(self):

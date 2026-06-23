@@ -67,6 +67,21 @@ class FfeDPluginBridgeTests(unittest.TestCase):
         self.assertEqual(status["observability"]["datadog_mesh_notebook_id"], "293549")
         self.assertFalse(status["observability"]["secrets_exposed"])
 
+    def test_p114_consensus_runs_as_cli_admission_gate(self):
+        payload = FfeDPluginBridge().run_p114_consensus(
+            [
+                "verified evidence passed with implementation proof",
+                "partial risk remains pending",
+            ]
+        )
+        if payload["status"] == "disabled":
+            self.skipTest(payload["metadata"].get("message", "p114 pluginpack disabled"))
+        self.assertTrue(payload["success"], payload)
+        self.assertEqual(payload["plugin_id"], "p114_ffed_neutrosophic_consensus")
+        self.assertIn(payload["action"], {"ask_clarification", "escalate_or_reject", "respond_with_confidence", "respond_with_caveat"})
+        self.assertIn("allow_lvfm_admission", payload["cli_gate"])
+        self.assertFalse(payload["raw_token_stored"])
+
 
 if __name__ == "__main__":
     unittest.main()
