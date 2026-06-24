@@ -67,6 +67,7 @@ from core import (
     triplet_quality_profile,
 )
 from core.cerebrum_adapter import MODALITIES
+from core.qlc_runtime_normalizer import normalize_qlc_runtime_payload
 
 app = FastAPI(
     title="FNP-QNN Local Research Simulator API",
@@ -276,7 +277,7 @@ def _json_safe_qnn_result(result: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Dict[str, Any]:
-    runtime_payload = _runtime_payload(payload)
+    runtime_payload = normalize_qlc_runtime_payload(_runtime_payload(payload))
     state = cerebrum_runtime_bridge.build_state(
         runtime_payload,
         qnn_nucleus=qnn_nucleus if run_qnn else None,
@@ -317,6 +318,8 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         observation_scale_max=float((payload or {}).get("observation_scale_max", 1.0)),
     )
     result = state.to_dict()
+    if runtime_payload.get("qlc_runtime_normalized_context", {}).get("detected"):
+        result["qlc_runtime"] = runtime_payload["qlc_runtime_normalized_context"]
     if run_qnn:
         samples, labels = build_demo_samples()
         runtime_label = 1 if float((payload or {}).get("label", 1)) >= 0.5 else 0

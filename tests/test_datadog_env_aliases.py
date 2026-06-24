@@ -44,6 +44,36 @@ class DatadogEnvAliasTests(unittest.TestCase):
         self.assertEqual(args.datadog_api_key, "datadog-api-key")
         self.assertEqual(args.datadog_site, "datadoghq.com")
 
+    def test_e2b_auditor_loads_openclaw_env_without_printing_values(self):
+        audit_e2b = _load_audit_module()
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            env_path = Path(tmp) / ".env"
+            env_path.write_text("E2B_API_KEY=e2b-secret\nDD_API_KEY=dd-secret\n", encoding="utf-8")
+            with mock.patch.dict(os.environ, {}, clear=True):
+                payload = audit_e2b.load_env_file(env_path)
+
+        self.assertTrue(payload["success"])
+        self.assertTrue(payload["presence"]["E2B_API_KEY"])
+        self.assertTrue(payload["presence"]["DD_API_KEY"])
+        self.assertFalse(payload["raw_values_printed"])
+        self.assertNotIn("e2b-secret", str(payload))
+
+    def test_e2b_auditor_records_only_qlc_bundle_fingerprint(self):
+        audit_e2b = _load_audit_module()
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            bundle_path = Path(tmp) / "bundle.json"
+            bundle_path.write_text('{"schema":"ffed.qlc.protection_workflow_bundle.v1"}', encoding="utf-8")
+            payload = audit_e2b._fingerprint_file(bundle_path)
+
+        self.assertTrue(payload["present"])
+        self.assertIn("sha256", payload)
+        self.assertFalse(payload["raw_payload_embedded"])
+        self.assertNotIn("protection_workflow", str(payload))
+
 
 if __name__ == "__main__":
     unittest.main()

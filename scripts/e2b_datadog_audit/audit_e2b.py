@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
 import json
 import os
 import re
@@ -24,6 +25,7 @@ import time
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 from urllib import error as urllib_error
 from urllib import request as urllib_request
@@ -32,6 +34,7 @@ from urllib import request as urllib_request
 DEFAULT_TIMEOUT_SECONDS = 300
 DEFAULT_SERVICE = "e2b-vm-auditor"
 DEFAULT_DATADOG_SITE = "datadoghq.com"
+DEFAULT_OPENCLAW_ENV = Path.home() / ".openclaw" / "workspace" / ".env"
 
 
 def _env_first(*names: str, default: Optional[str] = None) -> Optional[str]:
@@ -40,6 +43,62 @@ def _env_first(*names: str, default: Optional[str] = None) -> Optional[str]:
         if value:
             return value
     return default
+
+
+def load_env_file(path: str | Path | None = None) -> Dict[str, Any]:
+    env_path = Path(path).expanduser() if path else DEFAULT_OPENCLAW_ENV
+    keys = {
+        "E2B_API_KEY",
+        "DD_API_KEY",
+        "DATADOG_API_KEY",
+        "DD_SITE",
+        "DATADOG_SITE",
+    }
+    loaded: List[str] = []
+    if not env_path.exists():
+        return {
+            "success": False,
+            "path": str(env_path),
+            "loaded": loaded,
+            "presence": {key: bool(os.getenv(key)) for key in sorted(keys)},
+            "error": "env file not found",
+            "raw_values_printed": False,
+        }
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if key not in keys:
+            continue
+        value = value.strip().strip('"').strip("'")
+        if value:
+            os.environ[key] = value
+            loaded.append(key)
+    return {
+        "success": True,
+        "path": str(env_path),
+        "loaded": sorted(set(loaded)),
+        "presence": {key: bool(os.getenv(key)) for key in sorted(keys)},
+        "raw_values_printed": False,
+    }
+
+
+def _fingerprint_file(path: str | Path | None) -> Dict[str, Any]:
+    if not path:
+        return {"present": False}
+    bundle_path = Path(path).expanduser()
+    if not bundle_path.exists():
+        return {"present": False, "path": str(bundle_path), "error": "bundle file not found"}
+    data = bundle_path.read_bytes()
+    return {
+        "present": True,
+        "path": str(bundle_path),
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "byte_count": len(data),
+        "raw_payload_embedded": False,
+    }
 
 
 @dataclass
@@ -599,6 +658,16 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=[],
         help="Additional audit metadata in key=value format. Can be repeated.",
     )
+    parser.add_argument(
+        "--env-file",
+        default=str(DEFAULT_OPENCLAW_ENV),
+        help="Optional env file to load without printing secret values.",
+    )
+    parser.add_argument(
+        "--qlc-bundle",
+        default=None,
+        help="Optional QLC workflow bundle path; only a file fingerprint is recorded.",
+    )
     return parser.parse_args(argv)
 
 
@@ -614,6 +683,10 @@ def run_audit(args: argparse.Namespace) -> AuditSummary:
     run_id = uuid.uuid4().hex
     extra_tags = _parse_key_value_pairs(args.extra_tag, "extra-tag")
     metadata = _parse_key_value_pairs(args.metadata, "metadata")
+    qlc_bundle = _fingerprint_file(getattr(args, "qlc_bundle", None))
+    if qlc_bundle.get("present"):
+        metadata["qlc_bundle_sha256"] = str(qlc_bundle["sha256"])
+        metadata["qlc_bundle_byte_count"] = str(qlc_bundle["byte_count"])
     passed = 0
     results: List[Dict[str, Any]] = []
     sandbox_id: Optional[str] = None
@@ -673,8 +746,25 @@ def run_audit(args: argparse.Namespace) -> AuditSummary:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
+    env_load = load_env_file(args.env_file)
     if not args.e2b_api_key:
-        print("Missing E2B_API_KEY (set environment variable or --e2b-api-key).", file=sys.stderr)
+        args.e2b_api_key = os.getenv("E2B_API_KEY")
+    if not args.datadog_api_key:
+        args.datadog_api_key = _env_first("DATADOG_API_KEY", "DD_API_KEY")
+    if args.datadog_site == DEFAULT_DATADOG_SITE:
+        args.datadog_site = _env_first("DATADOG_SITE", "DD_SITE", default=DEFAULT_DATADOG_SITE)
+    if not args.e2b_api_key:
+        print(
+            _safe_json_dumps(
+                {
+                    "success": False,
+                    "error": "Missing E2B_API_KEY",
+                    "env_load": env_load,
+                    "raw_values_printed": False,
+                }
+            ),
+            file=sys.stderr,
+        )
         return 2
 
     summary = run_audit(args)
