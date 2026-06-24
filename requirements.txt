@@ -8,6 +8,7 @@ panel>=1.9.0
 textual>=8.2,<9.0
 # Required by fastapi.testclient.TestClient used in the test suite / readiness gate.
 httpx>=0.24.0
+cryptography>=42.0
 
 # Optional for Datadog APM launcher scripts/start_datadog_apm.ps1.
 ddtrace>=2.8.0

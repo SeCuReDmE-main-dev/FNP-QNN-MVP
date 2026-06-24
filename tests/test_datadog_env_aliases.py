@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import os
 import sys
 import unittest
@@ -50,15 +51,44 @@ class DatadogEnvAliasTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             env_path = Path(tmp) / ".env"
-            env_path.write_text("E2B_API_KEY=e2b-secret\nDD_API_KEY=dd-secret\n", encoding="utf-8")
+            env_path.write_text(
+                "E2B_API_KEY=e2b-secret\nDD_API_KEY=dd-secret\nDD_DOGSTATSD_HOST=127.0.0.1\nDD_DOGSTATSD_PORT=8125\n",
+                encoding="utf-8",
+            )
             with mock.patch.dict(os.environ, {}, clear=True):
                 payload = audit_e2b.load_env_file(env_path)
 
         self.assertTrue(payload["success"])
         self.assertTrue(payload["presence"]["E2B_API_KEY"])
         self.assertTrue(payload["presence"]["DD_API_KEY"])
+        self.assertTrue(payload["presence"]["DD_DOGSTATSD_HOST"])
+        self.assertTrue(payload["presence"]["DD_DOGSTATSD_PORT"])
         self.assertFalse(payload["raw_values_printed"])
         self.assertNotIn("e2b-secret", str(payload))
+
+    def test_e2b_datadog_readiness_status_is_redacted(self):
+        audit_e2b = _load_audit_module()
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            env_path = Path(tmp) / ".env"
+            bundle_path = Path(tmp) / "bundle.json"
+            env_path.write_text(
+                "E2B_API_KEY=e2b-secret\nDATADOG_API_KEY=dd-secret\nDD_DOGSTATSD_HOST=127.0.0.1\nDD_DOGSTATSD_PORT=8125\n",
+                encoding="utf-8",
+            )
+            bundle_path.write_text('{"schema":"ffed.qlc.protection_workflow_bundle.v1"}', encoding="utf-8")
+            with mock.patch.dict(os.environ, {}, clear=True):
+                payload = audit_e2b.e2b_datadog_readiness_status(env_path, bundle_path)
+
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["schema"], "ffed.qlc.e2b_datadog_readiness_status.v1")
+        self.assertTrue(payload["e2b_key_present"])
+        self.assertTrue(payload["datadog_key_present"])
+        self.assertTrue(payload["dogstatsd_config_present"])
+        self.assertTrue(payload["qlc_bundle"]["present"])
+        self.assertFalse(payload["raw_values_printed"])
+        self.assertNotIn("secret", json.dumps(payload))
 
     def test_e2b_auditor_records_only_qlc_bundle_fingerprint(self):
         audit_e2b = _load_audit_module()
