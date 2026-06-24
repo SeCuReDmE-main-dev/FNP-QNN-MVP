@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 import tempfile
@@ -592,8 +593,36 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         runtime = body["runtime"]
         self.assertIn("qnn_result", runtime)
         self.assertIn("hydra_em_gpcn", runtime)
+        self.assertEqual(runtime["qlc_runtime"]["schema"], "ffed.qlc.runtime_normalized_context.v1")
+        self.assertEqual(runtime["qlc_runtime"]["swop_level"], "high")
+        self.assertEqual(runtime["qlc_runtime"]["lvfm_metadata"]["bridge"], "qlc-gateway-to-cerebrum-runtime")
+        self.assertFalse(runtime["qlc_runtime"]["raw_payload_embedded"])
         self.assertIn("plugin_hook_status", runtime["qnn_result"])
         self.assertIn("persistence", body)
+
+    def test_runtime_run_accepts_shared_qlc_contract_fixture(self):
+        fixture = Path(__file__).parent / "fixtures" / "qlc_contract" / "qlc_workflow_image.json"
+        bundle = json.loads(fixture.read_text(encoding="utf-8"))
+        mesh_payload = bundle["gateway_submission"]["mesh_payload"]
+
+        response = self.client.post("/cerebrum/runtime/run", json=mesh_payload)
+
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        self.assertEqual(runtime["qlc_runtime"]["media_type"], "image")
+        self.assertEqual(runtime["qlc_runtime"]["swop_level"], "high")
+        self.assertIn("mesh_payload_fingerprint", runtime["qlc_runtime"])
+
+    def test_runtime_run_rejects_raw_qlc_fields(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            json={
+                "memories": [{"modality": "stimuli", "value": 0.5}],
+                "plugin_context": {"raw_image": "not-allowed"},
+            },
+        )
+
+        self.assertEqual(response.status_code, 422)
 
     def test_runtime_run_endpoint_accepts_plithogenic_opt_in(self):
         response = self.client.post(

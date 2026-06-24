@@ -25,6 +25,7 @@ from .lvfm_runtime_graph import (
 )
 from .life_science_port import LifeScienceObservationPort
 from .phi_framework import PhiFramework, QuantumState
+from .qlc_runtime_normalizer import normalize_qlc_runtime_payload, qlc_runtime_summary
 from .qnn_nucleus import QNNBenchmarkResult, QNNCandidate, QNNNucleus
 from .ffed_plugin_bridge import FfeDPluginBridge, MVP5_PLUGIN_IDS, NEXT5_PLUGIN_IDS
 from .neurobit_gate_tunnel import (
@@ -160,6 +161,8 @@ __all__ = [
     "LVFMDecision",
     "LVFMRuntimeGraph",
     "LifeScienceObservationPort",
+    "normalize_qlc_runtime_payload",
+    "qlc_runtime_summary",
     "QNNCandidate",
     "QNNBenchmarkResult",
     "QNNNucleus",

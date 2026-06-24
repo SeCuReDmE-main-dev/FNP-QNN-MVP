@@ -18,8 +18,12 @@ from fnp_qnn_cli.main import main
 from fnp_qnn_cli.onboarding import apply_onboarding
 from fnp_qnn_cli.operator import alpha_command, api_serve_command, panel_serve_command, tests_command
 from fnp_qnn_cli.plugin_creator import create_ai_control_mcp_plugin, create_plugin_scaffold
+from fnp_qnn_cli.qlc_mcp import qlc_gateway_submit_plan, qlc_status_inspect
 from fnp_qnn_cli.registry import list_core_commands, run_core_command
 from fnp_qnn_cli.support import provider_support_report
+
+
+QLC_FIXTURE_ROOT = Path(__file__).parent / "fixtures" / "qlc_contract"
 
 
 def _qlc_mcp_bundle():
@@ -38,6 +42,8 @@ def _qlc_mcp_bundle():
             }
         },
     }
+
+
     return {
         "schema": "ffed.qlc.protection_workflow_bundle.v1",
         "media_type": "image",
@@ -411,6 +417,22 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertEqual(loop["schema"], "ffed.qlc.gateway_celebrum_loop_receipt.v1")
         self.assertIn("simulator_result", loop["fingerprints"])
         self.assertFalse(loop["raw_payload_embedded"])
+
+    def test_mcp_qlc_status_accepts_shared_fixture(self):
+        bundle = json.loads((QLC_FIXTURE_ROOT / "qlc_workflow_image.json").read_text(encoding="utf-8"))
+        status = qlc_status_inspect(bundle)
+        plan = qlc_gateway_submit_plan(bundle, simulator_url="http://localhost:8000", dry_run=True)
+
+        self.assertTrue(status["success"])
+        self.assertEqual(status["redaction_verdict"], "metadata_only_pass")
+        self.assertEqual(status["swop_level"], "high")
+        self.assertEqual(plan["status"]["mesh_payload_fingerprint"], "image-mesh-fingerprint")
+
+    def test_mcp_qlc_status_rejects_shared_forbidden_fixture(self):
+        bundle = json.loads((QLC_FIXTURE_ROOT / "qlc_workflow_forbidden_raw.json").read_text(encoding="utf-8"))
+
+        with self.assertRaises(ValueError):
+            qlc_status_inspect(bundle)
 
     def test_agent_profiles_explain_native_system_without_emulation(self):
         codex = agent_profile("chatgpt")

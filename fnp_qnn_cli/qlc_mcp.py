@@ -70,8 +70,14 @@ def qlc_status_inspect(bundle: Mapping[str, Any]) -> dict[str, Any]:
     mesh_payload = _mapping(submission.get("mesh_payload"))
     plugin_context = _mapping(mesh_payload.get("plugin_context"))
     swop = _mapping(plugin_context.get("sensitivity_weighted_obfuscation_policy"))
+    raw_flags = {
+        "bundle_raw_media_embedded": bool(bundle.get("raw_media_embedded", False)),
+        "bundle_raw_payload_embedded": bool(bundle.get("raw_payload_embedded", False)),
+        "submission_raw_payload_embedded": bool(submission.get("raw_payload_embedded", False)),
+        "mesh_raw_payload_exposed": bool(mesh_payload.get("raw_payload_exposed", False)),
+    }
     return {
-        "success": True,
+        "success": not any(raw_flags.values()),
         "tool": "qlc.status.inspect",
         "bundle_schema": str(bundle.get("schema") or submission.get("schema") or "")[:120],
         "workflow_fingerprint": str(submission.get("workflow_fingerprint") or bundle.get("workflow_fingerprint") or "")[:64],
@@ -80,6 +86,8 @@ def qlc_status_inspect(bundle: Mapping[str, Any]) -> dict[str, Any]:
         "media_type": str(bundle.get("media_type") or swop.get("media_type") or "unknown")[:40],
         "swop_level": str(swop.get("sensitivity_level") or "unknown")[:40],
         "target_endpoint": str(submission.get("target_endpoint") or "POST /cerebrum/runtime/run")[:120],
+        "redaction_verdict": "metadata_only_pass" if not any(raw_flags.values()) else "review_required",
+        "raw_flags": raw_flags,
         "raw_payload_embedded": False,
     }
 

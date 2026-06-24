@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from core.qlc_runtime_normalizer import reject_forbidden_qlc_fields
+
 ALLOWED_MODALITIES = {"audio", "video", "text", "stimuli", "hearing", "vision", "language", "stimulus"}
 MAX_EVENTS = 1000
 MAX_LABEL_LENGTH = 120
@@ -116,6 +118,7 @@ class RuntimeRunRequest(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def accept_fractal_aliases(cls, values):
+        reject_forbidden_qlc_fields(values)
         return _copy_fractal_aliases(values)
 
     @field_validator("memories", "events", "observations")
