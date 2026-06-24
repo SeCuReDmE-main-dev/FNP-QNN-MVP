@@ -1,4 +1,4 @@
-  ![FNP-QNN Logo](./assets/logo/template%203.png)
+  ![FNP-QNN Logo](./assets/logo/ASCII%20logo%208.png)
 
 # FNP-QNN Local Research Simulator
 
