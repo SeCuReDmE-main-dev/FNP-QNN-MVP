@@ -1305,4 +1305,4 @@ Start with:
 
   {{ pre-alpha educational research simulator: contributions are open through a maintainer-reviewed education pilot. Please read CONTRIBUTING.md before opening issues or pull requests. Unscoped or incomplete proposals may be closed. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
 
-  ![FNP-QNN Logo](./assets/logo/ASCII%20logo%201.png)
+  ![FNP-QNN Logo](./assets/logo/ASCII%20full%20logo.png)
