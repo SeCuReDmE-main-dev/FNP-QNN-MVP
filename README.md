@@ -168,6 +168,19 @@ a provider fingerprint from `auth login-provider`, a valid Codex login status fo
 OpenAI, local Google application-default credentials for Google, or
 `OLLAMA_API_KEY` for Ollama. The MCP server never stores raw tokens.
 
+The MCP server also exposes metadata-only QLC bridge tools:
+
+- `qlc.workflow.build`: returns the `ffed-qlc protect-workflow` command plan;
+- `qlc.gateway.submit`: validates a QLC gateway submission and returns the
+  simulator submit plan;
+- `qlc.loop.receipt`: compacts simulator status into a CeLeBrUm loop receipt;
+- `qlc.status.inspect`: inspects schema, fingerprints, route action, media type,
+  and SWOP level.
+
+These tools do not import QLC internals, process raw media, or store secrets.
+They keep the simulator as the Cerebrum runtime surface while the gateway owns
+the HTTP handoff.
+
 Codex connection intent:
 
 - Codex remains Codex. It keeps its native skills, plugins, git behavior, local

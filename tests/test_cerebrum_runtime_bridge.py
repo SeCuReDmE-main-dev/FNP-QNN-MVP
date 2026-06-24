@@ -540,6 +540,61 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("decision", runtime["lvfm"])
         self.assertIn("persistence", body)
 
+    def test_runtime_run_accepts_qlc_gateway_mesh_payload(self):
+        qlc_mesh_payload = {
+            "memories": [
+                {
+                    "modality": "stimuli",
+                    "starting_time": 0.0,
+                    "ending_time": 1.0,
+                    "value": 0.7,
+                    "label": "qlc-container",
+                    "source": "ffed-qlc-mvp",
+                    "payload_ref": "asset-001",
+                    "provenance": {
+                        "bridge": "qlc-to-fnpqnn-gateway",
+                        "qlc": {"container_sha256": "abc123", "raw_payload_exposed": False},
+                    },
+                }
+            ],
+            "label": 1.0,
+            "epochs": 2,
+            "run_qnn": True,
+            "fractal_dimension": 1.4,
+            "fractal_dimension_min": 1.0,
+            "fractal_dimension_max": 2.0,
+            "fractal_admissible": True,
+            "plugin_hook_enabled": True,
+            "plugin_set": "mvp5",
+            "plugin_context": {
+                "orchestrator": "CeLeBrUm",
+                "runtime_memory_surface": "Cerebrum",
+                "sensitivity_weighted_obfuscation_policy": {
+                    "schema": "ffed.qlc.sensitivity_weighted_obfuscation_policy.v1",
+                    "media_type": "image",
+                    "sensitivity_level": "high",
+                },
+            },
+            "cpai_context": {"route": "qlc-gateway-codeproject-fnpqnn", "mesh_enabled": True, "can_connect": True},
+            "hydra_em_enabled": True,
+            "gpcn_set_phi_enabled": True,
+            "orch_or_simulation_enabled": True,
+            "quasicrystal_projection_enabled": True,
+            "microtubule_proxy_count": 4,
+            "microtubule_coupling_strength": 0.5,
+        }
+
+        response = self.client.post("/cerebrum/runtime/run", json=qlc_mesh_payload)
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["status"], "ok")
+        runtime = body["runtime"]
+        self.assertIn("qnn_result", runtime)
+        self.assertIn("hydra_em_gpcn", runtime)
+        self.assertIn("plugin_hook_status", runtime["qnn_result"])
+        self.assertIn("persistence", body)
+
     def test_runtime_run_endpoint_accepts_plithogenic_opt_in(self):
         response = self.client.post(
             "/cerebrum/runtime/run",
