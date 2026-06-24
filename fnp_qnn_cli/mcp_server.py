@@ -9,6 +9,7 @@ from typing import Any, TextIO
 from .agent_profiles import agent_profile, wake_prompt
 from .mcp_bridge import mcp_control_simulator, mcp_manifest, provider_connection_status, simulator_control_tasks
 from .onboarding import apply_onboarding, onboarding_questions
+from .qlc_mcp import qlc_gateway_submit_plan, qlc_loop_receipt, qlc_status_inspect, qlc_workflow_build_plan
 
 
 def _tool_schema() -> list[dict[str, Any]]:
@@ -86,6 +87,54 @@ def _tool_schema() -> list[dict[str, Any]]:
                 "required": ["provider"],
             },
         },
+        {
+            "name": "qlc.workflow.build",
+            "description": "Return a metadata-only command plan for building a QLC protection workflow bundle.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "input_path": {"type": "string"},
+                    "source_id": {"type": "string"},
+                    "output_path": {"type": "string"},
+                    "media_type": {"type": "string", "enum": ["image", "document", "video"]},
+                },
+                "required": ["input_path", "source_id", "output_path"],
+            },
+        },
+        {
+            "name": "qlc.gateway.submit",
+            "description": "Validate a QLC gateway submission and return the simulator submit plan.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "bundle": {"type": "object"},
+                    "simulator_url": {"type": "string"},
+                    "dry_run": {"type": "boolean", "default": True},
+                },
+                "required": ["bundle"],
+            },
+        },
+        {
+            "name": "qlc.loop.receipt",
+            "description": "Build a compact QLC gateway-to-CeLeBrUm loop receipt from a simulator result.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "bundle": {"type": "object"},
+                    "simulator_result": {"type": "object"},
+                },
+                "required": ["bundle", "simulator_result"],
+            },
+        },
+        {
+            "name": "qlc.status.inspect",
+            "description": "Inspect a QLC workflow bundle or gateway submission without exposing raw payloads.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"bundle": {"type": "object"}},
+                "required": ["bundle"],
+            },
+        },
     ]
 
 
@@ -121,6 +170,23 @@ def call_tool(name: str, arguments: dict[str, Any] | None = None) -> dict[str, A
             "provider": str(args["provider"]),
             "wake_prompt": wake_prompt(str(args["provider"]), args.get("answers") or {}),
         }
+    if name == "qlc.workflow.build":
+        return qlc_workflow_build_plan(
+            input_path=str(args["input_path"]),
+            source_id=str(args["source_id"]),
+            output_path=str(args["output_path"]),
+            media_type=str(args.get("media_type") or "image"),
+        )
+    if name == "qlc.gateway.submit":
+        return qlc_gateway_submit_plan(
+            args.get("bundle") or {},
+            simulator_url=str(args.get("simulator_url") or "http://localhost:8000"),
+            dry_run=bool(args.get("dry_run", True)),
+        )
+    if name == "qlc.loop.receipt":
+        return qlc_loop_receipt(args.get("bundle") or {}, args.get("simulator_result") or {})
+    if name == "qlc.status.inspect":
+        return qlc_status_inspect(args.get("bundle") or {})
     raise ValueError(f"unknown MCP tool: {name}")
 
 

@@ -158,6 +158,22 @@ def mcp_manifest() -> dict[str, Any]:
                 "name": "fnp_qnn_wake_prompt",
                 "description": "Return the provider-specific wake prompt that explains FNP-QNN and the active interface.",
             },
+            {
+                "name": "qlc.workflow.build",
+                "description": "Return a metadata-only command plan for building a QLC protection workflow bundle.",
+            },
+            {
+                "name": "qlc.gateway.submit",
+                "description": "Validate a QLC gateway submission and return the simulator submit plan.",
+            },
+            {
+                "name": "qlc.loop.receipt",
+                "description": "Build a compact QLC gateway-to-CeLeBrUm loop receipt from a simulator result.",
+            },
+            {
+                "name": "qlc.status.inspect",
+                "description": "Inspect a QLC workflow bundle or gateway submission without exposing raw payloads.",
+            },
         ],
         "control_tasks": simulator_control_tasks(),
     }

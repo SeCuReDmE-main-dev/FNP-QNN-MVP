@@ -22,6 +22,38 @@ from fnp_qnn_cli.registry import list_core_commands, run_core_command
 from fnp_qnn_cli.support import provider_support_report
 
 
+def _qlc_mcp_bundle():
+    mesh_payload = {
+        "memories": [{"modality": "stimuli", "starting_time": 0.0, "ending_time": 1.0, "value": 0.7}],
+        "label": 1.0,
+        "epochs": 2,
+        "run_qnn": True,
+        "plugin_hook_enabled": True,
+        "plugin_set": "mvp5",
+        "plugin_context": {
+            "sensitivity_weighted_obfuscation_policy": {
+                "schema": "ffed.qlc.sensitivity_weighted_obfuscation_policy.v1",
+                "media_type": "image",
+                "sensitivity_level": "high",
+            }
+        },
+    }
+    return {
+        "schema": "ffed.qlc.protection_workflow_bundle.v1",
+        "media_type": "image",
+        "workflow_fingerprint": "wf-fp",
+        "gateway_submission": {
+            "schema": "ffed.qlc.gateway_submission.v1",
+            "workflow_fingerprint": "wf-fp",
+            "target_endpoint": "POST /cerebrum/runtime/run",
+            "route_action": "submit_to_cerebrum",
+            "mesh_payload": mesh_payload,
+            "mesh_payload_fingerprint": "mesh-fp",
+            "raw_payload_embedded": False,
+        },
+    }
+
+
 class CLITuiDoctorTests(unittest.TestCase):
     def test_direct_cli_status_json(self):
         stdout = io.StringIO()
@@ -345,6 +377,40 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertIn("fnp_qnn_control_simulator", names)
         self.assertIn("fnp_qnn_provider_status", names)
         self.assertIn("fnp_qnn_wake_prompt", names)
+        self.assertIn("qlc.workflow.build", names)
+        self.assertIn("qlc.gateway.submit", names)
+        self.assertIn("qlc.loop.receipt", names)
+        self.assertIn("qlc.status.inspect", names)
+
+    def test_mcp_qlc_tools_are_metadata_only(self):
+        inspect_response = handle_request(
+            {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "tools/call",
+                "params": {"name": "qlc.status.inspect", "arguments": {"bundle": _qlc_mcp_bundle()}},
+            }
+        )
+        payload = json.loads(inspect_response["result"]["content"][0]["text"])
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["swop_level"], "high")
+        self.assertFalse(payload["raw_payload_embedded"])
+
+        loop_response = handle_request(
+            {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "method": "tools/call",
+                "params": {
+                    "name": "qlc.loop.receipt",
+                    "arguments": {"bundle": _qlc_mcp_bundle(), "simulator_result": {"status": "ok", "runtime": {"feature_dimension": 4}}},
+                },
+            }
+        )
+        loop = json.loads(loop_response["result"]["content"][0]["text"])
+        self.assertEqual(loop["schema"], "ffed.qlc.gateway_celebrum_loop_receipt.v1")
+        self.assertIn("simulator_result", loop["fingerprints"])
+        self.assertFalse(loop["raw_payload_embedded"])
 
     def test_agent_profiles_explain_native_system_without_emulation(self):
         codex = agent_profile("chatgpt")
