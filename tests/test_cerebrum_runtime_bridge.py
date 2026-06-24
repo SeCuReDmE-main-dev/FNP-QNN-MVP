@@ -594,6 +594,7 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("qnn_result", runtime)
         self.assertIn("hydra_em_gpcn", runtime)
         self.assertEqual(runtime["qlc_runtime"]["schema"], "ffed.qlc.runtime_normalized_context.v1")
+        self.assertEqual(runtime["qlc_runtime"]["contract_version"], "qlc-wiring-contract.v2")
         self.assertEqual(runtime["qlc_runtime"]["swop_level"], "high")
         self.assertEqual(runtime["qlc_runtime"]["lvfm_metadata"]["bridge"], "qlc-gateway-to-cerebrum-runtime")
         self.assertFalse(runtime["qlc_runtime"]["raw_payload_embedded"])
@@ -609,9 +610,29 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         runtime = response.json()["runtime"]
+        self.assertEqual(bundle["contract_version"], "qlc-wiring-contract.v2")
+        self.assertEqual(bundle["gateway_submission"]["contract_version"], "qlc-wiring-contract.v2")
         self.assertEqual(runtime["qlc_runtime"]["media_type"], "image")
+        self.assertEqual(runtime["qlc_runtime"]["contract_version"], "qlc-wiring-contract.v2")
         self.assertEqual(runtime["qlc_runtime"]["swop_level"], "high")
         self.assertIn("mesh_payload_fingerprint", runtime["qlc_runtime"])
+        self.assertEqual(
+            sorted(runtime["qlc_runtime"].keys()),
+            [
+                "contract_version",
+                "detected",
+                "lvfm_metadata",
+                "media_type",
+                "mesh_enabled",
+                "mesh_payload_fingerprint",
+                "orchestrator",
+                "raw_payload_embedded",
+                "recommended_chunk_mode",
+                "runtime_memory_surface",
+                "schema",
+                "swop_level",
+            ],
+        )
 
     def test_runtime_run_rejects_raw_qlc_fields(self):
         response = self.client.post(

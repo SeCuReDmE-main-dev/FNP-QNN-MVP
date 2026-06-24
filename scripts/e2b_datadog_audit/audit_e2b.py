@@ -51,6 +51,8 @@ def load_env_file(path: str | Path | None = None) -> Dict[str, Any]:
         "E2B_API_KEY",
         "DD_API_KEY",
         "DATADOG_API_KEY",
+        "DD_DOGSTATSD_HOST",
+        "DD_DOGSTATSD_PORT",
         "DD_SITE",
         "DATADOG_SITE",
     }
@@ -98,6 +100,28 @@ def _fingerprint_file(path: str | Path | None) -> Dict[str, Any]:
         "sha256": hashlib.sha256(data).hexdigest(),
         "byte_count": len(data),
         "raw_payload_embedded": False,
+    }
+
+
+def e2b_datadog_readiness_status(
+    env_file: str | Path | None = None,
+    qlc_bundle: str | Path | None = None,
+) -> Dict[str, Any]:
+    """Return a metadata-only readiness report for local E2B/Datadog audit wiring."""
+
+    env_load = load_env_file(env_file)
+    presence = dict(env_load.get("presence") or {})
+    qlc_bundle_fingerprint = _fingerprint_file(qlc_bundle)
+    return {
+        "success": True,
+        "schema": "ffed.qlc.e2b_datadog_readiness_status.v1",
+        "env_load": env_load,
+        "e2b_key_present": bool(presence.get("E2B_API_KEY")),
+        "datadog_key_present": bool(presence.get("DD_API_KEY") or presence.get("DATADOG_API_KEY")),
+        "dogstatsd_config_present": bool(presence.get("DD_DOGSTATSD_HOST") and presence.get("DD_DOGSTATSD_PORT")),
+        "dogstatsd_reachable": "not_checked",
+        "qlc_bundle": qlc_bundle_fingerprint,
+        "raw_values_printed": False,
     }
 
 
@@ -668,6 +692,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=None,
         help="Optional QLC workflow bundle path; only a file fingerprint is recorded.",
     )
+    parser.add_argument(
+        "--readiness-status",
+        action="store_true",
+        help="Print redacted E2B/Datadog readiness and exit without launching a sandbox.",
+    )
     return parser.parse_args(argv)
 
 
@@ -747,6 +776,9 @@ def run_audit(args: argparse.Namespace) -> AuditSummary:
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     env_load = load_env_file(args.env_file)
+    if args.readiness_status:
+        print(_safe_json_dumps(e2b_datadog_readiness_status(args.env_file, args.qlc_bundle)))
+        return 0
     if not args.e2b_api_key:
         args.e2b_api_key = os.getenv("E2B_API_KEY")
     if not args.datadog_api_key:

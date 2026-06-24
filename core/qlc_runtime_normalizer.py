@@ -6,6 +6,7 @@ from typing import Any, Mapping, Sequence
 
 
 QLC_RUNTIME_CONTEXT_SCHEMA = "ffed.qlc.runtime_normalized_context.v1"
+QLC_WIRING_CONTRACT_VERSION = "qlc-wiring-contract.v2"
 
 FORBIDDEN_QCL_RUNTIME_FIELDS = {
     "api_key",
@@ -42,6 +43,9 @@ def normalize_qlc_runtime_payload(payload: Mapping[str, Any] | None) -> dict[str
     detected = bool(swop or str(plugin_context.get("orchestrator") or "").lower() == "celebrum")
     summary = {
         "schema": QLC_RUNTIME_CONTEXT_SCHEMA,
+        "contract_version": str(runtime_payload.get("contract_version") or plugin_context.get("contract_version") or QLC_WIRING_CONTRACT_VERSION)[:80]
+        if detected
+        else "unknown",
         "detected": detected,
         "orchestrator": str(plugin_context.get("orchestrator") or "CeLeBrUm")[:80] if detected else "unknown",
         "runtime_memory_surface": str(plugin_context.get("runtime_memory_surface") or "Cerebrum")[:80] if detected else "unknown",

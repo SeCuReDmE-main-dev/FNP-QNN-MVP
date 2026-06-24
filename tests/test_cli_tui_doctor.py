@@ -46,10 +46,12 @@ def _qlc_mcp_bundle():
 
     return {
         "schema": "ffed.qlc.protection_workflow_bundle.v1",
+        "contract_version": "qlc-wiring-contract.v2",
         "media_type": "image",
         "workflow_fingerprint": "wf-fp",
         "gateway_submission": {
             "schema": "ffed.qlc.gateway_submission.v1",
+            "contract_version": "qlc-wiring-contract.v2",
             "workflow_fingerprint": "wf-fp",
             "target_endpoint": "POST /cerebrum/runtime/run",
             "route_action": "submit_to_cerebrum",
