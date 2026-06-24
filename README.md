@@ -105,11 +105,11 @@ external theme:
 - terminal identity: ink navy, off-white paper, fine gold linework, and
   restrained quantum-blue accents.
 
-Because a normal terminal TUI cannot portably render PNG logos, the interface
-uses terminal ASCII blocks that mirror the selected source images: a large
-collider-inspired header, a compact top-bar mark, and a small seal centered
-under the chat input. A hidden maintainer flash exists for the 1982
-birthday/operator easter egg:
+The TUI uses `textual-image` to render these PNG assets directly when the
+terminal supports image protocols, with a compact text fallback otherwise. The
+large collider image sits in the main brand area, the compact mark sits in the
+top bar, and the seal is centered under the chat input. A hidden maintainer
+flash exists for the 1982 birthday/operator easter egg:
 
 ```powershell
 fnp-qnn --json tui --retro-82

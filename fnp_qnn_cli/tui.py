@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -26,48 +25,22 @@ LOGO_ASSETS = {
     "bottom_center": "assets/logo/ASCII logo 5.png",
 }
 
-FNPQNN_VECTOR_LOGO_FALLBACK = r'''
-        .-------------------------------.     FNP-QNN
-     .-'     .-""""""""""""""""-.       |     QUANTUM SIMULATOR
-   .'      .'    .----------.    '.     |
-  /       /     /  .----.   \      \    |     PROJECT GWNRE
- |       |      |  | /\ |   |      |    |     KNOWLEDGE INNOVATION COLLABORATION
- |       |      |  |/  \|   |      |    |
-  \       \     \  '----'  /      /     |     T/I/F -> Obsidian -> LVFM
-   '.      '.    '--------'    .'      |
-     '-.      '--------------'      .-'
-        '--------------------------'
-'''
-
-FNPQNN_TOP_LOGO_FALLBACK = "FNP-QNN | QUANTUM SIMULATOR"
-FNPQNN_BOTTOM_LOGO_FALLBACK = "FNP-QNN | INSPIRED BY THE COSMOS"
-
 FNPQNN_MAIN_TERMINAL_LOGO = r"""
-        .------------------------------------------------------------------.
-     .-'        .------------------.                                      '-.
-   .'         .'    collider dome   '.        FNP-QNN                       '.
-  /          /   .----------------.   \       QUANTUM SIMULATOR              \
- |          |   |  .------------.  |   |                                      |
- |          |   |  |  Q  CORE   |  |   |       PROJECT GWNRE                 |
- |          |   |  '------------'  |   |       INSPIRED BY LARGE HADRON       |
-  \          \   '----------------'   /        COLLIDER                       /
-   '.         '.   chamber geometry .'                                      .'
-     '-.        '------------------'        KNOWLEDGE  *  INNOVATION    .-'
-        '--------------------------------------------------* COLLABORATION'
++--------------------------------------------------------------+
+| FNP-QNN                                      QUANTUM SIMULATOR |
+| Project GWNRE                       alpha-local research TUI |
+| Collider-inspired source: ASCII full logo.png                |
+| Knowledge  *  Innovation  *  Collaboration                   |
++--------------------------------------------------------------+
 """
 
 FNPQNN_TOP_TERMINAL_LOGO = r"""
-      /\/\        .================================.
-     /_/\_\------<|   FNP-QNN  QUANTUM SIMULATOR   |>
-       ||         '================================'
+FNP-QNN / Quantum Simulator
+Native tools -> gateway -> LVFM
 """
 
 FNPQNN_BOTTOM_TERMINAL_LOGO = r"""
-          .----------------.
-       .-'   FNP - QNN     '-.
-      /   INSPIRED BY COSMOS   \
-      \    DRIVEN BY SCIENCE   /
-       '-.__________________.-'
+[ FNP-QNN | inspired by cosmos | driven by science ]
 """
 
 RETRO_82_FLASH = r"""
@@ -107,50 +80,6 @@ def logo_asset_path(name: str) -> Path:
     return _repo_root() / LOGO_ASSETS[name]
 
 
-@lru_cache(maxsize=8)
-def _image_to_terminal_ascii(asset_name: str, width: int, max_height: int) -> str:
-    path = logo_asset_path(asset_name)
-    fallback = {
-        "main_big": FNPQNN_VECTOR_LOGO_FALLBACK,
-        "top_small": FNPQNN_TOP_LOGO_FALLBACK,
-        "bottom_center": FNPQNN_BOTTOM_LOGO_FALLBACK,
-    }[asset_name]
-    try:
-        from PIL import Image, ImageOps
-    except Exception:
-        return fallback
-    if not path.exists():
-        return fallback
-    try:
-        with Image.open(path) as image:
-            grayscale = image.convert("L")
-            bright_pixels = grayscale.point(lambda value: 255 if value > 22 else 0)
-            bbox = bright_pixels.getbbox()
-            if bbox:
-                grayscale = grayscale.crop(bbox)
-            grayscale = ImageOps.autocontrast(grayscale, cutoff=1)
-            source_width, source_height = grayscale.size
-            target_height = max(1, int((width / source_width) * source_height * 0.42))
-            target_height = min(max_height, target_height)
-            resized = grayscale.resize((width, target_height))
-            pixels = list(resized.getdata())
-    except Exception:
-        return fallback
-    ramp = " .:-=+*#%@"
-    rows: list[str] = []
-    for y in range(target_height):
-        row = []
-        for x in range(width):
-            value = pixels[y * width + x]
-            if value < 28:
-                row.append(" ")
-            else:
-                row.append(ramp[min(len(ramp) - 1, int(value / 256 * len(ramp)))])
-        rows.append("".join(row).rstrip())
-    rendered = "\n".join(line for line in rows if line.strip())
-    return rendered or fallback
-
-
 def main_logo_terminal() -> str:
     return FNPQNN_MAIN_TERMINAL_LOGO
 
@@ -172,9 +101,13 @@ def _require_textual():
         from textual.app import App, ComposeResult
         from textual.containers import Horizontal, Vertical
         from textual.widgets import Button, Footer, Header, Input, Label, ListItem, ListView, Static
+        try:
+            from textual_image.widget import Image as TerminalImage
+        except Exception:
+            TerminalImage = None
     except Exception as exc:  # pragma: no cover - depends on local installation.
         raise TextualUnavailable("Textual is not installed. Install project dependencies, then run fnp-qnn-tui.") from exc
-    return App, ComposeResult, Horizontal, Vertical, Button, Footer, Header, Input, Label, ListItem, ListView, Static
+    return App, ComposeResult, Horizontal, Vertical, Button, Footer, Header, Input, Label, ListItem, ListView, Static, TerminalImage
 
 
 def _format_payload(payload: dict[str, Any]) -> str:
@@ -197,75 +130,83 @@ def _format_payload(payload: dict[str, Any]) -> str:
 
 
 def create_app():
-    App, ComposeResult, Horizontal, Vertical, Button, Footer, Header, Input, Label, ListItem, ListView, Static = (
+    App, ComposeResult, Horizontal, Vertical, Button, Footer, Header, Input, Label, ListItem, ListView, Static, TerminalImage = (
         _require_textual()
     )
+
+    def image_widget(asset_name: str, fallback: str, *, id: str):
+        if TerminalImage is None:
+            return Static(fallback, id=id)
+        return TerminalImage(str(logo_asset_path(asset_name)), id=id)
 
     class FNPQNNTui(App):
         CSS = """
         Screen {
             layout: vertical;
-            background: #001020;
+            background: #07131c;
             color: #f4efe6;
         }
         #body {
             height: 1fr;
         }
         #brand {
-            height: auto;
-            background: #001020;
-            color: #f4efe6;
-            border: tall #b08a3c;
-            padding: 1 2;
-        }
-        #brand-top {
-            height: auto;
-            background: #001020;
+            height: 15;
+            background: #07131c;
             color: #f4efe6;
             border-bottom: solid #b08a3c;
             padding: 0 1;
         }
-        #brand-top-mark {
-            width: 50;
+        #brand-top {
+            height: 4;
+            background: #101820;
+            color: #f4efe6;
+            border-bottom: solid #b08a3c;
+            padding: 0 1;
+        }
+        #brand-top-image {
+            width: 34;
+            height: 4;
             color: #f4efe6;
             text-style: bold;
         }
         #brand-top-meta {
             width: 1fr;
-            color: #b08a3c;
-            padding: 1 2;
+            color: #d8d2c8;
+            padding: 0 2;
         }
-        #brand-logo {
+        #brand-image {
+            width: 1fr;
+            height: 14;
             color: #f4efe6;
             text-style: bold;
             text-align: center;
         }
         #brand-meta {
+            width: 42;
             color: #b08a3c;
-            text-align: center;
+            padding: 1 2;
         }
         #gate-strip {
             height: auto;
-            background: #101010;
-            color: #f4efe6;
+            background: #101820;
+            color: #d8d2c8;
             padding: 0 1;
             border-bottom: solid #b08a3c;
         }
         #nav {
-            width: 31;
+            width: 29;
             background: #07131c;
-            border: solid #b08a3c;
+            border-right: solid #303030;
             padding: 1;
         }
         #main {
             width: 1fr;
-            background: #07131c;
-            border: solid #b08a3c;
+            background: #101820;
             padding: 1;
         }
         #context {
             height: auto;
-            border: tall #303030;
+            border: solid #303030;
             padding: 1;
             margin-bottom: 1;
             color: #d8d2c8;
@@ -278,19 +219,21 @@ def create_app():
             dock: bottom;
             border: solid #b08a3c;
             margin-top: 1;
+            background: #07131c;
         }
-        #brand-footer-logo {
-            height: auto;
-            color: #d8d2c8;
+        #brand-footer-image {
+            height: 5;
+            width: 34;
+            color: #b08a3c;
             text-align: center;
             padding: 0 1;
         }
         #output {
             height: 1fr;
             overflow-y: scroll;
-            border: tall #303030;
+            border: solid #303030;
             padding: 1;
-            background: #101010;
+            background: #07131c;
             color: #f4efe6;
         }
         .boundary {
@@ -328,16 +271,20 @@ def create_app():
         def compose(self) -> ComposeResult:
             yield Header()
             with Horizontal(id="brand-top"):
-                yield Static(top_logo_terminal(), id="brand-top-mark")
+                yield image_widget("top_small", top_logo_terminal(), id="brand-top-image")
                 yield Static(
-                    f"Top bar asset: {LOGO_ASSETS['top_small']}\n"
-                    "Gateway-ready simulator terminal | provider-native research handoff",
+                    "Research simulator | non-clinical | no raw provider secrets\n"
+                    f"Top asset: {LOGO_ASSETS['top_small']}",
                     id="brand-top-meta",
                 )
-            with Vertical(id="brand"):
-                yield Static(main_logo_terminal(), id="brand-logo")
+            with Horizontal(id="brand"):
+                yield image_widget("main_big", main_logo_terminal(), id="brand-image")
                 yield Static(
-                    f"Main asset: {LOGO_ASSETS['main_big']}",
+                    "Quick controls\n"
+                    "s: status\n"
+                    "r: runtime\n"
+                    "d: doctor\n"
+                    f"main: {LOGO_ASSETS['main_big']}",
                     id="brand-meta",
                 )
             yield Static(
@@ -348,7 +295,7 @@ def create_app():
                 with Vertical(id="nav"):
                     yield Label("FNP-QNN CLI", classes="nav-title")
                     yield Static(
-                        "OpenClaw-like clarity\nCodex/Gemini prompt rhythm\nAsset-derived terminal palette\nNo arbitrary shell",
+                        "Local simulator\nGateway-aware\nSecret-safe\nNo arbitrary shell",
                         id="context",
                     )
                     yield ListView(
@@ -372,13 +319,18 @@ def create_app():
                         yield Button("NeuroBit", id="run-neurobit")
                         yield Button("Doctor", id="run-doctor", variant="warning")
                     yield Static(
-                        "Ready.\n\n"
-                        "Prompt commands:\n"
-                        "/status\n/runtime\n/qnn\n/neurobit\n/p114\n/doctor\n/core list\n/celebrum clip\n/help",
+                        "Ready.\n\nType a command or use the buttons above.\n\n"
+                        "/status    runtime bridge status\n"
+                        "/runtime   Cerebrum runtime smoke\n"
+                        "/qnn       deterministic QNN smoke\n"
+                        "/neurobit  NeuroBit gates profile\n"
+                        "/p114      neutrosophic consensus gate\n"
+                        "/doctor    full local diagnostics\n"
+                        "/help      command list",
                         id="output",
                     )
                     yield Input(placeholder="Type /status, /doctor, /runtime, /qnn, /p114, /celebrum clip ...", id="prompt")
-                    yield Static(bottom_logo_terminal(), id="brand-footer-logo")
+                    yield image_widget("bottom_center", bottom_logo_terminal(), id="brand-footer-image")
                     yield Static(RESEARCH_BOUNDARY + "\n" + HIERARCHY_BOUNDARY, classes="boundary")
             yield Footer()
 
