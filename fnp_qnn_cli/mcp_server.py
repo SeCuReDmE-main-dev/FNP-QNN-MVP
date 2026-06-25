@@ -213,11 +213,17 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
         else:
             raise ValueError(f"unsupported method: {method}")
         return {"jsonrpc": "2.0", "id": request_id, "result": result}
-    except Exception as exc:
+    except ValueError as exc:
         return {
             "jsonrpc": "2.0",
             "id": request_id,
-            "error": {"code": -32000, "message": f"{type(exc).__name__}: {exc}"},
+            "error": {"code": -32602, "message": str(exc)},
+        }
+    except Exception:
+        return {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "error": {"code": -32000, "message": "Internal server error"},
         }
 
 

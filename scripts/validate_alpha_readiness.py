@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -83,12 +84,13 @@ def check_imports() -> None:
 
 
 def check_tests() -> None:
+    timeout = int(os.environ.get("FNP_QNN_READINESS_TEST_TIMEOUT", "300"))
     result = subprocess.run(
         [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"],
         cwd=ROOT,
         text=True,
         capture_output=True,
-        timeout=120,
+        timeout=timeout,
     )
     if result.returncode != 0:
         print(result.stdout)

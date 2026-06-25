@@ -5,13 +5,14 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+import sys
 
 from fnp_qnn_cli.agent_profiles import agent_profile, wake_prompt
 from fnp_qnn_cli.auth import AUTH_HOME_ENV, login, logout, status, validate_token
 from fnp_qnn_cli.celebrum import celebrum_clip_function
 from fnp_qnn_cli.doctor import run_doctor
 from fnp_qnn_cli.external_ai import control_simulator, inspect_openclaw, simulator_control_tasks
-from fnp_qnn_cli.gateway_bridge import gateway_deepsearch_skill
+from fnp_qnn_cli.gateway_bridge import _load_deepsearch_from_candidate, gateway_deepsearch_skill
 from fnp_qnn_cli.mcp_bridge import mcp_control_simulator, provider_connection_status
 from fnp_qnn_cli.mcp_server import handle_request
 from fnp_qnn_cli.main import main
@@ -247,6 +248,31 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertFalse(payload["search_route"]["fallback_used"])
         self.assertEqual(payload["simulator_gateway_block"]["entrypoint"], "fnp-qnn")
         self.assertFalse(payload["raw_secret_stored"])
+
+    def test_gateway_deepsearch_candidate_loader_preserves_sys_path(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            package = Path(tmpdir) / "fnpqnn_gateway_mvp"
+            package.mkdir()
+            (package / "__init__.py").write_text("", encoding="utf-8")
+            (package / "helper.py").write_text(
+                "def route():\n    return 'candidate-route'\n",
+                encoding="utf-8",
+            )
+            (package / "deepsearch_skill.py").write_text(
+                "from .helper import route\n\n"
+                "def build_deepsearch_skill(**kwargs):\n"
+                "    return {'success': True, 'search_route': {'route': route()}, 'raw_secret_stored': False}\n\n"
+                "def write_deepsearch_skill(payload, *, force=False):\n"
+                "    return payload\n",
+                encoding="utf-8",
+            )
+            before = list(sys.path)
+
+            build, write = _load_deepsearch_from_candidate(Path(tmpdir))
+
+            self.assertEqual(sys.path, before)
+            self.assertEqual(build(query="x")["search_route"]["route"], "candidate-route")
+            self.assertEqual(write({"ok": True}), {"ok": True})
 
     def test_gateway_deepsearch_cli_from_simulator(self):
         stdout = io.StringIO()
