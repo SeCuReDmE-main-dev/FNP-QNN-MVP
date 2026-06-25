@@ -32,7 +32,7 @@ from .neutrosophic_quantum_primitives import (
 )
 
 
-DEFAULT_PLUGINPACK_PATH = Path(os.getenv("FNP_QNN_FFED_PLUGINPACK_PATH", r"C:\Users\jeans\Desktop\pluginpack"))
+DEFAULT_PLUGINPACK_PATH = Path(os.getenv("FNP_QNN_FFED_PLUGINPACK_PATH", "./pluginpack")).resolve()
 MVP5_PLUGIN_IDS = (
     "p011_fractales_atomiques",
     "p046_rossler_beaulieu_cubic_framework",
@@ -191,7 +191,7 @@ class FfeDPluginBridge:
             return self._disabled_payload(base_status, "pluginpack path not found", include_trace)
         try:
             run_plugin = self._load_runtime()
-        except Exception as exc:
+        except (ImportError, OSError, ValueError) as exc:
             return self._disabled_payload(base_status, f"plugin runtime import failed: {exc}", include_trace)
 
         effective_configs = self._build_plugin_configs(context)
@@ -256,7 +256,7 @@ class FfeDPluginBridge:
             )
         try:
             run_plugin = self._load_runtime()
-        except Exception as exc:
+        except (ImportError, OSError, ValueError) as exc:
             return p114_gate_payload(
                 plugin_result={
                     "status": "disabled",
@@ -310,12 +310,31 @@ class FfeDPluginBridge:
         }
 
     def _load_runtime(self):
-        pluginpack = str(self.pluginpack_path)
-        if pluginpack not in sys.path:
-            sys.path.insert(0, pluginpack)
-        from ffed_runtime import run_plugin  # type: ignore
+        import importlib.util
 
-        return run_plugin
+        pluginpack = self.pluginpack_path.resolve()
+        package_dir = pluginpack / "ffed_runtime"
+        target_file = package_dir / "__init__.py"
+
+        if not pluginpack.is_dir():
+            raise ValueError(f"Pluginpack path is not a directory: {pluginpack}")
+        if not target_file.is_file():
+            raise ImportError(f"ffed_runtime package not found in pluginpack: {target_file}")
+
+        spec = importlib.util.spec_from_file_location(
+            "ffed_runtime",
+            str(target_file),
+            submodule_search_locations=[str(package_dir)],
+        )
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load ffed_runtime from {target_file}")
+
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["ffed_runtime"] = module
+        spec.loader.exec_module(module)
+        if not hasattr(module, "run_plugin"):
+            raise ImportError("ffed_runtime.run_plugin is missing")
+        return module.run_plugin
 
     def _runtime_importable(self) -> bool:
         try:

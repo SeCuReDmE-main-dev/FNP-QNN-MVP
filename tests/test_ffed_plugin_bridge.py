@@ -1,5 +1,7 @@
 import unittest
 from pathlib import Path
+import sys
+import tempfile
 
 from core.ffed_plugin_bridge import FfeDPluginBridge, MVP5_PLUGIN_IDS, build_plugin_payload_from_results
 
@@ -58,6 +60,28 @@ class FfeDPluginBridgeTests(unittest.TestCase):
         self.assertTrue(payload["plugin_errors"])
         self.assertFalse(payload["plugin_hook_status"]["enabled"])
         self.assertEqual(payload["impact_verification"]["cpai_mesh_base"]["base"], "CPAI mesh")
+
+    def test_runtime_loader_supports_package_relative_imports_without_sys_path_change(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            package = Path(tmpdir) / "ffed_runtime"
+            package.mkdir()
+            (package / "helper.py").write_text(
+                "def run(plugin_id, config):\n"
+                "    return {'status': 'success', 'plugin_id': plugin_id, 'outputs': {}, 'metrics': {}}\n",
+                encoding="utf-8",
+            )
+            (package / "__init__.py").write_text(
+                "from .helper import run\n\n"
+                "def run_plugin(plugin_id, config):\n"
+                "    return run(plugin_id, config)\n",
+                encoding="utf-8",
+            )
+            before = list(sys.path)
+
+            run_plugin = FfeDPluginBridge(pluginpack_path=Path(tmpdir))._load_runtime()
+
+            self.assertEqual(sys.path, before)
+            self.assertEqual(run_plugin("p011_fractales_atomiques", {})["status"], "success")
 
     def test_status_reports_datadog_cpai_contract_without_secrets(self):
         status = FfeDPluginBridge().status()

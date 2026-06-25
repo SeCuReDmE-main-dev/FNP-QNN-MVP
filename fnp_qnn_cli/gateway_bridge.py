@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import importlib.util
 from pathlib import Path
 import sys
 from typing import Any
@@ -23,19 +24,64 @@ def _load_deepsearch_functions() -> tuple[Any, Any] | tuple[None, None]:
         from fnpqnn_gateway_mvp.deepsearch_skill import build_deepsearch_skill, write_deepsearch_skill
 
         return build_deepsearch_skill, write_deepsearch_skill
-    except ModuleNotFoundError:
+    except (ModuleNotFoundError, ImportError):
         pass
 
     for candidate in _gateway_candidate_paths():
-        if candidate.exists() and str(candidate) not in sys.path:
-            sys.path.insert(0, str(candidate))
-            try:
-                from fnpqnn_gateway_mvp.deepsearch_skill import build_deepsearch_skill, write_deepsearch_skill
-
-                return build_deepsearch_skill, write_deepsearch_skill
-            except ModuleNotFoundError:
-                continue
+        if candidate.is_dir():
+            loaded = _load_deepsearch_from_candidate(candidate)
+            if loaded != (None, None):
+                return loaded
     return _fallback_build_deepsearch_skill, _fallback_write_deepsearch_skill
+
+
+def _load_deepsearch_from_candidate(candidate: Path) -> tuple[Any, Any] | tuple[None, None]:
+    package_dir = candidate.resolve() / "fnpqnn_gateway_mvp"
+    init_file = package_dir / "__init__.py"
+    target_file = package_dir / "deepsearch_skill.py"
+    if not init_file.is_file() or not target_file.is_file():
+        return None, None
+
+    previous_package = sys.modules.get("fnpqnn_gateway_mvp")
+    previous_module = sys.modules.get("fnpqnn_gateway_mvp.deepsearch_skill")
+    try:
+        package_spec = importlib.util.spec_from_file_location(
+            "fnpqnn_gateway_mvp",
+            str(init_file),
+            submodule_search_locations=[str(package_dir)],
+        )
+        if package_spec is None or package_spec.loader is None:
+            return None, None
+        package_module = importlib.util.module_from_spec(package_spec)
+        sys.modules["fnpqnn_gateway_mvp"] = package_module
+        package_spec.loader.exec_module(package_module)
+
+        module_spec = importlib.util.spec_from_file_location(
+            "fnpqnn_gateway_mvp.deepsearch_skill",
+            str(target_file),
+        )
+        if module_spec is None or module_spec.loader is None:
+            return None, None
+        module = importlib.util.module_from_spec(module_spec)
+        sys.modules["fnpqnn_gateway_mvp.deepsearch_skill"] = module
+        module_spec.loader.exec_module(module)
+    except Exception:
+        return None, None
+    finally:
+        if previous_module is None:
+            sys.modules.pop("fnpqnn_gateway_mvp.deepsearch_skill", None)
+        else:
+            sys.modules["fnpqnn_gateway_mvp.deepsearch_skill"] = previous_module
+        if previous_package is None:
+            sys.modules.pop("fnpqnn_gateway_mvp", None)
+        else:
+            sys.modules["fnpqnn_gateway_mvp"] = previous_package
+
+    build = getattr(module, "build_deepsearch_skill", None)
+    write = getattr(module, "write_deepsearch_skill", None)
+    if build is None or write is None:
+        return None, None
+    return build, write
 
 
 def gateway_deepsearch_skill(

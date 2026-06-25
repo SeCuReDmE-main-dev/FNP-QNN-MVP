@@ -36,10 +36,7 @@ def command_path(command: str) -> str | None:
 
 def _run_capture(argv: tuple[str, ...], timeout: int = 20) -> dict[str, Any]:
     try:
-        if platform.system().lower() == "windows":
-            proc = subprocess.run(" ".join(argv), text=True, capture_output=True, timeout=timeout, check=False, shell=True)
-        else:
-            proc = subprocess.run(argv, text=True, capture_output=True, timeout=timeout, check=False)
+        proc = subprocess.run(argv, text=True, capture_output=True, timeout=timeout, check=False)
     except FileNotFoundError:
         return {"available": False, "returncode": None, "stdout": "", "stderr": "command not found"}
     except OSError as exc:

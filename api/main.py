@@ -8,14 +8,15 @@ import sys
 from typing import Any, Dict, List, Optional, Sequence
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WEB_ROOT = os.path.join(PROJECT_ROOT, "web")
 
-sys.path.append(PROJECT_ROOT)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(1, PROJECT_ROOT)
 
 from api.schemas import (
     CloudRAGAdmissionRequest,
@@ -79,8 +80,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:9002", "http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-FNP-QNN-Auth"],
 )
 
 
@@ -101,7 +102,21 @@ class DashboardSecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if request.url.path.startswith("/dashboard") or request.url.path in {"/health", "/", "/docs", "/openapi.json"}:
+            return await call_next(request)
+
+        api_key = os.environ.get("FNP_QNN_API_KEY")
+        if api_key:
+            auth_header = request.headers.get("Authorization")
+            if not auth_header or auth_header != f"Bearer {api_key}":
+                return JSONResponse(status_code=401, content={"detail": "Unauthorized: Invalid or missing API key"})
+
+        return await call_next(request)
+
 app.add_middleware(DashboardSecurityHeadersMiddleware)
+app.add_middleware(APIKeyMiddleware)
 
 if os.path.isdir(WEB_ROOT):
     app.mount("/dashboard/static", StaticFiles(directory=WEB_ROOT), name="dashboard-static")
@@ -1178,7 +1193,21 @@ async def execute_command(command_data: Dict[str, Any]) -> Dict[str, Any]:
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
+    api_key = os.environ.get("FNP_QNN_API_KEY")
     try:
+        if api_key:
+            auth_data = await websocket.receive_text()
+            try:
+                auth_payload = json.loads(auth_data)
+                if auth_payload.get("api_key") != api_key:
+                    await websocket.send_text(json.dumps({"success": False, "error": "Unauthorized", "type": "error"}))
+                    await websocket.close()
+                    return
+            except Exception:
+                await websocket.send_text(json.dumps({"success": False, "error": "Invalid auth format", "type": "error"}))
+                await websocket.close()
+                return
+
         while True:
             data = await websocket.receive_text()
             command_data = json.loads(data)
@@ -1186,8 +1215,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
             await websocket.send_text(json.dumps(result))
     except WebSocketDisconnect:
         return
-    except Exception as exc:
-        await websocket.send_text(json.dumps({"success": False, "error": str(exc), "type": "error"}))
+    except Exception:
+        await websocket.send_text(json.dumps({"success": False, "error": "Internal server error", "type": "error"}))
     finally:
         await websocket.close()
 
