@@ -2,6 +2,10 @@
 
 # FNP-QNN Local Research Simulator
 
+Public webspace: https://fnpqnn.securedme.ca/
+
+Public contact: fnpqnn@securedme.ca
+
 <p align="center">
   <a href="https://e2b.dev/startups">
     <img alt="Sponsored by E2B for Startups" src="https://img.shields.io/badge/Sponsored%20by-E2B%20for%20Startups-FF8800?style=for-the-badge" />

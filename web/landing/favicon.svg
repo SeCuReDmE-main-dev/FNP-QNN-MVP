@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">FNP-QNN nucleus favicon</title>
+  <desc id="desc">A navy research nucleus with cyan, green, and gold orbital traces.</desc>
+  <rect width="96" height="96" rx="18" fill="#071025"/>
+  <circle cx="48" cy="48" r="31" fill="none" stroke="#55d9ff" stroke-width="4"/>
+  <ellipse cx="48" cy="48" rx="37" ry="16" fill="none" stroke="#fdaa37" stroke-width="4"/>
+  <ellipse cx="48" cy="48" rx="16" ry="37" fill="none" stroke="#36837e" stroke-width="4"/>
+  <path d="M21 50c9-12 19-12 29 0s18 12 25 0" fill="none" stroke="#f2f6fa" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="48" cy="48" r="9" fill="#f2f6fa"/>
+  <circle cx="14" cy="48" r="5" fill="#55d9ff"/>
+  <circle cx="70" cy="19" r="5" fill="#fdaa37"/>
+  <circle cx="73" cy="72" r="5" fill="#36837e"/>
+</svg>
