@@ -22,6 +22,8 @@ class NetworkFamily(str, Enum):
     CROSSMODAL_GRAPH = "crossmodal_graph"
     LOGIC_DECISION_NETWORK = "logic_decision_network"
     GRAVITY_NULL_TEST = "gravity_null_test"
+    MULTIVERSE_EXPERIMENTS = "multiverse_experiments"
+    TIME_PHYSICS_EXPERIMENTS = "time_physics_experiments"
     CUSTOM_NETWORK = "custom_network"
 
 

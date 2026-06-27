@@ -908,6 +908,116 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         fixture = Path(__file__).resolve().parent.parent / "examples" / "legacy_cerebrum_snapshot.json"
         self.assertTrue(fixture.exists())
 
+    def test_multiverse_experiments_runtime_layer_is_opt_in(self):
+        bridge = CerebrumRuntimeBridge()
+        default_state = bridge.build_state(None)
+        enabled_state = bridge.build_state(
+            None,
+            multiverse_experiments_enabled=True,
+            multiverse_experiment_ids=["deutsch_quantum_computation_origin"],
+            multiverse_experiment_shots=128,
+        )
+
+        self.assertIsNone(default_state.multiverse_experiments)
+        self.assertNotIn("multiverse_experiments", default_state.to_dict())
+        self.assertIsNotNone(enabled_state.multiverse_experiments)
+        self.assertIn("multiverse_experiments", enabled_state.to_dict())
+        self.assertIn("multiverse_experiments_profile", enabled_state.lvfm)
+        self.assertEqual(enabled_state.multiverse_experiments["experiment_count"], 1)
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in enabled_state.multiverse_experiments["feature_vector"]))
+
+    def test_multiverse_experiments_features_reach_qnn_when_enabled(self):
+        bridge = CerebrumRuntimeBridge()
+        nucleus = QNNNucleus(adapter=bridge.adapter)
+        state = bridge.build_state(
+            None,
+            qnn_nucleus=nucleus,
+            max_epochs=2,
+            multiverse_experiments_enabled=True,
+            multiverse_experiment_ids=["deutsch_quantum_computation_origin"],
+            multiverse_experiment_shots=128,
+        )
+
+        self.assertIsNotNone(state.qnn_result)
+        self.assertIn("multiverse_experiments_profile", state.qnn_result)
+        self.assertEqual(
+            state.qnn_result["multiverse_experiments_profile"]["feature_dimension"],
+            state.multiverse_experiments["feature_dimension"],
+        )
+
+    def test_runtime_endpoint_accepts_multiverse_opt_in(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            json={
+                "epochs": 2,
+                "multiverse_experiments_enabled": True,
+                "multiverse_experiment_ids": ["deutsch_quantum_computation_origin"],
+                "multiverse_experiment_shots": 128,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        self.assertIn("multiverse_experiments", runtime)
+        self.assertIn("multiverse_experiments_profile", runtime["lvfm"])
+        self.assertIn("multiverse_experiments_profile", runtime["qnn_result"])
+
+    def test_time_physics_experiments_runtime_layer_is_opt_in(self):
+        bridge = CerebrumRuntimeBridge()
+        default_state = bridge.build_state(None)
+        enabled_state = bridge.build_state(
+            None,
+            time_physics_experiments_enabled=True,
+            time_physics_experiment_ids=["manifest_vs_physical_time_flow"],
+            time_physics_experiment_shots=128,
+        )
+
+        self.assertIsNone(default_state.time_physics_experiments)
+        self.assertNotIn("time_physics_experiments", default_state.to_dict())
+        self.assertIsNotNone(enabled_state.time_physics_experiments)
+        self.assertIn("time_physics_experiments", enabled_state.to_dict())
+        self.assertIn("time_physics_experiments_profile", enabled_state.lvfm)
+        self.assertEqual(enabled_state.time_physics_experiments["experiment_count"], 1)
+        self.assertTrue(all(0.0 <= item <= 1.0 for item in enabled_state.time_physics_experiments["feature_vector"]))
+
+    def test_time_physics_experiments_features_reach_qnn_when_enabled(self):
+        bridge = CerebrumRuntimeBridge()
+        nucleus = QNNNucleus(adapter=bridge.adapter)
+        state = bridge.build_state(
+            None,
+            qnn_nucleus=nucleus,
+            max_epochs=2,
+            time_physics_experiments_enabled=True,
+            time_physics_experiment_ids=["entanglement_decoherence_arrow"],
+            time_physics_experiment_shots=128,
+        )
+
+        self.assertIsNotNone(state.qnn_result)
+        self.assertIn("time_physics_experiments_profile", state.qnn_result)
+        self.assertEqual(
+            state.qnn_result["time_physics_experiments_profile"]["feature_dimension"],
+            state.time_physics_experiments["feature_dimension"],
+        )
+        self.assertIn(
+            "ALKHALILI_CHEN_DECOHERENT_ARROW_2024",
+            state.qnn_result["time_physics_experiments_profile"]["source_ids"],
+        )
+
+    def test_runtime_endpoint_accepts_time_physics_opt_in(self):
+        response = self.client.post(
+            "/cerebrum/runtime/run",
+            json={
+                "epochs": 2,
+                "time_physics_experiments_enabled": True,
+                "time_physics_experiment_ids": ["manifest_vs_physical_time_flow"],
+                "time_physics_experiment_shots": 128,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        self.assertIn("time_physics_experiments", runtime)
+        self.assertIn("time_physics_experiments_profile", runtime["lvfm"])
+        self.assertIn("time_physics_experiments_profile", runtime["qnn_result"])
+
 
 if __name__ == "__main__":
     unittest.main()

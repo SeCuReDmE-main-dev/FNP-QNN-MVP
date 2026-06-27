@@ -50,6 +50,50 @@ class NetworkDesignerExecutorTests(unittest.TestCase):
         self.assertIn("e2b_datadog_review", result.outputs)
         self.assertIn("qiskit", backends)
 
+    def test_multiverse_experiments_preset_validates_and_executes(self):
+        graph = build_graph(NetworkFamily.MULTIVERSE_EXPERIMENTS)
+
+        result = execute_network(
+            graph,
+            input_features={"source_ledger": 1.0},
+            backend="torch_surrogate",
+        )
+        backends = {item["name"]: item["available"] for item in list_available_backends(graph.family)}
+
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.family, NetworkFamily.MULTIVERSE_EXPERIMENTS.value)
+        self.assertIn("suite_output", result.outputs)
+        self.assertIn("qiskit", backends)
+        self.assertEqual(graph.metadata["preset"], "multiverse_experiments_v1")
+        lane_ids = {
+            graph.nodes[node_id].metadata.get("experiment_id")
+            for node_id in graph.node_ids
+            if node_id.endswith("_lane")
+        }
+        self.assertIn("wigner_friend_inter_branch_communication", lane_ids)
+
+    def test_time_physics_experiments_preset_validates_and_executes(self):
+        graph = build_graph(NetworkFamily.TIME_PHYSICS_EXPERIMENTS)
+
+        result = execute_network(
+            graph,
+            input_features={"source_ledger": 1.0},
+            backend="torch_surrogate",
+        )
+        backends = {item["name"]: item["available"] for item in list_available_backends(graph.family)}
+
+        self.assertEqual(result.status, "ok")
+        self.assertEqual(result.family, NetworkFamily.TIME_PHYSICS_EXPERIMENTS.value)
+        self.assertIn("suite_output", result.outputs)
+        self.assertIn("qiskit", backends)
+        self.assertEqual(graph.metadata["preset"], "time_physics_experiments_v1")
+        lane_ids = {
+            graph.nodes[node_id].metadata.get("experiment_id")
+            for node_id in graph.node_ids
+            if node_id.endswith("_lane")
+        }
+        self.assertIn("entanglement_decoherence_arrow", lane_ids)
+
     def test_qiskit_gate_dependency_helper_is_deterministic(self):
         self.assertIsInstance(is_qiskit_available(), bool)
 

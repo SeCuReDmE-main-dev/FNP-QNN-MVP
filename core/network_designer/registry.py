@@ -69,6 +69,20 @@ _REGISTRY: Dict[NetworkFamily, FamilyDescriptor] = {
         description="Axiomatic chamber null-test for entanglement residual, frustration, and telemetry review.",
         default_node_type="gravity_null_test_node",
     ),
+    NetworkFamily.MULTIVERSE_EXPERIMENTS: FamilyDescriptor(
+        family=NetworkFamily.MULTIVERSE_EXPERIMENTS,
+        supports_qiskit_lane=True,
+        allows_cycles=False,
+        description="Five-lane Quantum Paradoxes branch-accounting simulator graph.",
+        default_node_type="multiverse_experiment_node",
+    ),
+    NetworkFamily.TIME_PHYSICS_EXPERIMENTS: FamilyDescriptor(
+        family=NetworkFamily.TIME_PHYSICS_EXPERIMENTS,
+        supports_qiskit_lane=True,
+        allows_cycles=False,
+        description="Six-lane time-physics evidence-accounting simulator graph.",
+        default_node_type="time_physics_experiment_node",
+    ),
     NetworkFamily.CUSTOM_NETWORK: FamilyDescriptor(
         family=NetworkFamily.CUSTOM_NETWORK,
         supports_qiskit_lane=False,

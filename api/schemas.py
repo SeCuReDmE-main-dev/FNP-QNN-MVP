@@ -13,6 +13,21 @@ ALLOWED_MODALITIES = {"audio", "video", "text", "stimuli", "hearing", "vision", 
 MAX_EVENTS = 1000
 MAX_LABEL_LENGTH = 120
 PLUGIN_SET = Literal["mvp5"]
+MULTIVERSE_EXPERIMENT_ID = Literal[
+    "deutsch_quantum_computation_origin",
+    "elitzur_vaidman_bomb_tester",
+    "entanglement_teleportation_branch_accounting",
+    "google_quantum_computer_scale_review",
+    "wigner_friend_inter_branch_communication",
+]
+TIME_PHYSICS_EXPERIMENT_ID = Literal[
+    "manifest_vs_physical_time_flow",
+    "relativistic_time_dilation_block_universe",
+    "relativity_of_simultaneity_now",
+    "thermodynamic_entropy_arrow",
+    "entanglement_decoherence_arrow",
+    "cosmological_boundary_time_travel",
+]
 
 
 def _finite(value: float, field_name: str) -> float:
@@ -114,6 +129,29 @@ class RuntimeRunRequest(BaseModel):
     lattice_seed: int = Field(default=0, ge=0)
     observation_scale_min: float = Field(default=0.01, gt=0.0)
     observation_scale_max: float = Field(default=1.0, gt=0.0)
+    multiverse_experiments_enabled: bool = False
+    multiverse_experiment_ids: List[MULTIVERSE_EXPERIMENT_ID] = Field(default_factory=list)
+    multiverse_experiment_seed: int = Field(default=2026, ge=0)
+    multiverse_experiment_shots: int = Field(default=512, ge=16, le=100000)
+    multiverse_branch_coherence: float = Field(default=0.82, ge=0.0, le=1.0)
+    multiverse_measurement_strength: float = Field(default=0.35, ge=0.0, le=1.0)
+    multiverse_interference_visibility: float = Field(default=0.72, ge=0.0, le=1.0)
+    multiverse_entanglement_fidelity: float = Field(default=0.84, ge=0.0, le=1.0)
+    multiverse_classical_leakage: float = Field(default=0.0, ge=0.0, le=1.0)
+    multiverse_memory_erasure: float = Field(default=1.0, ge=0.0, le=1.0)
+    multiverse_scale_claim_strength: float = Field(default=0.65, ge=0.0, le=1.0)
+    time_physics_experiments_enabled: bool = False
+    time_physics_experiment_ids: List[TIME_PHYSICS_EXPERIMENT_ID] = Field(default_factory=list)
+    time_physics_experiment_seed: int = Field(default=2026, ge=0)
+    time_physics_experiment_shots: int = Field(default=512, ge=16, le=100000)
+    time_physics_temporal_flow_strength: float = Field(default=0.74, ge=0.0, le=1.0)
+    time_physics_relative_velocity_fraction: float = Field(default=0.35, ge=0.0, le=1.0)
+    time_physics_simultaneity_offset: float = Field(default=0.40, ge=0.0, le=1.0)
+    time_physics_entropy_gradient: float = Field(default=0.78, ge=0.0, le=1.0)
+    time_physics_entanglement_growth: float = Field(default=0.62, ge=0.0, le=1.0)
+    time_physics_decoherence_strength: float = Field(default=0.66, ge=0.0, le=1.0)
+    time_physics_cosmological_boundary_pressure: float = Field(default=0.55, ge=0.0, le=1.0)
+    time_physics_paradox_pressure: float = Field(default=0.15, ge=0.0, le=1.0)
 
     @model_validator(mode="before")
     @classmethod
@@ -180,6 +218,8 @@ class RuntimeRunRequest(BaseModel):
         payload["penrose_hameroff_enabled"] = self.penrose_hameroff_enabled
         payload.update(self.penrose_hameroff_payload())
         payload.update(self.hydra_em_gpcn_payload())
+        payload.update(self.multiverse_experiments_payload())
+        payload.update(self.time_physics_experiments_payload())
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:
@@ -239,6 +279,37 @@ class RuntimeRunRequest(BaseModel):
             "lattice_seed": self.lattice_seed,
             "observation_scale_min": self.observation_scale_min,
             "observation_scale_max": self.observation_scale_max,
+        }
+
+    def multiverse_experiments_payload(self) -> Dict[str, Any]:
+        return {
+            "multiverse_experiments_enabled": self.multiverse_experiments_enabled,
+            "multiverse_experiment_ids": list(self.multiverse_experiment_ids),
+            "multiverse_experiment_seed": self.multiverse_experiment_seed,
+            "multiverse_experiment_shots": self.multiverse_experiment_shots,
+            "multiverse_branch_coherence": self.multiverse_branch_coherence,
+            "multiverse_measurement_strength": self.multiverse_measurement_strength,
+            "multiverse_interference_visibility": self.multiverse_interference_visibility,
+            "multiverse_entanglement_fidelity": self.multiverse_entanglement_fidelity,
+            "multiverse_classical_leakage": self.multiverse_classical_leakage,
+            "multiverse_memory_erasure": self.multiverse_memory_erasure,
+            "multiverse_scale_claim_strength": self.multiverse_scale_claim_strength,
+        }
+
+    def time_physics_experiments_payload(self) -> Dict[str, Any]:
+        return {
+            "time_physics_experiments_enabled": self.time_physics_experiments_enabled,
+            "time_physics_experiment_ids": list(self.time_physics_experiment_ids),
+            "time_physics_experiment_seed": self.time_physics_experiment_seed,
+            "time_physics_experiment_shots": self.time_physics_experiment_shots,
+            "time_physics_temporal_flow_strength": self.time_physics_temporal_flow_strength,
+            "time_physics_relative_velocity_fraction": self.time_physics_relative_velocity_fraction,
+            "time_physics_simultaneity_offset": self.time_physics_simultaneity_offset,
+            "time_physics_entropy_gradient": self.time_physics_entropy_gradient,
+            "time_physics_entanglement_growth": self.time_physics_entanglement_growth,
+            "time_physics_decoherence_strength": self.time_physics_decoherence_strength,
+            "time_physics_cosmological_boundary_pressure": self.time_physics_cosmological_boundary_pressure,
+            "time_physics_paradox_pressure": self.time_physics_paradox_pressure,
         }
 
     @model_validator(mode="after")
@@ -330,6 +401,29 @@ class QNNSmokeRequest(BaseModel):
     gravity_null_test_leakage: float = Field(default=0.0, ge=0.0, le=1.0)
     gravity_null_test_mass_dispersion: float = Field(default=0.0, ge=0.0, le=1.0)
     gravity_null_test_chamber_contradiction: float = Field(default=0.25, ge=0.0, le=1.0)
+    multiverse_experiments_enabled: bool = False
+    multiverse_experiment_ids: List[MULTIVERSE_EXPERIMENT_ID] = Field(default_factory=list)
+    multiverse_experiment_seed: int = Field(default=2026, ge=0)
+    multiverse_experiment_shots: int = Field(default=512, ge=16, le=100000)
+    multiverse_branch_coherence: float = Field(default=0.82, ge=0.0, le=1.0)
+    multiverse_measurement_strength: float = Field(default=0.35, ge=0.0, le=1.0)
+    multiverse_interference_visibility: float = Field(default=0.72, ge=0.0, le=1.0)
+    multiverse_entanglement_fidelity: float = Field(default=0.84, ge=0.0, le=1.0)
+    multiverse_classical_leakage: float = Field(default=0.0, ge=0.0, le=1.0)
+    multiverse_memory_erasure: float = Field(default=1.0, ge=0.0, le=1.0)
+    multiverse_scale_claim_strength: float = Field(default=0.65, ge=0.0, le=1.0)
+    time_physics_experiments_enabled: bool = False
+    time_physics_experiment_ids: List[TIME_PHYSICS_EXPERIMENT_ID] = Field(default_factory=list)
+    time_physics_experiment_seed: int = Field(default=2026, ge=0)
+    time_physics_experiment_shots: int = Field(default=512, ge=16, le=100000)
+    time_physics_temporal_flow_strength: float = Field(default=0.74, ge=0.0, le=1.0)
+    time_physics_relative_velocity_fraction: float = Field(default=0.35, ge=0.0, le=1.0)
+    time_physics_simultaneity_offset: float = Field(default=0.40, ge=0.0, le=1.0)
+    time_physics_entropy_gradient: float = Field(default=0.78, ge=0.0, le=1.0)
+    time_physics_entanglement_growth: float = Field(default=0.62, ge=0.0, le=1.0)
+    time_physics_decoherence_strength: float = Field(default=0.66, ge=0.0, le=1.0)
+    time_physics_cosmological_boundary_pressure: float = Field(default=0.55, ge=0.0, le=1.0)
+    time_physics_paradox_pressure: float = Field(default=0.15, ge=0.0, le=1.0)
 
     @model_validator(mode="before")
     @classmethod
@@ -457,6 +551,78 @@ class GravityNullTestRequest(BaseModel):
         if self.D_max <= self.D_min:
             raise ValueError("D_max must be greater than D_min")
         return self
+
+
+class MultiverseExperimentBaseRequest(BaseModel):
+    seed: int = Field(default=2026, ge=0)
+    shots: int = Field(default=512, ge=16, le=100000)
+    branch_coherence: float = Field(default=0.82, ge=0.0, le=1.0)
+    measurement_strength: float = Field(default=0.35, ge=0.0, le=1.0)
+    interference_visibility: float = Field(default=0.72, ge=0.0, le=1.0)
+    entanglement_fidelity: float = Field(default=0.84, ge=0.0, le=1.0)
+    classical_leakage: float = Field(default=0.0, ge=0.0, le=1.0)
+    memory_erasure: float = Field(default=1.0, ge=0.0, le=1.0)
+    scale_claim_strength: float = Field(default=0.65, ge=0.0, le=1.0)
+    include_qiskit_preview: bool = False
+    source_i: str = Field(default="fractal_boundary", max_length=120)
+
+    @field_validator(
+        "branch_coherence",
+        "measurement_strength",
+        "interference_visibility",
+        "entanglement_fidelity",
+        "classical_leakage",
+        "memory_erasure",
+        "scale_claim_strength",
+    )
+    @classmethod
+    def validate_multiverse_numbers(cls, value: float, info):
+        return _finite(value, info.field_name)
+
+
+class MultiverseExperimentRequest(MultiverseExperimentBaseRequest):
+    experiment_id: MULTIVERSE_EXPERIMENT_ID = "deutsch_quantum_computation_origin"
+
+
+class MultiverseExperimentRunAllRequest(MultiverseExperimentBaseRequest):
+    experiment_ids: List[MULTIVERSE_EXPERIMENT_ID] = Field(default_factory=list)
+
+
+class TimePhysicsExperimentBaseRequest(BaseModel):
+    seed: int = Field(default=2026, ge=0)
+    shots: int = Field(default=512, ge=16, le=100000)
+    temporal_flow_strength: float = Field(default=0.74, ge=0.0, le=1.0)
+    relative_velocity_fraction: float = Field(default=0.35, ge=0.0, le=1.0)
+    simultaneity_offset: float = Field(default=0.40, ge=0.0, le=1.0)
+    entropy_gradient: float = Field(default=0.78, ge=0.0, le=1.0)
+    entanglement_growth: float = Field(default=0.62, ge=0.0, le=1.0)
+    decoherence_strength: float = Field(default=0.66, ge=0.0, le=1.0)
+    cosmological_boundary_pressure: float = Field(default=0.55, ge=0.0, le=1.0)
+    paradox_pressure: float = Field(default=0.15, ge=0.0, le=1.0)
+    include_qiskit_preview: bool = False
+    source_i: str = Field(default="fractal_boundary", max_length=120)
+
+    @field_validator(
+        "temporal_flow_strength",
+        "relative_velocity_fraction",
+        "simultaneity_offset",
+        "entropy_gradient",
+        "entanglement_growth",
+        "decoherence_strength",
+        "cosmological_boundary_pressure",
+        "paradox_pressure",
+    )
+    @classmethod
+    def validate_time_physics_numbers(cls, value: float, info):
+        return _finite(value, info.field_name)
+
+
+class TimePhysicsExperimentRequest(TimePhysicsExperimentBaseRequest):
+    experiment_id: TIME_PHYSICS_EXPERIMENT_ID = "manifest_vs_physical_time_flow"
+
+
+class TimePhysicsExperimentRunAllRequest(TimePhysicsExperimentBaseRequest):
+    experiment_ids: List[TIME_PHYSICS_EXPERIMENT_ID] = Field(default_factory=list)
 
 
 class HydraEMGPCNAnesthesiaSweepRequest(RuntimeRunRequest):
@@ -710,6 +876,29 @@ class CommandRequest(BaseModel):
     gravity_null_test_leakage: float = Field(default=0.0, ge=0.0, le=1.0)
     gravity_null_test_mass_dispersion: float = Field(default=0.0, ge=0.0, le=1.0)
     gravity_null_test_chamber_contradiction: float = Field(default=0.25, ge=0.0, le=1.0)
+    multiverse_experiments_enabled: bool = False
+    multiverse_experiment_ids: List[MULTIVERSE_EXPERIMENT_ID] = Field(default_factory=list)
+    multiverse_experiment_seed: int = Field(default=2026, ge=0)
+    multiverse_experiment_shots: int = Field(default=512, ge=16, le=100000)
+    multiverse_branch_coherence: float = Field(default=0.82, ge=0.0, le=1.0)
+    multiverse_measurement_strength: float = Field(default=0.35, ge=0.0, le=1.0)
+    multiverse_interference_visibility: float = Field(default=0.72, ge=0.0, le=1.0)
+    multiverse_entanglement_fidelity: float = Field(default=0.84, ge=0.0, le=1.0)
+    multiverse_classical_leakage: float = Field(default=0.0, ge=0.0, le=1.0)
+    multiverse_memory_erasure: float = Field(default=1.0, ge=0.0, le=1.0)
+    multiverse_scale_claim_strength: float = Field(default=0.65, ge=0.0, le=1.0)
+    time_physics_experiments_enabled: bool = False
+    time_physics_experiment_ids: List[TIME_PHYSICS_EXPERIMENT_ID] = Field(default_factory=list)
+    time_physics_experiment_seed: int = Field(default=2026, ge=0)
+    time_physics_experiment_shots: int = Field(default=512, ge=16, le=100000)
+    time_physics_temporal_flow_strength: float = Field(default=0.74, ge=0.0, le=1.0)
+    time_physics_relative_velocity_fraction: float = Field(default=0.35, ge=0.0, le=1.0)
+    time_physics_simultaneity_offset: float = Field(default=0.40, ge=0.0, le=1.0)
+    time_physics_entropy_gradient: float = Field(default=0.78, ge=0.0, le=1.0)
+    time_physics_entanglement_growth: float = Field(default=0.62, ge=0.0, le=1.0)
+    time_physics_decoherence_strength: float = Field(default=0.66, ge=0.0, le=1.0)
+    time_physics_cosmological_boundary_pressure: float = Field(default=0.55, ge=0.0, le=1.0)
+    time_physics_paradox_pressure: float = Field(default=0.15, ge=0.0, le=1.0)
 
     @model_validator(mode="before")
     @classmethod

@@ -85,6 +85,20 @@ from .gravity_null_test import (
     run_gravity_null_test,
     sequence_event_spec,
 )
+from .multiverse_experiments import (
+    MULTIVERSE_EXPERIMENT_IDS,
+    MultiverseExperimentConfig,
+    multiverse_experiments_status,
+    run_all_multiverse_experiments,
+    run_multiverse_experiment,
+)
+from .time_physics_experiments import (
+    TIME_PHYSICS_EXPERIMENT_IDS,
+    TimePhysicsExperimentConfig,
+    run_all_time_physics_experiments,
+    run_time_physics_experiment,
+    time_physics_experiments_status,
+)
 from .neutro_algebra import (
     neutro_axiom_profile,
     neutro_function_profile,
@@ -212,6 +226,16 @@ __all__ = [
     "graviton_constraint_profile",
     "run_gravity_null_test",
     "sequence_event_spec",
+    "MULTIVERSE_EXPERIMENT_IDS",
+    "MultiverseExperimentConfig",
+    "multiverse_experiments_status",
+    "run_all_multiverse_experiments",
+    "run_multiverse_experiment",
+    "TIME_PHYSICS_EXPERIMENT_IDS",
+    "TimePhysicsExperimentConfig",
+    "run_all_time_physics_experiments",
+    "run_time_physics_experiment",
+    "time_physics_experiments_status",
     "neutro_axiom_profile",
     "neutro_function_profile",
     "neutro_operation_table_profile",

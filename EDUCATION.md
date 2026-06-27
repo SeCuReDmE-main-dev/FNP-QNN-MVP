@@ -11,6 +11,8 @@ It is intended for learning and supervised experimentation around:
 - NeuroBit gate profiles and traces;
 - Penrose/Hameroff study metadata;
 - Hydra-EM-GPCN hypothesis profiles using `GPCN-Set_phi`;
+- five bounded Quantum Paradoxes multiverse experiment profiles;
+- six bounded time-physics experiment profiles;
 - local evidence dashboards;
 - future visual network-design workflows.
 
@@ -32,6 +34,12 @@ Good classroom or lab exercises include:
 - inspect a Penrose/Hameroff objective-reduction timing profile;
 - run a Hydra-EM-GPCN Orch OR-style proxy profile and compare the bounded
   verdicts `communicates`, `decoheres`, `suspended`, and `rejected`;
+- run the five Quantum Paradoxes multiverse experiment lanes and compare
+  simulator evidence against forbidden ontology/signalling claims;
+- run the six time-physics experiment lanes and compare manifest time,
+  relativity, entropy, decoherence, cosmology, and time-travel paradox metadata
+  against forbidden ontology, quantum-gravity, and operational time-travel
+  claims;
 - run a computational anesthesia damping sweep and discuss why it is not
   clinical anesthesia guidance;
 - discuss why optional Qiskit execution must be reported separately from a fallback;
@@ -49,10 +57,13 @@ python examples/neurobit_gate_demo.py
 
 ## Current Advanced Study Layers
 
-The Penrose/Hameroff and Hydra-EM-GPCN layers are optional educational study
-surfaces. They are useful for reading code, comparing bounded feature vectors,
-and discussing how speculative theory can be represented without overclaiming.
+The Penrose/Hameroff, Hydra-EM-GPCN, Quantum Paradoxes multiverse, and
+time-physics layers are optional educational study surfaces. They are useful for
+reading code, comparing bounded feature vectors, and discussing how speculative
+theory can be represented without overclaiming.
 
 They do not validate biological microtubule communication, anesthesia effects,
-consciousness, quantum gravity, clinical decisions, or physical quantum
-execution.
+consciousness, quantum gravity, many-worlds ontology, eternalism, time travel,
+clinical decisions, or physical quantum execution. The time-physics source IDs
+are kept separate from the prior Dr. Maria Violaris/Royal Institution source IDs
+in the source ledger.

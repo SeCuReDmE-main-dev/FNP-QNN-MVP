@@ -39,6 +39,8 @@ This repository is an alpha-local, non-clinical research simulator for:
 - feature-vector encoding for QNN candidate lanes;
 - a deterministic PyTorch surrogate fallback;
 - deterministic NeuroBit gate profiles and trace previews;
+- deterministic five-lane Quantum Paradoxes multiverse experiment profiles;
+- deterministic six-lane time-physics experiment profiles;
 - optional future Qiskit and legacy-export evidence lanes.
 
 It is not a clinical, diagnostic, therapeutic, safety, emergency, or production-public system. Public claims must stay tied to local tests, demo output, or explicit reports in this repository.
@@ -47,12 +49,162 @@ It is not a clinical, diagnostic, therapeutic, safety, emergency, or production-
 
 Validated locally:
 
-- `python -m unittest discover -s tests -p "test_*.py"`
+- `.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py"`: 279 tests OK, 2 skipped on 2026-06-27.
+- `.\.venv\Scripts\python.exe scripts\validate_alpha_readiness.py`: PASS on 2026-06-27.
 - `python examples/cerebrum_qnn_demo.py`
 - `python examples/cerebrum_runtime_demo.py`
 - `python examples/cerebrum_runtime_legacy_demo.py`
 - Torch surrogate fallback.
 - NeuroBit gate and tunnel-noise demo.
+
+Current public website note: the local repository README, docs, APIs, tests, and
+source ledger were updated on 2026-06-27. The public website at
+`https://fnpqnn.securedme.ca/` was not updated in this session.
+
+## 2026-06-27 Implementation Record
+
+This README is the maintainer trace for the 2026-06-27 simulator work session.
+The day added two bounded experiment suites and their validation records:
+
+- `multiverse_experiments`: five deterministic Quantum Paradoxes lanes from the
+  Dr. Maria Violaris / Royal Institution source set.
+- `time_physics_experiments`: six deterministic time-physics lanes from the Jim
+  Al-Khalili / Big Think source set.
+
+Shared engineering work completed:
+
+- pure Python simulator profiles with fixed 8-value feature vectors;
+- Pydantic request contracts for single-run, run-all, runtime, QNN smoke, and
+  command-route opt-in payloads;
+- FastAPI status, run, and run-all endpoints for both experiment suites;
+- opt-in `CerebrumRuntimeBridge` attachment into runtime state, LVFM snapshots,
+  and QNN smoke features;
+- compact QNN result profiles for experiment payloads;
+- Network Designer families and presets for both suites;
+- source-ledger rows for URLs, functions, endpoints, and tests;
+- README and EDUCATION framing for classroom/lab use;
+- internal organisation notes for implementation planning and status;
+- focused tests plus full unittest discovery and alpha readiness validation.
+
+Internal handoff records created or updated:
+
+- `FNP-QNN-MVP-organisation/04_implementation_planning/MULTIVERSE_EXPERIMENTS_TEST_SUITE.md`
+- `FNP-QNN-MVP-organisation/04_implementation_planning/TIME_PHYSICS_EXPERIMENTS_TEST_SUITE.md`
+- `FNP-QNN-MVP-organisation/05_status/MULTIVERSE_EXPERIMENTS_STATUS_2026-06-27.md`
+- `FNP-QNN-MVP-organisation/05_status/TIME_PHYSICS_EXPERIMENTS_STATUS_2026-06-27.md`
+- `docs/source_ledger/math_function_source_guardrail.md`
+- `EDUCATION.md`
+
+Guardrails preserved:
+
+- simulator evidence only;
+- no claim that many-worlds is physically true;
+- no claim that time travel works;
+- no proof of eternalism, quantum gravity, consciousness, or physical quantum
+  execution;
+- no faster-than-light signalling;
+- no collapse of `I -> I_system^S -> D_f -> dF -> i_fractal`.
+
+Validation commands run on 2026-06-27:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_time_physics_experiments tests.test_multiverse_experiments tests.test_api_qnn_smoke tests.test_cerebrum_runtime_bridge tests.test_network_designer_executor -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py"
+.\.venv\Scripts\python.exe scripts\validate_alpha_readiness.py
+```
+
+Results:
+
+- focused suite: 110 tests OK;
+- full test suite: 279 tests OK, 2 skipped;
+- alpha readiness gate: PASS.
+
+Known environment note: FastAPI/Starlette TestClient emits an `httpx`
+deprecation warning during tests. It is environmental and did not fail the
+suite.
+
+## Quantum Paradoxes Multiverse Experiments
+
+The simulator includes five opt-in, deterministic branch-accounting lanes based
+on Maria Violaris' Royal Institution Quantum Paradoxes source set:
+
+- Deutsch quantum-computing test;
+- Elitzur-Vaidman bomb tester;
+- entanglement/teleportation branch accounting;
+- Google-scale quantum-computer evidence review;
+- Wigner-friend/inter-branch communication.
+
+Core/API/runtime surfaces:
+
+- core file: `core/multiverse_experiments.py`;
+- exported symbols: `MultiverseExperimentConfig`,
+  `run_multiverse_experiment()`, `run_all_multiverse_experiments()`,
+  `multiverse_experiments_status()`;
+- payload name: `multiverse_experiments_profile`;
+- runtime/QNN opt-in flag: `multiverse_experiments_enabled=true`;
+- Network Designer family/preset: `multiverse_experiments`;
+- focused tests: `tests/test_multiverse_experiments.py`,
+  `tests/test_api_qnn_smoke.py`, `tests/test_cerebrum_runtime_bridge.py`, and
+  `tests/test_network_designer_executor.py`.
+
+Use the local API endpoints `GET /fnp-qnn/multiverse-experiments/status`,
+`POST /fnp-qnn/multiverse-experiments/run`, and
+`POST /fnp-qnn/multiverse-experiments/run-all`, or enable QNN/runtime attachment
+with `multiverse_experiments_enabled=true`.
+
+Source IDs for this suite:
+
+- `RI_QUANTUM_PARADOXES_MULTIVERSE_2026`: Royal Institution video and event
+  page;
+- `VIOLARIS_QUANTUM_PARADOXES_SERIES`: Maria Violaris Quantum Paradoxes series;
+- `VIOLARIS_INTERBRANCH_COMMUNICATION_2026`: inter-branch communication paper;
+- `LOCAL_RUNTIME`: deterministic local simulator implementation.
+
+These profiles are simulator evidence only. They do not claim that many-worlds
+is physically true, do not permit faster-than-light signalling, and preserve
+`I -> I_system^S -> D_f -> dF -> i_fractal`.
+
+## Time Physics Experiments
+
+The simulator also includes a separate six-lane, opt-in suite based on Jim
+Al-Khalili's Big Think time-physics source set:
+
+- manifest vs physical time flow;
+- relativistic time dilation and block-universe accounting;
+- relativity of simultaneity and the meaning of "now";
+- thermodynamic entropy arrow;
+- entanglement/decoherence arrow;
+- cosmological boundary and time-travel paradox guard.
+
+Core/API/runtime surfaces:
+
+- core file: `core/time_physics_experiments.py`;
+- exported symbols: `TimePhysicsExperimentConfig`,
+  `run_time_physics_experiment()`, `run_all_time_physics_experiments()`,
+  `time_physics_experiments_status()`;
+- payload name: `time_physics_experiments_profile`;
+- runtime/QNN opt-in flag: `time_physics_experiments_enabled=true`;
+- Network Designer family/preset: `time_physics_experiments`;
+- focused tests: `tests/test_time_physics_experiments.py`,
+  `tests/test_api_qnn_smoke.py`, `tests/test_cerebrum_runtime_bridge.py`, and
+  `tests/test_network_designer_executor.py`.
+
+Use the local API endpoints `GET /fnp-qnn/time-physics-experiments/status`,
+`POST /fnp-qnn/time-physics-experiments/run`, and
+`POST /fnp-qnn/time-physics-experiments/run-all`, or enable QNN/runtime
+attachment with `time_physics_experiments_enabled=true`.
+
+Source IDs for this suite are `BIG_THINK_TIME_VIDEO_2026`,
+`BIG_THINK_BLOCK_UNIVERSE_TRANSCRIPT_2026`,
+`ALKHALILI_CHEN_DECOHERENT_ARROW_2024`, and `PUP_ON_TIME_CONTEXT_2026`.
+References to the prior `multiverse_experiments` suite remain separately cited
+under the Dr. Maria Violaris/Royal Institution/arXiv source IDs in
+`docs/source_ledger/math_function_source_guardrail.md`.
+
+These profiles are simulator evidence only. They do not prove time travel,
+eternalism, the block-universe ontology, quantum gravity, or an absolute
+universal "now", and they preserve
+`I -> I_system^S -> D_f -> dF -> i_fractal`.
 
 ## Local CLI and TUI
 

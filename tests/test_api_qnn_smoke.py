@@ -398,6 +398,200 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertTrue(result["gravity_null_test_profile"]["bell_vs_chamber_taxonomy"]["all_invariants_hold"])
         self.assertIn("not physical quantum-gravity proof", result["gravity_null_test_profile"]["research_boundary"])
 
+    def test_multiverse_experiment_endpoints_return_bounded_payloads(self):
+        client = TestClient(app)
+
+        status_response = client.get("/fnp-qnn/multiverse-experiments/status")
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["feature"], "quantum-paradoxes-multiverse-experiments")
+
+        run_response = client.post(
+            "/fnp-qnn/multiverse-experiments/run",
+            json={
+                "experiment_id": "wigner_friend_inter_branch_communication",
+                "seed": 11,
+                "shots": 128,
+                "memory_erasure": 0.2,
+                "measurement_strength": 0.8,
+                "include_qiskit_preview": True,
+            },
+        )
+        self.assertEqual(run_response.status_code, 200)
+        profile = run_response.json()["profile"]
+        self.assertEqual(profile["model"], "fnp_qnn_multiverse_experiment_profile_v1")
+        self.assertEqual(profile["feature_dimension"], len(profile["feature_vector"]))
+        self.assertEqual(profile["classification"], "inter_branch_protocol_suspended_by_memory_record_constraints")
+        self.assertIn("qiskit_preview", profile)
+        self.assertTrue(profile["hierarchy_integrity"]["dF_is_not_generic_I"])
+        self.assertIn("not validation of many-worlds ontology", profile["research_boundary"])
+
+        run_all_response = client.post(
+            "/fnp-qnn/multiverse-experiments/run-all",
+            json={"shots": 128, "experiment_ids": ["deutsch_quantum_computation_origin"]},
+        )
+        self.assertEqual(run_all_response.status_code, 200)
+        suite = run_all_response.json()["profile"]
+        self.assertEqual(suite["experiment_count"], 1)
+        self.assertEqual(suite["feature_dimension"], len(suite["feature_vector"]))
+
+    def test_multiverse_schemas_reject_bad_shots_and_ids(self):
+        client = TestClient(app)
+
+        bad_shots = client.post("/fnp-qnn/multiverse-experiments/run", json={"shots": 1})
+        self.assertEqual(bad_shots.status_code, 422)
+
+        bad_id = client.post(
+            "/fnp-qnn/multiverse-experiments/run",
+            json={"experiment_id": "schrodinger_cat_context_only"},
+        )
+        self.assertEqual(bad_id.status_code, 422)
+
+    def test_qnn_smoke_accepts_multiverse_experiments_opt_in(self):
+        client = TestClient(app)
+
+        baseline = client.post("/qnn/smoke", json={"epochs": 2, "test_size": 0.0})
+        self.assertEqual(baseline.status_code, 200)
+        baseline_dim = baseline.json()["result"]["feature_dimension"]
+
+        response = client.post(
+            "/qnn/smoke",
+            json={
+                "epochs": 2,
+                "test_size": 0.0,
+                "multiverse_experiments_enabled": True,
+                "multiverse_experiment_ids": ["deutsch_quantum_computation_origin"],
+                "multiverse_experiment_seed": 11,
+                "multiverse_experiment_shots": 128,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = response.json()["result"]
+        self.assertIn("multiverse_experiments_profile", result)
+        self.assertGreater(result["feature_dimension"], baseline_dim)
+        self.assertEqual(result["multiverse_experiments_profile"]["experiment_count"], 1)
+        self.assertEqual(
+            result["multiverse_experiments_profile"]["feature_dimension"],
+            len(result["multiverse_experiments_profile"]["feature_vector"]),
+        )
+
+    def test_qnn_smoke_command_accepts_multiverse_experiments_opt_in(self):
+        client = TestClient(app)
+
+        response = client.post(
+            "/execute-command",
+            json={
+                "command": "qnn-smoke",
+                "epochs": 2,
+                "test_size": 0.0,
+                "multiverse_experiments_enabled": True,
+                "multiverse_experiment_ids": ["deutsch_quantum_computation_origin"],
+                "multiverse_experiment_shots": 128,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["success"])
+        self.assertIn("multiverse_experiments_profile", payload["data"]["result"])
+
+    def test_time_physics_experiment_endpoints_return_bounded_payloads(self):
+        client = TestClient(app)
+
+        status_response = client.get("/fnp-qnn/time-physics-experiments/status")
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(status_response.json()["feature"], "jim-alkhalili-time-physics-experiments")
+
+        run_response = client.post(
+            "/fnp-qnn/time-physics-experiments/run",
+            json={
+                "experiment_id": "entanglement_decoherence_arrow",
+                "seed": 11,
+                "shots": 128,
+                "include_qiskit_preview": True,
+            },
+        )
+        self.assertEqual(run_response.status_code, 200)
+        profile = run_response.json()["profile"]
+        self.assertEqual(profile["model"], "fnp_qnn_time_physics_experiment_profile_v1")
+        self.assertEqual(profile["feature_dimension"], len(profile["feature_vector"]))
+        self.assertEqual(profile["classification"], "decoherent_arrow_entanglement_past_hypothesis_profile")
+        self.assertIn("ALKHALILI_CHEN_DECOHERENT_ARROW_2024", profile["source_ids"])
+        self.assertIn("qiskit_preview", profile)
+        self.assertTrue(profile["hierarchy_integrity"]["dF_is_not_generic_I"])
+        self.assertIn("not operational time travel", profile["research_boundary"])
+
+        run_all_response = client.post(
+            "/fnp-qnn/time-physics-experiments/run-all",
+            json={"shots": 128, "experiment_ids": ["manifest_vs_physical_time_flow"]},
+        )
+        self.assertEqual(run_all_response.status_code, 200)
+        suite = run_all_response.json()["profile"]
+        self.assertEqual(suite["experiment_count"], 1)
+        self.assertEqual(suite["feature_dimension"], len(suite["feature_vector"]))
+        self.assertTrue(suite["citation_integrity"]["source_sets_are_separate"])
+
+    def test_time_physics_schemas_reject_bad_shots_and_ids(self):
+        client = TestClient(app)
+
+        bad_shots = client.post("/fnp-qnn/time-physics-experiments/run", json={"shots": 1})
+        self.assertEqual(bad_shots.status_code, 422)
+
+        bad_id = client.post(
+            "/fnp-qnn/time-physics-experiments/run",
+            json={"experiment_id": "quantum_gravity_proof"},
+        )
+        self.assertEqual(bad_id.status_code, 422)
+
+    def test_qnn_smoke_accepts_time_physics_experiments_opt_in(self):
+        client = TestClient(app)
+
+        baseline = client.post("/qnn/smoke", json={"epochs": 2, "test_size": 0.0})
+        self.assertEqual(baseline.status_code, 200)
+        baseline_dim = baseline.json()["result"]["feature_dimension"]
+
+        response = client.post(
+            "/qnn/smoke",
+            json={
+                "epochs": 2,
+                "test_size": 0.0,
+                "time_physics_experiments_enabled": True,
+                "time_physics_experiment_ids": ["entanglement_decoherence_arrow"],
+                "time_physics_experiment_seed": 11,
+                "time_physics_experiment_shots": 128,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = response.json()["result"]
+        self.assertIn("time_physics_experiments_profile", result)
+        self.assertGreater(result["feature_dimension"], baseline_dim)
+        self.assertEqual(result["time_physics_experiments_profile"]["experiment_count"], 1)
+        self.assertIn(
+            "ALKHALILI_CHEN_DECOHERENT_ARROW_2024",
+            result["time_physics_experiments_profile"]["source_ids"],
+        )
+
+    def test_qnn_smoke_command_accepts_time_physics_experiments_opt_in(self):
+        client = TestClient(app)
+
+        response = client.post(
+            "/execute-command",
+            json={
+                "command": "qnn-smoke",
+                "epochs": 2,
+                "test_size": 0.0,
+                "time_physics_experiments_enabled": True,
+                "time_physics_experiment_ids": ["manifest_vs_physical_time_flow"],
+                "time_physics_experiment_shots": 128,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["success"])
+        self.assertIn("time_physics_experiments_profile", payload["data"]["result"])
+
 
 if __name__ == "__main__":
     unittest.main()

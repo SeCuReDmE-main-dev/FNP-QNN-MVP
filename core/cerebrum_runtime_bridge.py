@@ -23,6 +23,7 @@ from .cerebrum_adapter import CerebrumAdapter, CerebrumFeatureBundle, MODALITIES
 from .ffed_plugin_bridge import FfeDPluginBridge
 from .hydra_em_gpcn_math import hydra_em_gpcn_orch_profile
 from .lvfm_runtime_graph import LVFMRuntimeGraph, RegisterBit
+from .multiverse_experiments import MultiverseExperimentConfig, run_all_multiverse_experiments
 from .neutrosophic_quantum_primitives import fractal_carrier_profile
 from .neutro_algebra import neutroalgebra_runtime_profile
 from .neutro_structure import runtime_neutrostructure_profile
@@ -31,6 +32,7 @@ from .plithogenic_logic import plithogenic_runtime_fusion_profile
 from .plithogenic_probability_statistics import plithogenic_topology_wiring_profile
 from .qnn_nucleus import QNNNucleus
 from .revolutionary_topologies import revolutionary_topology_runtime_profile
+from .time_physics_experiments import TimePhysicsExperimentConfig, run_all_time_physics_experiments
 
 
 MODALITY_ALIASES = {
@@ -164,6 +166,8 @@ class CerebrumRuntimeState:
     neutro_algebra: Optional[Dict[str, Any]] = None
     penrose_hameroff: Optional[Dict[str, Any]] = None
     hydra_em_gpcn: Optional[Dict[str, Any]] = None
+    multiverse_experiments: Optional[Dict[str, Any]] = None
+    time_physics_experiments: Optional[Dict[str, Any]] = None
 
     def to_dict(self, include_bundle: bool = True) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
@@ -189,6 +193,10 @@ class CerebrumRuntimeState:
             payload["penrose_hameroff"] = self.penrose_hameroff
         if self.hydra_em_gpcn is not None:
             payload["hydra_em_gpcn"] = self.hydra_em_gpcn
+        if self.multiverse_experiments is not None:
+            payload["multiverse_experiments"] = self.multiverse_experiments
+        if self.time_physics_experiments is not None:
+            payload["time_physics_experiments"] = self.time_physics_experiments
         if include_bundle:
             payload["bundle"] = {
                 "sequence_length": self.feature_bundle.sequence_length,
@@ -284,6 +292,29 @@ class CerebrumRuntimeBridge:
         lattice_seed: int = 0,
         observation_scale_min: float = 0.01,
         observation_scale_max: float = 1.0,
+        multiverse_experiments_enabled: bool = False,
+        multiverse_experiment_ids: Optional[Sequence[str]] = None,
+        multiverse_experiment_seed: int = 2026,
+        multiverse_experiment_shots: int = 512,
+        multiverse_branch_coherence: float = 0.82,
+        multiverse_measurement_strength: float = 0.35,
+        multiverse_interference_visibility: float = 0.72,
+        multiverse_entanglement_fidelity: float = 0.84,
+        multiverse_classical_leakage: float = 0.0,
+        multiverse_memory_erasure: float = 1.0,
+        multiverse_scale_claim_strength: float = 0.65,
+        time_physics_experiments_enabled: bool = False,
+        time_physics_experiment_ids: Optional[Sequence[str]] = None,
+        time_physics_experiment_seed: int = 2026,
+        time_physics_experiment_shots: int = 512,
+        time_physics_temporal_flow_strength: float = 0.74,
+        time_physics_relative_velocity_fraction: float = 0.35,
+        time_physics_simultaneity_offset: float = 0.40,
+        time_physics_entropy_gradient: float = 0.78,
+        time_physics_entanglement_growth: float = 0.62,
+        time_physics_decoherence_strength: float = 0.66,
+        time_physics_cosmological_boundary_pressure: float = 0.55,
+        time_physics_paradox_pressure: float = 0.15,
     ) -> CerebrumRuntimeState:
         events, pairs, warnings = self.ingest(payload)
         observations = [event.to_observation() for event in events]
@@ -387,6 +418,59 @@ class CerebrumRuntimeBridge:
             )
             hydra_em_gpcn_features = [float(item) for item in hydra_em_gpcn_profile["feature_vector"]]
             vector = np.concatenate([vector, np.asarray(hydra_em_gpcn_features, dtype=np.float32)]).astype(np.float32)
+        multiverse_experiments_profile = None
+        multiverse_experiment_features: Optional[List[float]] = None
+        if multiverse_experiments_enabled:
+            multiverse_ids = list(multiverse_experiment_ids or [])
+            multiverse_config = MultiverseExperimentConfig(
+                experiment_id=multiverse_ids[0] if multiverse_ids else "deutsch_quantum_computation_origin",
+                seed=multiverse_experiment_seed,
+                shots=multiverse_experiment_shots,
+                branch_coherence=multiverse_branch_coherence,
+                measurement_strength=multiverse_measurement_strength,
+                interference_visibility=multiverse_interference_visibility,
+                entanglement_fidelity=multiverse_entanglement_fidelity,
+                classical_leakage=multiverse_classical_leakage,
+                memory_erasure=multiverse_memory_erasure,
+                scale_claim_strength=multiverse_scale_claim_strength,
+            )
+            multiverse_experiments_profile = run_all_multiverse_experiments(
+                multiverse_config,
+                experiment_ids=multiverse_ids or None,
+            )
+            multiverse_experiment_features = [
+                float(item) for item in multiverse_experiments_profile["feature_vector"]
+            ]
+            vector = np.concatenate(
+                [vector, np.asarray(multiverse_experiment_features, dtype=np.float32)]
+            ).astype(np.float32)
+        time_physics_experiments_profile = None
+        time_physics_experiment_features: Optional[List[float]] = None
+        if time_physics_experiments_enabled:
+            time_physics_ids = list(time_physics_experiment_ids or [])
+            time_physics_config = TimePhysicsExperimentConfig(
+                experiment_id=time_physics_ids[0] if time_physics_ids else "manifest_vs_physical_time_flow",
+                seed=time_physics_experiment_seed,
+                shots=time_physics_experiment_shots,
+                temporal_flow_strength=time_physics_temporal_flow_strength,
+                relative_velocity_fraction=time_physics_relative_velocity_fraction,
+                simultaneity_offset=time_physics_simultaneity_offset,
+                entropy_gradient=time_physics_entropy_gradient,
+                entanglement_growth=time_physics_entanglement_growth,
+                decoherence_strength=time_physics_decoherence_strength,
+                cosmological_boundary_pressure=time_physics_cosmological_boundary_pressure,
+                paradox_pressure=time_physics_paradox_pressure,
+            )
+            time_physics_experiments_profile = run_all_time_physics_experiments(
+                time_physics_config,
+                experiment_ids=time_physics_ids or None,
+            )
+            time_physics_experiment_features = [
+                float(item) for item in time_physics_experiments_profile["feature_vector"]
+            ]
+            vector = np.concatenate(
+                [vector, np.asarray(time_physics_experiment_features, dtype=np.float32)]
+            ).astype(np.float32)
         lvfm = self._build_lvfm_snapshot(events, pairs)
         if plithogenic_profile is not None:
             lvfm["plithogenic_fusion_profile"] = {
@@ -482,6 +566,32 @@ class CerebrumRuntimeBridge:
                 "hierarchy": hydra_em_gpcn_profile["hierarchy"],
                 "research_boundary": hydra_em_gpcn_profile["research_boundary"],
             }
+        if multiverse_experiments_profile is not None:
+            lvfm["multiverse_experiments_profile"] = {
+                "model": multiverse_experiments_profile["model"],
+                "source_ids": multiverse_experiments_profile["source_ids"],
+                "experiment_count": multiverse_experiments_profile["experiment_count"],
+                "experiment_ids": multiverse_experiments_profile["experiment_ids"],
+                "classifications": multiverse_experiments_profile["classifications"],
+                "feature_vector": multiverse_experiments_profile["feature_vector"],
+                "feature_dimension": multiverse_experiments_profile["feature_dimension"],
+                "hierarchy": multiverse_experiments_profile["hierarchy"],
+                "research_boundary": multiverse_experiments_profile["research_boundary"],
+            }
+        if time_physics_experiments_profile is not None:
+            lvfm["time_physics_experiments_profile"] = {
+                "model": time_physics_experiments_profile["model"],
+                "source_ids": time_physics_experiments_profile["source_ids"],
+                "related_prior_work_source_ids": time_physics_experiments_profile["related_prior_work_source_ids"],
+                "experiment_count": time_physics_experiments_profile["experiment_count"],
+                "experiment_ids": time_physics_experiments_profile["experiment_ids"],
+                "classifications": time_physics_experiments_profile["classifications"],
+                "feature_vector": time_physics_experiments_profile["feature_vector"],
+                "feature_dimension": time_physics_experiments_profile["feature_dimension"],
+                "citation_integrity": time_physics_experiments_profile["citation_integrity"],
+                "hierarchy": time_physics_experiments_profile["hierarchy"],
+                "research_boundary": time_physics_experiments_profile["research_boundary"],
+            }
         fractal_carrier = self._fractal_carrier_payload(
             fractal_dimension,
             fractal_dimension_min,
@@ -527,6 +637,10 @@ class CerebrumRuntimeBridge:
                 penrose_hameroff_payload=penrose_hameroff_profile,
                 hydra_em_gpcn_features=hydra_em_gpcn_features,
                 hydra_em_gpcn_payload=hydra_em_gpcn_profile,
+                multiverse_experiment_features=multiverse_experiment_features,
+                multiverse_experiment_payload=multiverse_experiments_profile,
+                time_physics_experiment_features=time_physics_experiment_features,
+                time_physics_experiment_payload=time_physics_experiments_profile,
                 precomputed_plugin_payload=plithogenic_topology_plugin_payload,
             )
             qnn_result.pop("bundle", None)
@@ -549,6 +663,8 @@ class CerebrumRuntimeBridge:
             neutro_algebra=neutro_algebra_profile,
             penrose_hameroff=penrose_hameroff_profile,
             hydra_em_gpcn=hydra_em_gpcn_profile,
+            multiverse_experiments=multiverse_experiments_profile,
+            time_physics_experiments=time_physics_experiments_profile,
         )
 
     def _fractal_carrier_payload(

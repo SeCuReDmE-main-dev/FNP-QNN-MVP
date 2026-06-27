@@ -155,6 +155,10 @@ class QNNNucleus:
         hydra_em_gpcn_payload: Optional[Dict[str, Any]] = None,
         gravity_null_test_features: Optional[Sequence[float]] = None,
         gravity_null_test_payload: Optional[Dict[str, Any]] = None,
+        multiverse_experiment_features: Optional[Sequence[float]] = None,
+        multiverse_experiment_payload: Optional[Dict[str, Any]] = None,
+        time_physics_experiment_features: Optional[Sequence[float]] = None,
+        time_physics_experiment_payload: Optional[Dict[str, Any]] = None,
         precomputed_plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
@@ -176,6 +180,8 @@ class QNNNucleus:
         external_features.extend(list(penrose_hameroff_features or []))
         external_features.extend(list(hydra_em_gpcn_features or []))
         external_features.extend(list(gravity_null_test_features or []))
+        external_features.extend(list(multiverse_experiment_features or []))
+        external_features.extend(list(time_physics_experiment_features or []))
         plugin_kwargs = {
             "plugin_features": external_features or None,
             "plugin_payload": plugin_payload,
@@ -208,6 +214,8 @@ class QNNNucleus:
                 self._attach_penrose_hameroff_payload(result, penrose_hameroff_payload)
                 self._attach_hydra_em_gpcn_payload(result, hydra_em_gpcn_payload)
                 self._attach_gravity_null_test_payload(result, gravity_null_test_payload)
+                self._attach_multiverse_experiments_payload(result, multiverse_experiment_payload)
+                self._attach_time_physics_experiments_payload(result, time_physics_experiment_payload)
                 return result
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -231,6 +239,8 @@ class QNNNucleus:
                 self._attach_penrose_hameroff_payload(fallback, penrose_hameroff_payload)
                 self._attach_hydra_em_gpcn_payload(fallback, hydra_em_gpcn_payload)
                 self._attach_gravity_null_test_payload(fallback, gravity_null_test_payload)
+                self._attach_multiverse_experiments_payload(fallback, multiverse_experiment_payload)
+                self._attach_time_physics_experiments_payload(fallback, time_physics_experiment_payload)
                 return fallback
         result = self.fit_surrogate(
             [raw_events],
@@ -251,6 +261,8 @@ class QNNNucleus:
         self._attach_penrose_hameroff_payload(result, penrose_hameroff_payload)
         self._attach_hydra_em_gpcn_payload(result, hydra_em_gpcn_payload)
         self._attach_gravity_null_test_payload(result, gravity_null_test_payload)
+        self._attach_multiverse_experiments_payload(result, multiverse_experiment_payload)
+        self._attach_time_physics_experiments_payload(result, time_physics_experiment_payload)
         return result
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -941,6 +953,48 @@ class QNNNucleus:
             "bell_vs_chamber_taxonomy": gravity_null_test_payload.get("bell_vs_chamber_taxonomy"),
             "hierarchy": gravity_null_test_payload["hierarchy"],
             "research_boundary": gravity_null_test_payload["research_boundary"],
+        }
+
+    def _attach_multiverse_experiments_payload(
+        self,
+        result: Dict[str, Any],
+        multiverse_experiment_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not multiverse_experiment_payload:
+            return
+        result["multiverse_experiments_profile"] = {
+            "model": multiverse_experiment_payload["model"],
+            "source_ids": multiverse_experiment_payload["source_ids"],
+            "experiment_count": multiverse_experiment_payload["experiment_count"],
+            "experiment_ids": multiverse_experiment_payload["experiment_ids"],
+            "classifications": multiverse_experiment_payload["classifications"],
+            "feature_vector": multiverse_experiment_payload["feature_vector"],
+            "feature_dimension": multiverse_experiment_payload["feature_dimension"],
+            "hierarchy": multiverse_experiment_payload["hierarchy"],
+            "forbidden_claims": multiverse_experiment_payload["forbidden_claims"],
+            "research_boundary": multiverse_experiment_payload["research_boundary"],
+        }
+
+    def _attach_time_physics_experiments_payload(
+        self,
+        result: Dict[str, Any],
+        time_physics_experiment_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not time_physics_experiment_payload:
+            return
+        result["time_physics_experiments_profile"] = {
+            "model": time_physics_experiment_payload["model"],
+            "source_ids": time_physics_experiment_payload["source_ids"],
+            "related_prior_work_source_ids": time_physics_experiment_payload["related_prior_work_source_ids"],
+            "experiment_count": time_physics_experiment_payload["experiment_count"],
+            "experiment_ids": time_physics_experiment_payload["experiment_ids"],
+            "classifications": time_physics_experiment_payload["classifications"],
+            "feature_vector": time_physics_experiment_payload["feature_vector"],
+            "feature_dimension": time_physics_experiment_payload["feature_dimension"],
+            "citation_integrity": time_physics_experiment_payload["citation_integrity"],
+            "hierarchy": time_physics_experiment_payload["hierarchy"],
+            "forbidden_claims": time_physics_experiment_payload["forbidden_claims"],
+            "research_boundary": time_physics_experiment_payload["research_boundary"],
         }
 
     def _fractal_carrier_payload(

@@ -26,6 +26,8 @@ from api.schemas import (
     EncryptedRAGEnvelopeRequest,
     GravityNullTestRequest,
     HydraEMGPCNAnesthesiaSweepRequest,
+    MultiverseExperimentRequest,
+    MultiverseExperimentRunAllRequest,
     NidusFusionProfileRequest,
     NidusPartialMembershipMeanRequest,
     NidusTripletProfileRequest,
@@ -34,6 +36,8 @@ from api.schemas import (
     PenroseHameroffObjectiveReductionRequest,
     QNNSmokeRequest,
     RuntimeRunRequest,
+    TimePhysicsExperimentRequest,
+    TimePhysicsExperimentRunAllRequest,
 )
 from core import (
     CerebrumAdapter,
@@ -53,18 +57,26 @@ from core import (
     envelope_to_runtime_payload,
     generate_rag_key,
     GravityNullTestConfig,
+    MultiverseExperimentConfig,
+    TimePhysicsExperimentConfig,
     anesthesia_sweep_profile,
     gravity_null_test_status,
     hydra_em_gpcn_orch_profile,
+    multiverse_experiments_status,
     objective_reduction_profile,
     partial_membership_mean,
     penrose_hameroff_runtime_profile,
     plithogenic_runtime_fusion_profile,
     revolutionary_topology_runtime_profile,
+    run_all_multiverse_experiments,
+    run_all_time_physics_experiments,
     run_gravity_null_test,
+    run_multiverse_experiment,
     run_neurobit_gates,
     run_neurobit_tunnel_demo,
+    run_time_physics_experiment,
     source_weighted_triplet_fusion,
+    time_physics_experiments_status,
     triplet_quality_profile,
 )
 from core.cerebrum_adapter import MODALITIES
@@ -236,6 +248,115 @@ def _gravity_config_from_qnn_payload(payload: QNNSmokeRequest | CommandRequest) 
     )
 
 
+def _multiverse_config_from_request(payload: MultiverseExperimentRequest) -> MultiverseExperimentConfig:
+    return MultiverseExperimentConfig(
+        experiment_id=payload.experiment_id,
+        seed=payload.seed,
+        shots=payload.shots,
+        branch_coherence=payload.branch_coherence,
+        measurement_strength=payload.measurement_strength,
+        interference_visibility=payload.interference_visibility,
+        entanglement_fidelity=payload.entanglement_fidelity,
+        classical_leakage=payload.classical_leakage,
+        memory_erasure=payload.memory_erasure,
+        scale_claim_strength=payload.scale_claim_strength,
+        include_qiskit_preview=payload.include_qiskit_preview,
+        source_i=payload.source_i,
+    )
+
+
+def _multiverse_config_from_run_all_request(
+    payload: MultiverseExperimentRunAllRequest,
+) -> MultiverseExperimentConfig:
+    experiment_id = payload.experiment_ids[0] if payload.experiment_ids else "deutsch_quantum_computation_origin"
+    return MultiverseExperimentConfig(
+        experiment_id=experiment_id,
+        seed=payload.seed,
+        shots=payload.shots,
+        branch_coherence=payload.branch_coherence,
+        measurement_strength=payload.measurement_strength,
+        interference_visibility=payload.interference_visibility,
+        entanglement_fidelity=payload.entanglement_fidelity,
+        classical_leakage=payload.classical_leakage,
+        memory_erasure=payload.memory_erasure,
+        scale_claim_strength=payload.scale_claim_strength,
+        include_qiskit_preview=payload.include_qiskit_preview,
+        source_i=payload.source_i,
+    )
+
+
+def _multiverse_config_from_qnn_payload(payload: QNNSmokeRequest | CommandRequest) -> MultiverseExperimentConfig:
+    experiment_ids = list(payload.multiverse_experiment_ids)
+    return MultiverseExperimentConfig(
+        experiment_id=experiment_ids[0] if experiment_ids else "deutsch_quantum_computation_origin",
+        seed=payload.multiverse_experiment_seed,
+        shots=payload.multiverse_experiment_shots,
+        branch_coherence=payload.multiverse_branch_coherence,
+        measurement_strength=payload.multiverse_measurement_strength,
+        interference_visibility=payload.multiverse_interference_visibility,
+        entanglement_fidelity=payload.multiverse_entanglement_fidelity,
+        classical_leakage=payload.multiverse_classical_leakage,
+        memory_erasure=payload.multiverse_memory_erasure,
+        scale_claim_strength=payload.multiverse_scale_claim_strength,
+    )
+
+
+def _time_physics_config_from_request(payload: TimePhysicsExperimentRequest) -> TimePhysicsExperimentConfig:
+    return TimePhysicsExperimentConfig(
+        experiment_id=payload.experiment_id,
+        seed=payload.seed,
+        shots=payload.shots,
+        temporal_flow_strength=payload.temporal_flow_strength,
+        relative_velocity_fraction=payload.relative_velocity_fraction,
+        simultaneity_offset=payload.simultaneity_offset,
+        entropy_gradient=payload.entropy_gradient,
+        entanglement_growth=payload.entanglement_growth,
+        decoherence_strength=payload.decoherence_strength,
+        cosmological_boundary_pressure=payload.cosmological_boundary_pressure,
+        paradox_pressure=payload.paradox_pressure,
+        include_qiskit_preview=payload.include_qiskit_preview,
+        source_i=payload.source_i,
+    )
+
+
+def _time_physics_config_from_run_all_request(
+    payload: TimePhysicsExperimentRunAllRequest,
+) -> TimePhysicsExperimentConfig:
+    experiment_id = payload.experiment_ids[0] if payload.experiment_ids else "manifest_vs_physical_time_flow"
+    return TimePhysicsExperimentConfig(
+        experiment_id=experiment_id,
+        seed=payload.seed,
+        shots=payload.shots,
+        temporal_flow_strength=payload.temporal_flow_strength,
+        relative_velocity_fraction=payload.relative_velocity_fraction,
+        simultaneity_offset=payload.simultaneity_offset,
+        entropy_gradient=payload.entropy_gradient,
+        entanglement_growth=payload.entanglement_growth,
+        decoherence_strength=payload.decoherence_strength,
+        cosmological_boundary_pressure=payload.cosmological_boundary_pressure,
+        paradox_pressure=payload.paradox_pressure,
+        include_qiskit_preview=payload.include_qiskit_preview,
+        source_i=payload.source_i,
+    )
+
+
+def _time_physics_config_from_qnn_payload(payload: QNNSmokeRequest | CommandRequest) -> TimePhysicsExperimentConfig:
+    experiment_ids = list(payload.time_physics_experiment_ids)
+    return TimePhysicsExperimentConfig(
+        experiment_id=experiment_ids[0] if experiment_ids else "manifest_vs_physical_time_flow",
+        seed=payload.time_physics_experiment_seed,
+        shots=payload.time_physics_experiment_shots,
+        temporal_flow_strength=payload.time_physics_temporal_flow_strength,
+        relative_velocity_fraction=payload.time_physics_relative_velocity_fraction,
+        simultaneity_offset=payload.time_physics_simultaneity_offset,
+        entropy_gradient=payload.time_physics_entropy_gradient,
+        entanglement_growth=payload.time_physics_entanglement_growth,
+        decoherence_strength=payload.time_physics_decoherence_strength,
+        cosmological_boundary_pressure=payload.time_physics_cosmological_boundary_pressure,
+        paradox_pressure=payload.time_physics_paradox_pressure,
+    )
+
+
 def _encode_observations(observations: Sequence[Any]) -> Dict[str, Any]:
     bundle = cerebrum_adapter.build_bundle(observations)
     vector = cerebrum_adapter.bundle_to_vector(bundle)
@@ -331,6 +452,31 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
         lattice_seed=int((payload or {}).get("lattice_seed", 0)),
         observation_scale_min=float((payload or {}).get("observation_scale_min", 0.01)),
         observation_scale_max=float((payload or {}).get("observation_scale_max", 1.0)),
+        multiverse_experiments_enabled=bool((payload or {}).get("multiverse_experiments_enabled", False)),
+        multiverse_experiment_ids=(payload or {}).get("multiverse_experiment_ids") or None,
+        multiverse_experiment_seed=int((payload or {}).get("multiverse_experiment_seed", 2026)),
+        multiverse_experiment_shots=int((payload or {}).get("multiverse_experiment_shots", 512)),
+        multiverse_branch_coherence=float((payload or {}).get("multiverse_branch_coherence", 0.82)),
+        multiverse_measurement_strength=float((payload or {}).get("multiverse_measurement_strength", 0.35)),
+        multiverse_interference_visibility=float((payload or {}).get("multiverse_interference_visibility", 0.72)),
+        multiverse_entanglement_fidelity=float((payload or {}).get("multiverse_entanglement_fidelity", 0.84)),
+        multiverse_classical_leakage=float((payload or {}).get("multiverse_classical_leakage", 0.0)),
+        multiverse_memory_erasure=float((payload or {}).get("multiverse_memory_erasure", 1.0)),
+        multiverse_scale_claim_strength=float((payload or {}).get("multiverse_scale_claim_strength", 0.65)),
+        time_physics_experiments_enabled=bool((payload or {}).get("time_physics_experiments_enabled", False)),
+        time_physics_experiment_ids=(payload or {}).get("time_physics_experiment_ids") or None,
+        time_physics_experiment_seed=int((payload or {}).get("time_physics_experiment_seed", 2026)),
+        time_physics_experiment_shots=int((payload or {}).get("time_physics_experiment_shots", 512)),
+        time_physics_temporal_flow_strength=float((payload or {}).get("time_physics_temporal_flow_strength", 0.74)),
+        time_physics_relative_velocity_fraction=float((payload or {}).get("time_physics_relative_velocity_fraction", 0.35)),
+        time_physics_simultaneity_offset=float((payload or {}).get("time_physics_simultaneity_offset", 0.40)),
+        time_physics_entropy_gradient=float((payload or {}).get("time_physics_entropy_gradient", 0.78)),
+        time_physics_entanglement_growth=float((payload or {}).get("time_physics_entanglement_growth", 0.62)),
+        time_physics_decoherence_strength=float((payload or {}).get("time_physics_decoherence_strength", 0.66)),
+        time_physics_cosmological_boundary_pressure=float(
+            (payload or {}).get("time_physics_cosmological_boundary_pressure", 0.55)
+        ),
+        time_physics_paradox_pressure=float((payload or {}).get("time_physics_paradox_pressure", 0.15)),
     )
     result = state.to_dict()
     if runtime_payload.get("qlc_runtime_normalized_context", {}).get("detected"):
@@ -586,6 +732,54 @@ async def gravity_null_test_run(payload: GravityNullTestRequest) -> Dict[str, An
     }
 
 
+@app.get("/fnp-qnn/multiverse-experiments/status")
+async def multiverse_experiments_status_endpoint() -> Dict[str, Any]:
+    return multiverse_experiments_status()
+
+
+@app.post("/fnp-qnn/multiverse-experiments/run")
+async def multiverse_experiment_run(payload: MultiverseExperimentRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": run_multiverse_experiment(_multiverse_config_from_request(payload)),
+    }
+
+
+@app.post("/fnp-qnn/multiverse-experiments/run-all")
+async def multiverse_experiment_run_all(payload: MultiverseExperimentRunAllRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": run_all_multiverse_experiments(
+            _multiverse_config_from_run_all_request(payload),
+            experiment_ids=payload.experiment_ids or None,
+        ),
+    }
+
+
+@app.get("/fnp-qnn/time-physics-experiments/status")
+async def time_physics_experiments_status_endpoint() -> Dict[str, Any]:
+    return time_physics_experiments_status()
+
+
+@app.post("/fnp-qnn/time-physics-experiments/run")
+async def time_physics_experiment_run(payload: TimePhysicsExperimentRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": run_time_physics_experiment(_time_physics_config_from_request(payload)),
+    }
+
+
+@app.post("/fnp-qnn/time-physics-experiments/run-all")
+async def time_physics_experiment_run_all(payload: TimePhysicsExperimentRunAllRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": run_all_time_physics_experiments(
+            _time_physics_config_from_run_all_request(payload),
+            experiment_ids=payload.experiment_ids or None,
+        ),
+    }
+
+
 @app.post("/qnn/smoke")
 async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
     samples = payload.dump_samples()
@@ -625,6 +819,18 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
     gravity_null_test_profile = None
     if payload.gravity_null_test_enabled:
         gravity_null_test_profile = run_gravity_null_test(_gravity_config_from_qnn_payload(payload))
+    multiverse_experiments_profile = None
+    if payload.multiverse_experiments_enabled:
+        multiverse_experiments_profile = run_all_multiverse_experiments(
+            _multiverse_config_from_qnn_payload(payload),
+            experiment_ids=payload.multiverse_experiment_ids or None,
+        )
+    time_physics_experiments_profile = None
+    if payload.time_physics_experiments_enabled:
+        time_physics_experiments_profile = run_all_time_physics_experiments(
+            _time_physics_config_from_qnn_payload(payload),
+            experiment_ids=payload.time_physics_experiment_ids or None,
+        )
     result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
         samples[0],
         label=float(labels[0]) if labels else 1.0,
@@ -652,6 +858,14 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         if gravity_null_test_profile is None
         else gravity_null_test_profile["feature_vector"],
         gravity_null_test_payload=gravity_null_test_profile,
+        multiverse_experiment_features=None
+        if multiverse_experiments_profile is None
+        else multiverse_experiments_profile["feature_vector"],
+        multiverse_experiment_payload=multiverse_experiments_profile,
+        time_physics_experiment_features=None
+        if time_physics_experiments_profile is None
+        else time_physics_experiments_profile["feature_vector"],
+        time_physics_experiment_payload=time_physics_experiments_profile,
     ))
     return {
         "status": "ok",
@@ -1055,6 +1269,29 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             gravity_null_test_leakage=request.gravity_null_test_leakage,
             gravity_null_test_mass_dispersion=request.gravity_null_test_mass_dispersion,
             gravity_null_test_chamber_contradiction=request.gravity_null_test_chamber_contradiction,
+            multiverse_experiments_enabled=request.multiverse_experiments_enabled,
+            multiverse_experiment_ids=request.multiverse_experiment_ids,
+            multiverse_experiment_seed=request.multiverse_experiment_seed,
+            multiverse_experiment_shots=request.multiverse_experiment_shots,
+            multiverse_branch_coherence=request.multiverse_branch_coherence,
+            multiverse_measurement_strength=request.multiverse_measurement_strength,
+            multiverse_interference_visibility=request.multiverse_interference_visibility,
+            multiverse_entanglement_fidelity=request.multiverse_entanglement_fidelity,
+            multiverse_classical_leakage=request.multiverse_classical_leakage,
+            multiverse_memory_erasure=request.multiverse_memory_erasure,
+            multiverse_scale_claim_strength=request.multiverse_scale_claim_strength,
+            time_physics_experiments_enabled=request.time_physics_experiments_enabled,
+            time_physics_experiment_ids=request.time_physics_experiment_ids,
+            time_physics_experiment_seed=request.time_physics_experiment_seed,
+            time_physics_experiment_shots=request.time_physics_experiment_shots,
+            time_physics_temporal_flow_strength=request.time_physics_temporal_flow_strength,
+            time_physics_relative_velocity_fraction=request.time_physics_relative_velocity_fraction,
+            time_physics_simultaneity_offset=request.time_physics_simultaneity_offset,
+            time_physics_entropy_gradient=request.time_physics_entropy_gradient,
+            time_physics_entanglement_growth=request.time_physics_entanglement_growth,
+            time_physics_decoherence_strength=request.time_physics_decoherence_strength,
+            time_physics_cosmological_boundary_pressure=request.time_physics_cosmological_boundary_pressure,
+            time_physics_paradox_pressure=request.time_physics_paradox_pressure,
         )
         samples = qnn_request.dump_samples()
         labels = qnn_request.labels
@@ -1093,6 +1330,18 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
         gravity_null_test_profile = None
         if qnn_request.gravity_null_test_enabled:
             gravity_null_test_profile = run_gravity_null_test(_gravity_config_from_qnn_payload(qnn_request))
+        multiverse_experiments_profile = None
+        if qnn_request.multiverse_experiments_enabled:
+            multiverse_experiments_profile = run_all_multiverse_experiments(
+                _multiverse_config_from_qnn_payload(qnn_request),
+                experiment_ids=qnn_request.multiverse_experiment_ids or None,
+            )
+        time_physics_experiments_profile = None
+        if qnn_request.time_physics_experiments_enabled:
+            time_physics_experiments_profile = run_all_time_physics_experiments(
+                _time_physics_config_from_qnn_payload(qnn_request),
+                experiment_ids=qnn_request.time_physics_experiment_ids or None,
+            )
         result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
             samples[0],
             label=float(labels[0]),
@@ -1120,6 +1369,14 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             if gravity_null_test_profile is None
             else gravity_null_test_profile["feature_vector"],
             gravity_null_test_payload=gravity_null_test_profile,
+            multiverse_experiment_features=None
+            if multiverse_experiments_profile is None
+            else multiverse_experiments_profile["feature_vector"],
+            multiverse_experiment_payload=multiverse_experiments_profile,
+            time_physics_experiment_features=None
+            if time_physics_experiments_profile is None
+            else time_physics_experiments_profile["feature_vector"],
+            time_physics_experiment_payload=time_physics_experiments_profile,
         ))
         return CommandResponse(
             success=True,

@@ -344,6 +344,121 @@ def _build_gravity_null_test_preset() -> NetworkGraph:
     return graph
 
 
+def _build_multiverse_experiments_preset() -> NetworkGraph:
+    graph = NetworkGraph(
+        family=NetworkFamily.MULTIVERSE_EXPERIMENTS.value,
+        metadata={
+            "preset": "multiverse_experiments_v1",
+            "source": "quantum_paradoxes_maria_violaris",
+            "qiskit_preview": "optional",
+            "claim_boundary": "simulator_evidence_only",
+        },
+    )
+    source_node = _node(
+        "source_ledger",
+        NetworkFamily.MULTIVERSE_EXPERIMENTS,
+        "source_ledger",
+        "Quantum Paradoxes Sources",
+        ports=(("out", NetworkPortDirection.OUTPUT),),
+    )
+    lanes = (
+        ("deutsch_lane", "deutsch_quantum_computation_origin", "Deutsch Computation"),
+        ("bomb_lane", "elitzur_vaidman_bomb_tester", "Bomb Tester"),
+        ("teleportation_lane", "entanglement_teleportation_branch_accounting", "Teleportation Accounting"),
+        ("google_scale_lane", "google_quantum_computer_scale_review", "Google Scale Review"),
+        ("wigner_lane", "wigner_friend_inter_branch_communication", "Wigner Friend"),
+    )
+    classifier_node = _node(
+        "claim_boundary_classifier",
+        NetworkFamily.MULTIVERSE_EXPERIMENTS,
+        "claim_boundary_classifier",
+        "Claim Boundary Classifier",
+        ports=(("in", NetworkPortDirection.INPUT), ("out", NetworkPortDirection.OUTPUT)),
+    )
+    output_node = _node(
+        "suite_output",
+        NetworkFamily.MULTIVERSE_EXPERIMENTS,
+        "suite_output",
+        "Suite Output",
+        ports=(("in", NetworkPortDirection.INPUT),),
+    )
+    graph.add_node(source_node)
+    graph.add_node(classifier_node)
+    graph.add_node(output_node)
+    for node_id, experiment_id, label in lanes:
+        lane_node = _node(
+            node_id,
+            NetworkFamily.MULTIVERSE_EXPERIMENTS,
+            "multiverse_experiment_node",
+            label,
+            ports=(("in", NetworkPortDirection.INPUT), ("out", NetworkPortDirection.OUTPUT)),
+        )
+        graph.add_node(lane_node)
+        graph.add_edge(NetworkEdge("source_ledger", "out", node_id, "in", 1.0))
+        graph.add_edge(NetworkEdge(node_id, "out", "claim_boundary_classifier", "in", 0.8))
+        graph.nodes[node_id].metadata["experiment_id"] = experiment_id
+    graph.add_edge(NetworkEdge("claim_boundary_classifier", "out", "suite_output", "in", 1.0))
+    return graph
+
+
+def _build_time_physics_experiments_preset() -> NetworkGraph:
+    graph = NetworkGraph(
+        family=NetworkFamily.TIME_PHYSICS_EXPERIMENTS.value,
+        metadata={
+            "preset": "time_physics_experiments_v1",
+            "source": "jim_alkhalili_time_physics",
+            "qiskit_preview": "optional",
+            "claim_boundary": "simulator_evidence_only",
+        },
+    )
+    source_node = _node(
+        "source_ledger",
+        NetworkFamily.TIME_PHYSICS_EXPERIMENTS,
+        "source_ledger",
+        "Time Physics Sources",
+        ports=(("out", NetworkPortDirection.OUTPUT),),
+    )
+    lanes = (
+        ("flow_lane", "manifest_vs_physical_time_flow", "Manifest Time Flow"),
+        ("dilation_lane", "relativistic_time_dilation_block_universe", "Time Dilation"),
+        ("now_lane", "relativity_of_simultaneity_now", "Relativity of Now"),
+        ("entropy_lane", "thermodynamic_entropy_arrow", "Entropy Arrow"),
+        ("decoherence_lane", "entanglement_decoherence_arrow", "Decoherence Arrow"),
+        ("boundary_lane", "cosmological_boundary_time_travel", "Cosmology Boundary"),
+    )
+    classifier_node = _node(
+        "claim_boundary_classifier",
+        NetworkFamily.TIME_PHYSICS_EXPERIMENTS,
+        "claim_boundary_classifier",
+        "Claim Boundary Classifier",
+        ports=(("in", NetworkPortDirection.INPUT), ("out", NetworkPortDirection.OUTPUT)),
+    )
+    output_node = _node(
+        "suite_output",
+        NetworkFamily.TIME_PHYSICS_EXPERIMENTS,
+        "suite_output",
+        "Suite Output",
+        ports=(("in", NetworkPortDirection.INPUT),),
+    )
+    graph.add_node(source_node)
+    graph.add_node(classifier_node)
+    graph.add_node(output_node)
+    for node_id, experiment_id, label in lanes:
+        lane_node = _node(
+            node_id,
+            NetworkFamily.TIME_PHYSICS_EXPERIMENTS,
+            "time_physics_experiment_node",
+            label,
+            ports=(("in", NetworkPortDirection.INPUT), ("out", NetworkPortDirection.OUTPUT)),
+        )
+        graph.add_node(lane_node)
+        graph.add_edge(NetworkEdge("source_ledger", "out", node_id, "in", 1.0))
+        graph.add_edge(NetworkEdge(node_id, "out", "claim_boundary_classifier", "in", 0.8))
+        graph.nodes[node_id].metadata["experiment_id"] = experiment_id
+    graph.add_edge(NetworkEdge("claim_boundary_classifier", "out", "suite_output", "in", 1.0))
+    return graph
+
+
 def _build_custom_network_preset() -> NetworkGraph:
     graph = NetworkGraph(family=NetworkFamily.CUSTOM_NETWORK.value, metadata={"preset": "custom_network_v1"})
     input_node = _node(
@@ -434,6 +549,22 @@ _PRESETS: Dict[NetworkFamily, NetworkPreset] = {
         description="Axiomatic chamber workflow for entangled-pair residual and telemetry review.",
         graph_builder=_build_gravity_null_test_preset,
         metadata={"qiskit_available": "optional", "e2b_datadog_review": "true"},
+    ),
+    NetworkFamily.MULTIVERSE_EXPERIMENTS: NetworkPreset(
+        family=NetworkFamily.MULTIVERSE_EXPERIMENTS,
+        preset_id="multiverse_experiments_v1",
+        name="Multiverse Experiments Preset",
+        description="Five-lane Quantum Paradoxes simulator graph with explicit claim-boundary classifier.",
+        graph_builder=_build_multiverse_experiments_preset,
+        metadata={"qiskit_available": "optional", "claim_boundary": "simulator_evidence_only"},
+    ),
+    NetworkFamily.TIME_PHYSICS_EXPERIMENTS: NetworkPreset(
+        family=NetworkFamily.TIME_PHYSICS_EXPERIMENTS,
+        preset_id="time_physics_experiments_v1",
+        name="Time Physics Experiments Preset",
+        description="Six-lane time-physics simulator graph with explicit claim-boundary classifier.",
+        graph_builder=_build_time_physics_experiments_preset,
+        metadata={"qiskit_available": "optional", "claim_boundary": "simulator_evidence_only"},
     ),
     NetworkFamily.CUSTOM_NETWORK: NetworkPreset(
         family=NetworkFamily.CUSTOM_NETWORK,
