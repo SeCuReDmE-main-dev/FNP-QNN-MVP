@@ -1,3 +1,5 @@
+> **Development status.** This school tool is currently tagged **pre-alpha / in development**. External PRs are not evaluated for merge until the maintained tool reaches a stable, fully functional 100% classroom release after the pre-alpha phase. Issues and forks remain allowed, but official PR review is paused until that stability gate is met.
+
   ![FNP-QNN Logo](./assets/logo/ASCII%20logo%208.png)
 
 # FNP-QNN Local Research Simulator
@@ -1466,3 +1468,5 @@ Start with:
   {{ pre-alpha educational research simulator: contributions are open through a maintainer-reviewed education pilot. Please read CONTRIBUTING.md before opening issues or pull requests. Unscoped or incomplete proposals may be closed. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20full%20logo.png)
+
+
