@@ -8,6 +8,8 @@ Public contact: fnpqnn@securedme.ca
 
 > **Official school governance.** This maintained classroom simulator uses Codex/OpenAI and Antigravity/Gemini as the only official AI-assisted school routes. Ollama Cloud and generic uncensored/local model routes are not official school providers. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
 
+> **Notice and disclaimer.** The existing project license remains active. See [NOTICE](NOTICE) and [DISCLAIMER](DISCLAIMER) for attribution, school-governance, and misuse-responsibility boundaries.
+
 <p align="center">
   <a href="https://e2b.dev/startups">
     <img alt="Sponsored by E2B for Startups" src="https://img.shields.io/badge/Sponsored%20by-E2B%20for%20Startups-FF8800?style=for-the-badge" />
