@@ -123,7 +123,6 @@ def inspect_openclaw(home: Path | None = None) -> dict[str, Any]:
 def external_ai_status() -> dict[str, Any]:
     codex = command_path("codex")
     antigravity = command_path("antigravity")
-    ollama = command_path("ollama")
     gcloud = command_path("gcloud")
     openclaw = inspect_openclaw()
     status: dict[str, Any] = {
@@ -131,10 +130,10 @@ def external_ai_status() -> dict[str, Any]:
         "codex": {"available": bool(codex), "path": codex},
         "antigravity": {"available": bool(antigravity), "path": antigravity},
         "ollama": {
-            "available": bool(ollama),
-            "path": ollama,
-            "api_key_env_present": bool(os.environ.get(OLLAMA_API_KEY_ENV)),
-            "cloud_model": os.environ.get(OLLAMA_MODEL_ENV, "gpt-oss:120b-cloud"),
+            "available": False,
+            "path": None,
+            "official_school_provider": False,
+            "error": "Ollama Cloud is not an official school provider for FNP-QNN.",
         },
         "gcloud": {"available": bool(gcloud), "path": gcloud},
         "openclaw": {
@@ -148,8 +147,6 @@ def external_ai_status() -> dict[str, Any]:
     }
     if codex:
         status["codex"]["login_status"] = _run_capture(("codex", "login", "status"), timeout=20)
-    if ollama:
-        status["ollama"]["version"] = _run_capture(("ollama", "--version"), timeout=20)
     return status
 
 
