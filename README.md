@@ -2,6 +2,14 @@
 
 **Attribution:** Jean-Sebastien Beaulieu · [ORCID 0009-0007-2904-0443](https://orcid.org/0009-0007-2904-0443) · [SecuredMe](https://securedme.ca) · [FNP-QNN](https://fnp-qnn.securedme.ca)
 
+<!-- SECUREDME-SUITE-BADGES:START -->
+[![Issues](https://img.shields.io/github/issues/SeCuReDmE-main-dev/FNP-QNN-MVP?color=002030)](https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/issues)
+[![Milestones](https://img.shields.io/badge/milestones-M0--M7-FF6A00)](https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/milestones)
+[![Project Board](https://img.shields.io/badge/project-kanban-006BFF)](https://github.com/users/SeCuReDmE-main-dev/projects/3)
+[![Branch](https://img.shields.io/badge/branch-FNP__QNN-1E293B)](https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/tree/FNP_QNN)
+<!-- SECUREDME-SUITE-BADGES:END -->
+
+
 ## School Authentication And Secret Boundary
 This repository is one of the two large SecuredMe school systems where a local `.env` example may exist for backend development, simulator integration, or research infrastructure. Even here, official classroom authentication must prefer Codex/OpenAI or Antigravity/Gemini browser WebAuth, fingerprinted session approval, encrypted local records, and no raw token publication. Local secrets are for maintainer-controlled backend work only, not for student distribution.
 
@@ -1477,6 +1485,7 @@ Start with:
   {{ pre-alpha educational research simulator: contributions are open through a maintainer-reviewed education pilot. Please read CONTRIBUTING.md before opening issues or pull requests. Unscoped or incomplete proposals may be closed. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20full%20logo.png)
+
 
 
 
