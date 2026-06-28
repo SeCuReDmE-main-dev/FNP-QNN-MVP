@@ -174,11 +174,13 @@ def _fallback_write_deepsearch_skill(payload: dict[str, Any], *, force: bool = F
 def _fallback_route(system: str) -> dict[str, Any]:
     if system in {"ollama", "ollama-cloud"}:
         return {
-            "route": "ollama-cloud-web-search",
+            "route": "unsupported-school-provider",
             "provider": "ollama",
             "system": "ollama-cloud",
             "fallback_used": False,
-            "provider_native_available": True,
+            "provider_native_available": False,
+            "official_school_route": False,
+            "error": "Ollama Cloud is not an official FNP-QNN school provider; use Codex or Antigravity/Gemini.",
         }
     return {
         "route": "antigravity-gemini-google-search",

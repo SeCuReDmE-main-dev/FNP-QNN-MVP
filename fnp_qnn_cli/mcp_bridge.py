@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .auth import status as auth_status
-from .external_ai import OLLAMA_API_KEY_ENV, _run_capture, command_path, control_simulator
+from .external_ai import _run_capture, command_path, control_simulator
 from .simulator_control import simulator_control_tasks
 
 PROVIDER_TOOL_MAP = {
@@ -17,14 +17,11 @@ PROVIDER_TOOL_MAP = {
     "google": "antigravity",
     "gemini": "antigravity",
     "google-ai": "antigravity",
-    "ollama": "ollama",
-    "ollama-cloud": "ollama",
 }
 
 PROVIDER_ALIASES = {
     "openai": {"openai", "chatgpt", "chat-gpt", "chatgpt-openai-token"},
     "google": {"google", "gemini", "google-ai", "google-ai-gemini-token"},
-    "ollama": {"ollama", "ollama-cloud", "ollama-cloud-token"},
 }
 
 
@@ -34,8 +31,6 @@ def normalize_provider(provider: str) -> str:
         return "openai"
     if normalized in PROVIDER_ALIASES["google"]:
         return "google"
-    if normalized in PROVIDER_ALIASES["ollama"]:
-        return "ollama"
     raise ValueError(f"unsupported provider: {provider}")
 
 
@@ -45,7 +40,7 @@ def tool_for_provider(provider: str) -> str:
         return "codex"
     if normalized == "google":
         return "antigravity"
-    return "ollama"
+    raise ValueError(f"unsupported provider: {provider}")
 
 
 def _google_adc_exists() -> bool:
@@ -73,12 +68,6 @@ def provider_connection_status(provider: str) -> dict[str, Any]:
     if not ignore_runtime_auth and normalized == "google":
         runtime_connected = _google_adc_exists()
         runtime_signal = {"google_adc_exists": runtime_connected}
-    if not ignore_runtime_auth and normalized == "ollama":
-        runtime_connected = bool(os.environ.get(OLLAMA_API_KEY_ENV))
-        if command_path("ollama"):
-            runtime_signal = _run_capture(("ollama", "--version"), timeout=20)
-        else:
-            runtime_signal = {"ollama_cli": "not found"}
     return {
         "success": True,
         "provider": normalized,
@@ -132,11 +121,11 @@ def mcp_manifest() -> dict[str, Any]:
         "tools": [
             {
                 "name": "fnp_qnn_provider_status",
-                "description": "Check whether OpenAI/ChatGPT, Google/Gemini, or Ollama Cloud is connected for simulator control.",
+                "description": "Check whether OpenAI/ChatGPT or Google/Gemini is connected for school-mode simulator control.",
             },
             {
                 "name": "fnp_qnn_control_simulator",
-                "description": "Control an allowlisted FNP-QNN simulator task through Codex, Antigravity, or Ollama.",
+                "description": "Control an allowlisted FNP-QNN simulator task through Codex or Antigravity.",
             },
             {
                 "name": "fnp_qnn_control_tasks",
@@ -152,7 +141,7 @@ def mcp_manifest() -> dict[str, Any]:
             },
             {
                 "name": "fnp_qnn_agent_profile",
-                "description": "Return the native-system profile for Codex, Antigravity/Gemini, or Ollama/OpenClaw.",
+                "description": "Return the native-system profile for Codex or Antigravity/Gemini.",
             },
             {
                 "name": "fnp_qnn_wake_prompt",

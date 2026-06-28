@@ -241,10 +241,10 @@ class CLITuiDoctorTests(unittest.TestCase):
                 else:
                     os.environ[AUTH_HOME_ENV] = old_home
 
-    def test_gateway_deepsearch_bridge_routes_ollama_native(self):
-        payload = gateway_deepsearch_skill(query="validate research", system="ollama-cloud")
+    def test_gateway_deepsearch_bridge_routes_antigravity_official(self):
+        payload = gateway_deepsearch_skill(query="validate research", system="antigravity")
         self.assertTrue(payload["success"], payload)
-        self.assertEqual(payload["search_route"]["route"], "ollama-cloud-web-search")
+        self.assertEqual(payload["search_route"]["route"], "antigravity-gemini-google-search")
         self.assertFalse(payload["search_route"]["fallback_used"])
         self.assertEqual(payload["simulator_gateway_block"]["entrypoint"], "fnp-qnn")
         self.assertFalse(payload["raw_secret_stored"])
@@ -285,13 +285,13 @@ class CLITuiDoctorTests(unittest.TestCase):
                     "--query",
                     "validate research",
                     "--system",
-                    "ollama-cloud",
+                    "antigravity",
                     "--dry-run",
                 ]
             )
         self.assertEqual(exit_code, 0)
         payload = json.loads(stdout.getvalue())
-        self.assertEqual(payload["search_route"]["route"], "ollama-cloud-web-search")
+        self.assertEqual(payload["search_route"]["route"], "antigravity-gemini-google-search")
         self.assertEqual(payload["simulator_gateway_block"]["delegated_to"], "fnpqnn_gateway_mvp.deepsearch_skill")
 
     def test_function_deepsearch_cli_falls_back_for_docker(self):
@@ -390,10 +390,8 @@ class CLITuiDoctorTests(unittest.TestCase):
                 self.assertTrue(google["success"])
                 self.assertEqual(google["tool"], "antigravity")
                 logout()
-                login("ollama-token", "ollama-unit", "ollama")
-                ollama = mcp_control_simulator("ollama", "status")
-                self.assertTrue(ollama["success"])
-                self.assertEqual(ollama["tool"], "ollama")
+                with self.assertRaises(ValueError):
+                    mcp_control_simulator("ollama", "status")
             finally:
                 if old_home is None:
                     os.environ.pop(AUTH_HOME_ENV, None)
@@ -470,9 +468,8 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertIn("Antigravity", gemini_prompt)
         self.assertIn("FNP-QNN is a local alpha-local", gemini_prompt)
         self.assertIn("Tune CLI", gemini_prompt)
-        ollama_prompt = wake_prompt("ollama")
-        self.assertIn("Ollama Cloud / OpenClaw", ollama_prompt)
-        self.assertIn("does not copy or emulate", ollama_prompt)
+        with self.assertRaises(ValueError):
+            wake_prompt("ollama")
 
     def test_onboarding_requires_approval_and_writes_context_files(self):
         with tempfile.TemporaryDirectory() as auth_tmp, tempfile.TemporaryDirectory() as repo_tmp:
@@ -507,13 +504,13 @@ class CLITuiDoctorTests(unittest.TestCase):
                     os.environ["FNP_QNN_MCP_IGNORE_RUNTIME_AUTH"] = old_ignore_runtime
 
     def test_support_report_is_llm_safe_and_actionable(self):
-        payload = provider_support_report("ollama")
+        payload = provider_support_report("google")
         self.assertTrue(payload["success"])
-        self.assertEqual(payload["provider"], "ollama")
+        self.assertEqual(payload["provider"], "google")
         self.assertIn("next_steps", payload)
         self.assertFalse(payload["raw_token_stored"])
         self.assertIn("control_tasks", payload)
-        self.assertNotIn("ollama-token", json.dumps(payload).lower())
+        self.assertNotIn("google-token", json.dumps(payload).lower())
 
     def test_support_all_cli_returns_provider_groups(self):
         stdout = io.StringIO()
@@ -522,7 +519,7 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         payload = json.loads(stdout.getvalue())
         providers = {item["provider"] for item in payload["reports"]}
-        self.assertEqual(providers, {"openai", "google", "ollama"})
+        self.assertEqual(providers, {"openai", "google"})
         self.assertIn("needs_action", payload)
 
     def test_doctor_payload_shape_without_service_probes(self):

@@ -92,7 +92,7 @@ def _managed_block(provider: str, answers: dict[str, str]) -> str:
         [
             "",
             "Agent boundary:",
-            "- Simulator base functions must run without Codex, Antigravity/Gemini, or Ollama.",
+            "- Simulator base functions must run without Codex or Antigravity/Gemini.",
             "- External AI providers may only operate as optional wiring/onboarding adapters after approval.",
             "- Native plugins/skills remain in the user's original tool; FNP-QNN only passes context and MCP calls.",
             f"- Wake prompt path: config/agent_wake_prompt_{provider}.md",

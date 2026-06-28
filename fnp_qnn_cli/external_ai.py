@@ -23,7 +23,7 @@ from .simulator_control import (
 SENSITIVE_KEYS = ("token", "secret", "password", "credential", "cookie", "apiKey", "api_key", "key")
 OLLAMA_MODEL_ENV = "FNP_QNN_OLLAMA_CLOUD_MODEL"
 OLLAMA_API_KEY_ENV = "OLLAMA_API_KEY"
-CONTROL_TOOLS = ("auto", "codex", "antigravity", "ollama")
+CONTROL_TOOLS = ("auto", "codex", "antigravity")
 
 
 def user_openclaw_home() -> Path:
@@ -158,20 +158,15 @@ def _resolve_control_tool(tool: str) -> tuple[str | None, str | None]:
         return None, f"unsupported control tool: {tool}"
     codex = command_path("codex")
     antigravity = command_path("antigravity")
-    ollama = command_path("ollama")
     if tool == "codex":
         return "codex", None
     if tool == "antigravity":
         return "antigravity", None
-    if tool == "ollama":
-        return "ollama", None
     if codex:
         return "codex", None
     if antigravity:
         return "antigravity", None
-    if ollama:
-        return "ollama", None
-    return None, "none of codex, antigravity, or ollama is installed on PATH"
+    return None, "none of codex or antigravity is installed on PATH"
 
 
 def _control_prompt(task: str, simulator_command: tuple[str, ...], extra_prompt: str | None = None) -> str:
@@ -204,14 +199,6 @@ def _agent_command(tool: str, prompt: str) -> tuple[str, ...]:
             prompt,
         )
     executable = command_path("antigravity") or "antigravity"
-    if tool == "ollama":
-        executable = command_path("ollama") or "ollama"
-        return (
-            executable,
-            "run",
-            os.environ.get(OLLAMA_MODEL_ENV, "gpt-oss:120b-cloud"),
-            prompt,
-        )
     return (
         executable,
         "run",
@@ -296,12 +283,7 @@ def control_simulator(
     if execute:
         result = _run_agent_command(agent_command, timeout=timeout)
         payload["agent_result"] = result
-        if selected_tool == "ollama" and result["available"] and result["returncode"] == 0:
-            simulator_result = run_simulator_command(simulator_command, timeout=timeout)
-            payload["simulator_result"] = simulator_result
-            payload["success"] = simulator_result["returncode"] == 0
-        else:
-            payload["success"] = bool(result["available"] and result["returncode"] == 0)
+        payload["success"] = bool(result["available"] and result["returncode"] == 0)
     return payload
 
 
@@ -352,21 +334,10 @@ def connect_antigravity() -> dict[str, Any]:
 
 
 def connect_ollama() -> dict[str, Any]:
-    path = command_path("ollama")
-    if not path:
-        return {
-            "success": False,
-            "provider": "ollama",
-            "error": "ollama CLI is not installed on PATH",
-            "next_step": "Install Ollama, then run `ollama signin`.",
-        }
-    proc = subprocess.run(("ollama", "signin"), text=True, check=False)
     return {
-        "success": proc.returncode == 0,
+        "success": False,
         "provider": "ollama",
-        "method": "ollama-signin",
-        "path": path,
-        "returncode": proc.returncode,
-        "api_key_env_present": bool(os.environ.get(OLLAMA_API_KEY_ENV)),
-        "cloud_model": os.environ.get(OLLAMA_MODEL_ENV, "gpt-oss:120b-cloud"),
+        "error": "Ollama Cloud is not an official school provider for FNP-QNN.",
+        "next_step": "Use Codex/OpenAI or Antigravity/Gemini for official school workflows.",
+        "raw_token_stored_by_fnp_qnn": False,
     }

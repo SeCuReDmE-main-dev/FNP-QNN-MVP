@@ -16,20 +16,20 @@ def _tool_schema() -> list[dict[str, Any]]:
     return [
         {
             "name": "fnp_qnn_provider_status",
-            "description": "Check OpenAI/ChatGPT, Google/Gemini, or Ollama Cloud connection status for simulator control.",
+            "description": "Check OpenAI/ChatGPT or Google/Gemini connection status for simulator control.",
             "inputSchema": {
                 "type": "object",
-                "properties": {"provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini", "ollama"]}},
+                "properties": {"provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini"]}},
                 "required": ["provider"],
             },
         },
         {
             "name": "fnp_qnn_control_simulator",
-            "description": "Control an allowlisted simulator task through Codex, Antigravity, or Ollama.",
+            "description": "Control an allowlisted simulator task through Codex or Antigravity.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini", "ollama"]},
+                    "provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini"]},
                     "task": {
                         "type": "string",
                         "enum": ["status", "doctor", "runtime", "qnn", "neurobit", "validate", "external-status"],
@@ -57,7 +57,7 @@ def _tool_schema() -> list[dict[str, Any]]:
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini", "ollama"]},
+                    "provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini"]},
                     "approve_fingerprint": {"type": "boolean"},
                     "answers": {"type": "object"},
                     "delegate": {"type": "boolean", "default": False},
@@ -68,10 +68,10 @@ def _tool_schema() -> list[dict[str, Any]]:
         },
         {
             "name": "fnp_qnn_agent_profile",
-            "description": "Return the native-system profile for Codex, Antigravity/Gemini, or Ollama/OpenClaw.",
+            "description": "Return the native-system profile for Codex or Antigravity/Gemini.",
             "inputSchema": {
                 "type": "object",
-                "properties": {"provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini", "ollama"]}},
+                "properties": {"provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini"]}},
                 "required": ["provider"],
             },
         },
@@ -81,7 +81,7 @@ def _tool_schema() -> list[dict[str, Any]]:
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini", "ollama"]},
+                    "provider": {"type": "string", "enum": ["openai", "chatgpt", "google", "gemini"]},
                     "answers": {"type": "object"},
                 },
                 "required": ["provider"],

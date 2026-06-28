@@ -11,19 +11,13 @@ SYSTEM_PROFILES: dict[str, dict[str, str]] = {
         "system": "Codex",
         "interface": "Codex CLI / Codex app with native Codex skills, plugins, MCP servers, and repo tools.",
         "native_assets": "Use the Codex skills/plugins/MCP servers already installed or enabled by the user in Codex.",
-        "boundary": "Do not assume Antigravity or Ollama tools exist unless the user explicitly routes through them.",
+        "boundary": "Do not assume Antigravity tools exist unless the user explicitly routes through them. Ollama is not an official school route.",
     },
     "google": {
         "system": "Antigravity / Gemini",
         "interface": "Google Antigravity or Gemini-oriented CLI surface with its native project and agent tools.",
         "native_assets": "Use the Antigravity/Gemini skills, tools, and project integrations already enabled by the user there.",
-        "boundary": "Do not assume Codex plugins or Ollama cloud models exist unless the user explicitly routes through them.",
-    },
-    "ollama": {
-        "system": "Ollama Cloud / OpenClaw",
-        "interface": "Ollama CLI/cloud model surface, optionally mediated by OpenClaw when configured by the user.",
-        "native_assets": "Use the Ollama/OpenClaw models, plugins, MCP servers, and agent runtimes already enabled by the user.",
-        "boundary": "Do not assume Codex or Antigravity capabilities exist unless the user explicitly routes through them.",
+        "boundary": "Do not assume Codex plugins exist unless the user explicitly routes through them. Ollama is not an official school route.",
     },
 }
 
@@ -61,7 +55,7 @@ def wake_prompt(provider: str, answers: dict[str, str] | None = None) -> str:
             "",
             "Agent boundary:",
             profile["boundary"],
-            "Keep base simulator functions usable without AI providers. Use AI only as an optional adapter after provider connection and fingerprint approval.",
+            "Keep base simulator functions usable without AI providers. Use AI only as an optional Codex or Antigravity adapter after provider connection and fingerprint approval.",
             "Preserve I -> I_system^S -> D_f -> dF -> i_fractal.",
             "",
             "User onboarding answers:",

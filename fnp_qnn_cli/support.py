@@ -8,7 +8,7 @@ from .agent_profiles import agent_profile, wake_prompt
 from .mcp_bridge import provider_connection_status
 from .simulator_control import simulator_control_tasks
 
-PROVIDERS = ("openai", "google", "ollama")
+PROVIDERS = ("openai", "google")
 
 
 def provider_support_report(provider: str) -> dict[str, Any]:
@@ -23,17 +23,12 @@ def provider_support_report(provider: str) -> dict[str, Any]:
             next_steps.append("Install or expose Codex CLI, then rerun `fnp-qnn external-ai status`.")
         elif connection["tool"] == "antigravity":
             next_steps.append("Install or expose Antigravity CLI, then rerun provider status.")
-        else:
-            next_steps.append("Install or expose Ollama CLI, then run `fnp-qnn auth web-login ollama --run-ollama`.")
 
     if not connection["connected"]:
         issues.append("provider is not connected")
         next_steps.append(f"Run `fnp-qnn auth web-login {connection['provider']} --open`.")
         next_steps.append(f"Then run `fnp-qnn auth login-provider {connection['provider']} --token <token>`.")
 
-    if connection["provider"] == "ollama" and not connection["runtime_connected"]:
-        issues.append("Ollama CLI presence is not treated as Ollama Cloud auth")
-        next_steps.append("Set `OLLAMA_API_KEY` or store an Ollama provider fingerprint.")
 
     if connection["provider"] == "google" and not connection["runtime_connected"]:
         next_steps.append("For OAuth style auth, run `fnp-qnn auth web-login google --run-gcloud`.")
