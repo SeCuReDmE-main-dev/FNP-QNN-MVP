@@ -1,3 +1,8 @@
+## School Authentication And Secret Boundary
+This repository is one of the two large SecuredMe school systems where a local `.env` example may exist for backend development, simulator integration, or research infrastructure. Even here, official classroom authentication must prefer Codex/OpenAI or Antigravity/Gemini browser WebAuth, fingerprinted session approval, encrypted local records, and no raw token publication. Local secrets are for maintainer-controlled backend work only, not for student distribution.
+
+The reason for excluding generic local AI routes from official school mode is student and teacher safety: education accounts, provider-side account controls, browser login, and governed AI refusal behavior are safer than unguided local model endpoints for classroom cybersecurity and algorithm-building tools.
+
 > **Development status.** This school tool is currently tagged **pre-alpha / in development**. External PRs are not evaluated for merge until the maintained tool reaches a stable, fully functional 100% classroom release after the pre-alpha phase. Issues and forks remain allowed, but official PR review is paused until that stability gate is met.
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20logo%208.png)
@@ -1468,5 +1473,6 @@ Start with:
   {{ pre-alpha educational research simulator: contributions are open through a maintainer-reviewed education pilot. Please read CONTRIBUTING.md before opening issues or pull requests. Unscoped or incomplete proposals may be closed. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20full%20logo.png)
+
 
 
