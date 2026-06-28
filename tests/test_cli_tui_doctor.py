@@ -510,7 +510,7 @@ class CLITuiDoctorTests(unittest.TestCase):
         self.assertIn("next_steps", payload)
         self.assertFalse(payload["raw_token_stored"])
         self.assertIn("control_tasks", payload)
-        self.assertNotIn("ollama-token", json.dumps(payload).lower())
+        self.assertNotIn("google-token", json.dumps(payload).lower())
 
     def test_support_all_cli_returns_provider_groups(self):
         stdout = io.StringIO()

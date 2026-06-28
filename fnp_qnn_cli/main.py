@@ -16,7 +16,6 @@ from .external_ai import (
     control_simulator,
     connect_antigravity,
     connect_codex,
-    connect_ollama,
     external_ai_status,
     inspect_openclaw,
     simulator_control_tasks,

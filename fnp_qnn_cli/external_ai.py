@@ -158,7 +158,6 @@ def _resolve_control_tool(tool: str) -> tuple[str | None, str | None]:
         return None, f"unsupported control tool: {tool}"
     codex = command_path("codex")
     antigravity = command_path("antigravity")
-    ollama = command_path("ollama")
     if tool == "codex":
         return "codex", None
     if tool == "antigravity":
