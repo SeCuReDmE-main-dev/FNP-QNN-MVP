@@ -6,6 +6,8 @@ Public webspace: https://fnpqnn.securedme.ca/
 
 Public contact: fnpqnn@securedme.ca
 
+> **Official school governance.** This maintained classroom simulator uses Codex/OpenAI and Antigravity/Gemini as the only official AI-assisted school routes. Ollama Cloud and generic uncensored/local model routes are not official school providers. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
+
 <p align="center">
   <a href="https://e2b.dev/startups">
     <img alt="Sponsored by E2B for Startups" src="https://img.shields.io/badge/Sponsored%20by-E2B%20for%20Startups-FF8800?style=for-the-badge" />
@@ -223,16 +225,13 @@ fnp-qnn external-ai inspect-openclaw
 fnp-qnn external-ai connect codex --device-auth
 fnp-qnn external-ai connect codex --api-key-env OPENAI_API_KEY
 fnp-qnn external-ai connect antigravity
-fnp-qnn external-ai connect ollama
 fnp-qnn external-ai control-tasks
 fnp-qnn external-ai control status --tool auto
 fnp-qnn external-ai control qnn --tool codex --execute
 fnp-qnn external-ai control runtime --tool antigravity --execute
-fnp-qnn external-ai control status --tool ollama
 fnp-qnn mcp manifest
 fnp-qnn mcp provider-status openai
 fnp-qnn mcp control openai status
-fnp-qnn agent wake-prompt ollama
 fnp-qnn onboarding questions
 fnp-qnn onboarding apply openai --approve-fingerprint
 fnp-qnn plugin create-ai-control-mcp --force
@@ -242,7 +241,7 @@ fnp-qnn cloud-kit e2b-ingest-plan --source https://example.com/data.csv --title 
 fnp-qnn cloud-kit rag-keygen
 fnp-qnn cloud-kit rag-runtime --title "Admitted summary" --source e2b://sandbox/result --content "Sanitized summary only."
 fnp-qnn ffed p114-consensus --item "verified evidence passed" --item "partial risk pending"
-fnp-qnn gateway deepsearch-skill --query "validate this research" --system ollama-cloud --dry-run
+fnp-qnn gateway deepsearch-skill --query "validate this research" --system antigravity --dry-run
 fnp-qnn function deepsearch --query "validate this research" --system docker --dry-run
 fnp-qnn skill function deepsearch --query "validate this research" --last-auth --write
 fnp-qnn tui
@@ -282,17 +281,12 @@ Token login for local AI CLI testing stores only a SHA-256 fingerprint under
 fnp-qnn auth login --token <local-test-token> --label local-test
 fnp-qnn auth web-login openai --open
 fnp-qnn auth web-login google --open
-fnp-qnn auth web-login ollama --open
-fnp-qnn auth web-login ollama --run-ollama
 fnp-qnn auth login-provider openai --token <openai-api-key>
 fnp-qnn auth login-provider google --token <gemini-api-key>
-fnp-qnn auth login-provider ollama --token <ollama-api-key>
 fnp-qnn skill function login-chatgpt --token <local-test-token>
 fnp-qnn skill function login-google-ai-pro --token <local-test-token>
-fnp-qnn skill function login-ollama-cloud --token <local-test-token>
 fnp-qnn function login-chatgpt --token <local-test-token>
 fnp-qnn function login-google-ai-pro --token <local-test-token>
-fnp-qnn function login-ollama-cloud --token <local-test-token>
 fnp-qnn auth check --token <local-test-token>
 fnp-qnn auth logout
 ```
@@ -300,29 +294,26 @@ fnp-qnn auth logout
 OpenAI/ChatGPT account access is handled through official API-key flow; the CLI
 does not capture ChatGPT web cookies or passwords. Google AI/Gemini supports API
 keys and can also use the official `gcloud auth application-default login` OAuth
-flow when the Google Cloud SDK is available. Ollama Cloud supports `ollama signin`
-or `OLLAMA_API_KEY`; cloud model selection uses `FNP_QNN_OLLAMA_CLOUD_MODEL`
-with `gpt-oss:120b-cloud` as the default.
+flow when the Google Cloud SDK is available. Ollama Cloud is not an official
+school provider for this simulator.
 
 For real external AI runtimes, the CLI detects user-local tools and profiles
-instead of hardcoding this maintainer machine. It checks `codex`, `antigravity`,
-and `ollama` on `PATH`, reads only the safe shape of `~/.openclaw/openclaw.json`,
+instead of hardcoding this maintainer machine. It checks `codex` and
+`antigravity` on `PATH`, reads only the safe shape of `~/.openclaw/openclaw.json`,
 and counts encrypted OpenClaw auth profiles without decrypting them.
 
-External AI control is allowlisted. `external-ai control` gives Codex,
-Antigravity, or Ollama one exact simulator command from the project root. Dry-run
+External AI control is allowlisted. `external-ai control` gives Codex or
+Antigravity one exact simulator command from the project root. Dry-run
 is the default; add `--execute` only when the selected tool should actually
-control the simulator. `--tool auto` prefers Codex, then Antigravity, then
-Ollama. Base simulator functions are AI-independent; the AI layer is only an
+control the simulator. `--tool auto` prefers Codex, then Antigravity.
+Base simulator functions are AI-independent; the AI layer is only an
 optional adapter.
 
 The integrated MCP plugin is generated with `plugin create-ai-control-mcp`. Its
 MCP tools route providers deliberately: `openai`/`chatgpt` uses Codex, while
-`google`/`gemini` uses Antigravity, and `ollama` uses Ollama Cloud/OpenClaw
-style routing. The bridge requires a provider connection signal before control:
+`google`/`gemini` uses Antigravity. The bridge requires a provider connection signal before control:
 a provider fingerprint from `auth login-provider`, a valid Codex login status for
-OpenAI, local Google application-default credentials for Google, or
-`OLLAMA_API_KEY` for Ollama. The MCP server never stores raw tokens.
+OpenAI or local Google application-default credentials for Google. The MCP server never stores raw tokens.
 
 The MCP server also exposes metadata-only QLC bridge tools:
 
@@ -359,7 +350,6 @@ Codex connection intent:
 
 Native deepsearch routing:
 
-- `ollama-cloud` uses `ollama-cloud-web-search`.
 - `google` and `antigravity` use `antigravity-gemini-google-search`.
 - Providers without a declared native web-search surface, such as Docker or
   Datadog, fall back to `antigravity-gemini-google-search`.
@@ -373,13 +363,12 @@ After provider login, onboarding is explicit and approval-gated:
 fnp-qnn onboarding questions
 fnp-qnn onboarding apply openai --approve-fingerprint --primary-goal "Tune the CLI for my workflow"
 fnp-qnn onboarding apply google --approve-fingerprint --delegate
-fnp-qnn onboarding apply ollama --approve-fingerprint --delegate --execute-delegate
 ```
 
 Onboarding writes `config/user_wiring.json`, `config/agent_wake_prompt_<provider>.md`,
 and managed blocks in `AGENTS.md`, `SOUL.md`, `USER.md`, and `MEMORY.md`. The
-wake prompt is different per system: Codex, Antigravity/Gemini, and
-Ollama/OpenClaw each keep their native skills/plugins/tools; FNP-QNN only tells
+wake prompt is different per system: Codex and Antigravity/Gemini each keep
+their native skills/plugins/tools; FNP-QNN only tells
 the selected agent where it is, what interface it is using, and what the
 simulator boundary is.
 

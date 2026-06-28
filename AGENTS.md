@@ -22,6 +22,15 @@ Project type:
 alpha-local, non-clinical, educational/research open source simulator
 ```
 
+Official school governance:
+
+```text
+Codex/OpenAI and Antigravity/Gemini are the only official AI-assisted school routes.
+Ollama Cloud, generic uncensored local AI, and unknown agent routes are not official school providers.
+Private modified copies are not a maintainer support obligation unless changes pass pull request review.
+Other AI agents should build a separate local fork, adapter, or plugin instead of rewriting the maintained school mechanism.
+```
+
 Agents must read this file before modifying code, documentation, assets, README language, reports, UI files, funding materials, or source-to-MVP transfer work.
 
 Detailed design rules:

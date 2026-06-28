@@ -127,14 +127,14 @@ def build_parser() -> argparse.ArgumentParser:
     auth_login.add_argument("--token", required=True, help="Token to fingerprint. The raw token is not stored.")
     auth_login.add_argument("--label", default="local-test")
     auth_provider_login = auth_sub.add_parser("login-provider", help="Store a provider token fingerprint.")
-    auth_provider_login.add_argument("provider", choices=["openai", "google", "ollama"])
+    auth_provider_login.add_argument("provider", choices=["openai", "google"])
     auth_provider_login.add_argument("--token", required=True, help="Token/API key to fingerprint. Raw value is not stored.")
     auth_provider_login.add_argument("--label", default=None)
     auth_web = auth_sub.add_parser("web-login", help="Show or open a provider web login/key flow.")
-    auth_web.add_argument("provider", choices=["openai", "google", "ollama"])
+    auth_web.add_argument("provider", choices=["openai", "google"])
     auth_web.add_argument("--open", action="store_true", help="Open the provider page in the default browser.")
     auth_web.add_argument("--run-gcloud", action="store_true", help="Run Google application-default OAuth login.")
-    auth_web.add_argument("--run-ollama", action="store_true", help="Run Ollama CLI web sign-in.")
+    auth_web.add_argument("--run-ollama", action="store_true", help=argparse.SUPPRESS)
     auth_sub.add_parser("status", help="Show local auth status.")
     auth_sub.add_parser("logout", help="Remove local auth fingerprint.")
     auth_check = auth_sub.add_parser("check", help="Validate a supplied token or FNP_QNN_CLI_TOKEN.")
@@ -154,9 +154,9 @@ def build_parser() -> argparse.ArgumentParser:
     mcp_sub = mcp.add_subparsers(dest="mcp_command", required=True)
     mcp_sub.add_parser("manifest", help="Show the MCP tool manifest.")
     mcp_status = mcp_sub.add_parser("provider-status", help="Check provider connection for MCP control.")
-    mcp_status.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini", "ollama"])
+    mcp_status.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini"])
     mcp_call = mcp_sub.add_parser("control", help="Call the simulator control MCP bridge directly.")
-    mcp_call.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini", "ollama"])
+    mcp_call.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini"])
     mcp_call.add_argument("task", choices=["status", "doctor", "runtime", "qnn", "neurobit", "validate", "external-status"])
     mcp_call.add_argument("--execute", action="store_true")
     mcp_call.add_argument("--timeout", type=int, default=300)
@@ -175,7 +175,7 @@ def build_parser() -> argparse.ArgumentParser:
     onboarding_sub = onboarding.add_subparsers(dest="onboarding_command", required=True)
     onboarding_sub.add_parser("questions", help="Print the onboarding question set.")
     onboarding_apply = onboarding_sub.add_parser("apply", help="Apply onboarding answers into simulator context files.")
-    onboarding_apply.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini", "ollama"])
+    onboarding_apply.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini"])
     onboarding_apply.add_argument("--answers", help="JSON file with answers keyed by question id.")
     onboarding_apply.add_argument("--approve-fingerprint", action="store_true")
     onboarding_apply.add_argument("--delegate", action="store_true", help="Create an agent handoff through the selected provider.")
@@ -191,14 +191,14 @@ def build_parser() -> argparse.ArgumentParser:
     agent = subparsers.add_parser("agent", help="Provider-specific wake prompts and native tool profiles.")
     agent_sub = agent.add_subparsers(dest="agent_command", required=True)
     agent_profile_cmd = agent_sub.add_parser("profile", help="Show the selected provider/system profile.")
-    agent_profile_cmd.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini", "ollama"])
+    agent_profile_cmd.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini"])
     agent_prompt_cmd = agent_sub.add_parser("wake-prompt", help="Print the provider-specific wake prompt.")
-    agent_prompt_cmd.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini", "ollama"])
+    agent_prompt_cmd.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini"])
 
     support = subparsers.add_parser("support", help="LLM-friendly support diagnostics for provider onboarding.")
     support_sub = support.add_subparsers(dest="support_command", required=True)
     support_provider = support_sub.add_parser("provider", help="Show one provider support report.")
-    support_provider.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini", "ollama"])
+    support_provider.add_argument("provider", choices=["openai", "chatgpt", "google", "gemini"])
     support_sub.add_parser("all", help="Show support reports for all provider families.")
 
     external_ai = subparsers.add_parser("external-ai", help="Real external AI runtime connections.")
@@ -206,7 +206,7 @@ def build_parser() -> argparse.ArgumentParser:
     external_ai_sub.add_parser("status", help="Detect Codex, Antigravity, OpenClaw, and auth profiles.")
     external_ai_sub.add_parser("inspect-openclaw", help="Inspect ~/.openclaw shape without reading secrets.")
     external_connect = external_ai_sub.add_parser("connect", help="Run a real external AI login/connect command.")
-    external_connect.add_argument("target", choices=["codex", "antigravity", "ollama"])
+    external_connect.add_argument("target", choices=["codex", "antigravity"])
     external_connect.add_argument("--device-auth", action="store_true", help="Use Codex device auth when target=codex.")
     external_connect.add_argument("--api-key-env", help="Read API key from this environment variable for Codex.")
     external_control_tasks = external_ai_sub.add_parser(
@@ -219,7 +219,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Let Codex or Antigravity control an allowlisted simulator task.",
     )
     external_control.add_argument("task", choices=["status", "doctor", "runtime", "qnn", "neurobit", "validate", "external-status"])
-    external_control.add_argument("--tool", choices=["auto", "codex", "antigravity", "ollama"], default="auto")
+    external_control.add_argument("--tool", choices=["auto", "codex", "antigravity"], default="auto")
     external_control.add_argument("--execute", action="store_true", help="Actually run the selected external AI tool.")
     external_control.add_argument("--timeout", type=int, default=300)
     external_control.add_argument("--prompt", help="Additional operator note for the external AI tool.")
@@ -239,12 +239,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Store a local fingerprint for a Google AI/Gemini token.",
     )
     skill_google_login.add_argument("--token", required=True, help="Token/API key to fingerprint. Raw value is not stored.")
-    skill_ollama_login = skill_function_sub.add_parser(
-        "login-ollama-cloud",
-        help="Store a local fingerprint for an Ollama Cloud token/API key.",
-    )
-    skill_ollama_login.add_argument("--token", required=True, help="Token/API key to fingerprint. Raw value is not stored.")
-    skill_ollama_login.add_argument("--label", default="ollama-cloud")
     skill_google_login.add_argument("--label", default="google-ai-pro")
     skill_deepsearch = skill_function_sub.add_parser(
         "deepsearch",
@@ -265,12 +259,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Store a local fingerprint for a Google AI/Gemini token.",
     )
     function_google_login.add_argument("--token", required=True, help="Token/API key to fingerprint. Raw value is not stored.")
-    function_ollama_login = function_sub.add_parser(
-        "login-ollama-cloud",
-        help="Store a local fingerprint for an Ollama Cloud token/API key.",
-    )
-    function_ollama_login.add_argument("--token", required=True, help="Token/API key to fingerprint. Raw value is not stored.")
-    function_ollama_login.add_argument("--label", default="ollama-cloud")
     function_google_login.add_argument("--label", default="google-ai-pro")
     function_deepsearch = function_sub.add_parser(
         "deepsearch",
@@ -624,8 +612,6 @@ def run_args(args: argparse.Namespace) -> int:
                 return _emit(connect_codex(device_auth=args.device_auth, api_key=api_key), as_json)
             if args.target == "antigravity":
                 return _emit(connect_antigravity(), as_json)
-            if args.target == "ollama":
-                return _emit(connect_ollama(), as_json)
 
     if args.section == "skill" and args.skill_command == "function":
         if args.skill_function_command == "login-chatgpt":
@@ -638,12 +624,6 @@ def run_args(args: argparse.Namespace) -> int:
             payload = login(args.token, args.label, "google")
             payload["function"] = "login-google-ai-pro"
             payload["provider"] = "google-ai-gemini-token"
-            payload["raw_token_stored"] = False
-            return _emit(payload, as_json)
-        if args.skill_function_command == "login-ollama-cloud":
-            payload = login(args.token, args.label, "ollama")
-            payload["function"] = "login-ollama-cloud"
-            payload["provider"] = "ollama-cloud-token"
             payload["raw_token_stored"] = False
             return _emit(payload, as_json)
         if args.skill_function_command == "deepsearch":
@@ -672,12 +652,6 @@ def run_args(args: argparse.Namespace) -> int:
             payload = login(args.token, args.label, "google")
             payload["function"] = "login-google-ai-pro"
             payload["provider"] = "google-ai-gemini-token"
-            payload["raw_token_stored"] = False
-            return _emit(payload, as_json)
-        if args.function_command == "login-ollama-cloud":
-            payload = login(args.token, args.label, "ollama")
-            payload["function"] = "login-ollama-cloud"
-            payload["provider"] = "ollama-cloud-token"
             payload["raw_token_stored"] = False
             return _emit(payload, as_json)
         if args.function_command == "deepsearch":

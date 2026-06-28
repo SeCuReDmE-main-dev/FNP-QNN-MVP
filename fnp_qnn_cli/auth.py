@@ -28,13 +28,6 @@ PROVIDER_GUIDES = {
         "gcloud_command": "gcloud auth application-default login",
         "note": "Gemini supports API keys and OAuth/application-default credentials for stricter access control.",
     },
-    "ollama": {
-        "display": "Ollama Cloud",
-        "url": "https://ollama.com/signin",
-        "mode": "ollama-signin-or-api-key",
-        "ollama_command": "ollama signin",
-        "note": "Ollama Cloud uses `ollama signin` for CLI web auth or OLLAMA_API_KEY for direct cloud API access.",
-    },
 }
 
 
@@ -151,10 +144,7 @@ def web_login(
         gcloud_result = {"returncode": process.returncode}
     ollama_result = None
     if run_ollama:
-        if normalized != "ollama":
-            raise ValueError("--run-ollama is only valid for ollama")
-        process = subprocess.run(("ollama", "signin"), text=True, check=False)
-        ollama_result = {"returncode": process.returncode}
+        raise ValueError("Ollama Cloud is not an official school provider for FNP-QNN; use Codex/OpenAI or Antigravity/Gemini.")
     return {
         "success": True,
         "provider": normalized,

@@ -91,6 +91,17 @@ List expected tests, commands, screenshots, or docs checks. Default validation:
 .\.venv\Scripts\python.exe scripts\validate_alpha_readiness.py
 ```
 
+## Official School AI Routes
+
+Official AI-assisted classroom support is limited to Codex/OpenAI and
+Antigravity/Gemini. Ollama Cloud, generic uncensored local AI, and unknown agent
+routes are not accepted as official school providers.
+
+Private modified copies, unreviewed rewrites, and changes made outside pull
+request review are not a maintainer support obligation. If a user wants a
+different AI route or mechanism, build it as a separate local fork, adapter, or
+plugin instead of changing the maintained school mechanism.
+
 ### 12. Contributor Checklist
 
 - [ ] I filled all 12 sections.

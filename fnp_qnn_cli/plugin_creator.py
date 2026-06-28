@@ -89,7 +89,7 @@ def create_ai_control_mcp_plugin(parent_path: str | None = None, force: bool = F
         "interface": {
             "displayName": "FNP-QNN AI Control MCP",
             "shortDescription": "Provider-approved simulator onboarding and control.",
-            "longDescription": "Local MCP bridge for provider-approved FNP-QNN onboarding and optional simulator control through Codex, Antigravity, or Ollama.",
+            "longDescription": "Local MCP bridge for provider-approved FNP-QNN onboarding and optional simulator control through Codex or Antigravity.",
             "developerName": "FNP-QNN local maintainer",
             "category": "Developer",
             "capabilities": ["Interactive", "Write"],
@@ -128,7 +128,7 @@ def create_ai_control_mcp_plugin(parent_path: str | None = None, force: bool = F
             "This local plugin exposes an MCP server for authenticated simulator control.\n\n"
             "- OpenAI/ChatGPT routes to Codex.\n"
             "- Google/Gemini routes to Antigravity.\n"
-            "- Ollama Cloud routes to Ollama CLI/cloud models.\n"
+            "- Ollama Cloud is not an official school route for this simulator.\n"
             "- Onboarding writes AGENTS.md, SOUL.md, USER.md, MEMORY.md, and config/user_wiring.json after fingerprint approval.\n"
             "- Simulator commands are allowlisted and dry-run by default.\n"
             "- Base simulator functions do not depend on AI providers.\n"
