@@ -87,6 +87,7 @@ Validated locally:
 - `python examples/cerebrum_qnn_demo.py`
 - `python examples/cerebrum_runtime_demo.py`
 - `python examples/cerebrum_runtime_legacy_demo.py`
+- `python examples/learning_experiment_lab.py --age 15`
 - Torch surrogate fallback.
 - NeuroBit gate and tunnel-noise demo.
 
@@ -626,6 +627,7 @@ examples/
   cerebrum_runtime_demo.py
   cerebrum_runtime_legacy_demo.py
   neurobit_gate_demo.py
+  learning_experiment_lab.py
   legacy_unvalidated_demo.py
 tests/
   test_cerebrum_qnn.py
@@ -1006,6 +1008,10 @@ You can still use `python scripts/glymphatic_scan.py` as a local-only inventory 
 This project is suitable for supervised educational exploration of local
 simulation pipelines, feature encoding, deterministic fallback behavior,
 NeuroBit gate traces, and future visual network-design workflows.
+
+A new age-14+ guided learning pack is available:
+
+- `python examples/learning_experiment_lab.py --age 15`
 
 Recent quantum-neutrosophic learning additions:
 

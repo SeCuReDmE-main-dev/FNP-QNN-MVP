@@ -31,6 +31,7 @@ Good classroom or lab exercises include:
 - encode observations into a feature vector;
 - compare deterministic Torch fallback output with unavailable optional lanes;
 - run the NeuroBit gate demo and inspect its trace;
+- run the age-14+ learning pack: `python examples/learning_experiment_lab.py --age 15`;
 - inspect a Penrose/Hameroff objective-reduction timing profile;
 - run a Hydra-EM-GPCN Orch OR-style proxy profile and compare the bounded
   verdicts `communicates`, `decoheres`, `suspended`, and `rejected`;
