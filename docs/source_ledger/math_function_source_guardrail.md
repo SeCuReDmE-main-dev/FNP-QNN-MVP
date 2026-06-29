@@ -24,12 +24,12 @@ Boundary: alpha-local educational research simulator only. No clinical, diagnost
 | `NIDUS_II` | `https://fs.unm.edu/NidusIdearum2-ed2.pdf` | Later FS PDF primary source |
 | `PLITHOGENIC_2021` | `https://fs.unm.edu/NSS/IntroductionPlithogenicLogic1.pdf` | Later FS PDF primary source |
 | `REVOLUTIONARY_TOPOLOGIES` | `https://fs.unm.edu/TT/RevolutionaryTopologies.pdf` | Later FS PDF primary source |
-| `PLITHOGENIC_PROB_STATS_2021` | `C:\Users\jeans\Desktop\livre pdf\PlithogenicProbabilityStatistics20.pdf` | Local FS PDF primary source |
+| `PLITHOGENIC_PROB_STATS_2021` | `[local maintainer path redacted]` | Local FS PDF primary source |
 | `NEUTROALGEBRA` | `https://fs.unm.edu/NA/NeutroAlgebra.pdf` | Later FS PDF primary source |
 | `NEUTROSTRUCTURE` | `https://fs.unm.edu/NA/NeutroStructure.pdf` | Later FS PDF primary source |
-| `FRACTAL_LOCAL` | `C:\Users\jeans\Desktop\livre pdf\Fractal_NeutroGeometry_Livre_V2_chapters_1_to_7.pdf` | Local manuscript source |
-| `FNG_GPCN_SET_PHI_FINAL_PDF` | `C:\Users\jeans\Desktop\livre pdf\final_english_book\final clean version\FractalNeutroGeometry_FINAL_VERSION.pdf` | Local final manuscript source for Chapters 5-7 and GPCN-Set_phi axiomatic chamber |
-| `NODE734_LOCAL` | `C:\Users\jeans\Desktop\Docs\pdf\livre\complain of quantum node #734\Complain-of-Quantum-Node-734{{ final }} .pdf` | Local manuscript source |
+| `FRACTAL_LOCAL` | `[local maintainer path redacted]` | Local manuscript source |
+| `FNG_GPCN_SET_PHI_FINAL_PDF` | `[local maintainer path redacted]` | Local final manuscript source for Chapters 5-7 and GPCN-Set_phi axiomatic chamber |
+| `NODE734_LOCAL` | `[local maintainer path redacted]}} .pdf` | Local manuscript source |
 | `LOCAL_RUNTIME` | Repository runtime contract | Local clean-room implementation source |
 | `PENROSE_GRAVITY_REDUCTION_1996` | `https://link.springer.com/article/10.1007/BF02105068` | Penrose objective-reduction source |
 | `PENROSE_QC_ENTANGLEMENT_REDUCTION_1998` | `https://royalsocietypublishing.org/doi/pdf/10.1098/rsta.1998.0256` | Penrose quantum computation / reduction source |

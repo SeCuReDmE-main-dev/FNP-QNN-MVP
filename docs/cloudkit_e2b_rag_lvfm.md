@@ -33,7 +33,7 @@ Status:
 Real E2B smoke using the OpenClaw workspace dotenv:
 
 ```powershell
-.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit e2b-smoke --env-file "C:\Users\jeans\.openclaw\workspace\.env"
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit e2b-smoke --env-file ".env"
 ```
 
 Plan external data ingestion:
@@ -78,7 +78,7 @@ Decrypt an encrypted envelope and feed LVFM:
 
 ## Security Boundary
 
-- `E2B_API_KEY` may be loaded from `C:\Users\jeans\.openclaw\workspace\.env` or
+- `E2B_API_KEY` may be loaded from `[local maintainer path redacted]` or
   the process environment.
 - The simulator never prints or serializes the E2B key.
 - `FNP_QNN_RAG_ENCRYPTION_KEY` is a Fernet key used only for local envelope

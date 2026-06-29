@@ -4,7 +4,7 @@ Date: 2026-06-18
 
 Source: Florentin Smarandache, *Plithogenic Probability & Statistics are generalizations of MultiVariate Probability & Statistics*, Neutrosophic Sets and Systems, Vol. 43, 2021.
 
-Local PDF used: `C:\Users\jeans\Desktop\livre pdf\PlithogenicProbabilityStatistics20.pdf`
+Local PDF used: `[local maintainer path redacted]`
 
 ## Simulator Lacuna Fixed
 

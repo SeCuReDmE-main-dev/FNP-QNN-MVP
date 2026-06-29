@@ -6,7 +6,7 @@ _Generated: 2026-06-11T21:09:14.706609+00:00_
 Find the real blocker behind the Cerebrum-to-simulator bridge and propose efficient solutions that respect the current architecture.
 
 ## Environment / Stack Context
-- Repo: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP-QNN-MVP-version-desise-simulator-`
+- Repo: `[local maintainer path redacted]`
 - Branch: `FNP_QNN`
 - Stack: Python, FastAPI, PyTorch fallback, optional Qiskit, optional FFED/LVFM port
 - Relevant runtime surface: `core/cerebrum_runtime_bridge.py`, `api/main.py`, `core/qnn_nucleus.py`, `core/life_science_port.py`

@@ -2,7 +2,7 @@
 
 Date: 2026-06-16T17:26:51-04:00
 Branch: `FNP_QNN`
-Repository: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP-QNN-MVP-version-desise-simulator-`
+Repository: `[local maintainer path redacted]`
 
 ## Scope and contract
 

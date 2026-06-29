@@ -98,8 +98,8 @@ Public GitHub page checked: `https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/c
 
 | Source | Local path | Current simulator binding |
 | --- | --- | --- |
-| Fractal NeutroGeometry local manuscript | `C:\Users\jeans\Desktop\livre pdf\Fractal_NeutroGeometry_Livre_V2_chapters_1_to_7.pdf` | `D_f`, `D_min`, `D_max`, normalized `D_f_hat`, `dF_carrier`, `i_fractal_candidate`. |
-| Complain of Quantum Node #734 local manuscript | `C:\Users\jeans\Desktop\Docs\pdf\livre\complain of quantum node #734\Complain-of-Quantum-Node-734{{ final }} .pdf` | Local baton/FFeD/fractal carrier wording and boundary discipline. |
+| Fractal NeutroGeometry local manuscript | `[local maintainer path redacted]` | `D_f`, `D_min`, `D_max`, normalized `D_f_hat`, `dF_carrier`, `i_fractal_candidate`. |
+| Complain of Quantum Node #734 local manuscript | `[local maintainer path redacted]}} .pdf` | Local baton/FFeD/fractal carrier wording and boundary discipline. |
 
 Both local paths existed when this baseline was rebuilt.
 

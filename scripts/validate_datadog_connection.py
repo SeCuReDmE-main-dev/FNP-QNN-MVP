@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 
-DEFAULT_ENV_PATH = Path(r"C:\Users\jeans\.openclaw\workspace\.env")
+DEFAULT_ENV_PATH = Path(".env")
 
 
 def _load_env_file(path: Path) -> None:

@@ -1,6 +1,6 @@
 # Blockers Local — 2026-06-16T17:26:51-04:00
 
-Repository: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP-QNN-MVP-version-desise-simulator-`
+Repository: `[local maintainer path redacted]`
 
 ## Current blockers (maintainer-safe, non-blocking to project continuity)
 

@@ -5,7 +5,7 @@ This folder contains a minimal, public-safe evidence package for AGENTS mission 
 ## Latest evidence capture
 
 - Date: `2026-06-17T12:45:00-04:00`
-- Repository: `C:\Users\jeans\Desktop\Case study\modele\FNP-QNN-MVP\FNP-QNN-MVP`
+- Repository: `[local maintainer path redacted]`
 - Objective: maintain non-clinical, alpha-local evidence for dashboard and Network Designer proof points.
 
 ## Included evidence commands

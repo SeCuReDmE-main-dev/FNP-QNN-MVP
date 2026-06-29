@@ -1,7 +1,7 @@
 # AGENTS Mission Progress — Fichier unique consolidé
 
 Date de compilation: 2026-06-17T12:45:00-04:00  
-Répertoire: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FNP-QNN-MVP-version-desise-simulator-\FNP-QNN-MVP-organisation\05_status`
+Répertoire: `[local maintainer path redacted]`
 
 ## 1) Mission AGENTS — État consolidé
 
@@ -49,7 +49,7 @@ Répertoire: `C:\Users\jeans\Desktop\Case study\modele\simulateur de bacterie\FN
   - `assets/panel/network-designer-panel.png`
   - `assets/panel/qbit-operator-panel.png`
   - `assets/panel/evidence-dashboard-panel.png`
-- [x] OpenClaw / FFED / Datadog / Google Drive / mémoire : intégrations vérifiées dans `C:\Users\jeans\.openclaw\openclaw.json`.
+- [x] OpenClaw / FFED / Datadog / Google Drive / mémoire : intégrations vérifiées dans `[local maintainer path redacted]`.
 
 ### Validation technique confirmée
 - `python -m unittest discover -s tests -p "test_*.py"` : PASS (69)

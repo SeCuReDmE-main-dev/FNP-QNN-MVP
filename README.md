@@ -267,7 +267,7 @@ fnp-qnn onboarding questions
 fnp-qnn onboarding apply openai --approve-fingerprint
 fnp-qnn plugin create-ai-control-mcp --force
 fnp-qnn cloud-kit status
-fnp-qnn cloud-kit e2b-smoke --env-file "C:\Users\jeans\.openclaw\workspace\.env"
+fnp-qnn cloud-kit e2b-smoke --env-file ".env"
 fnp-qnn cloud-kit e2b-ingest-plan --source https://example.com/data.csv --title "External data" --tool-route codex
 fnp-qnn cloud-kit rag-keygen
 fnp-qnn cloud-kit rag-runtime --title "Admitted summary" --source e2b://sandbox/result --content "Sanitized summary only."
@@ -587,7 +587,7 @@ printed in hook output. The status payload reports only booleans such as
 ### Future Cerebrum YOLO Lane
 
 The legacy Cerebrum source under
-`C:\Users\jeans\Desktop\Case study\modele\cerebrum\Cerebrum` already contains
+`[local maintainer path redacted]` already contains
 an OpenCV-based `vision` package and crossmodal mappings for hearing/vision and
 vision/language. It does not currently expose YOLO or CPAI as native modules.
 
@@ -772,11 +772,11 @@ approved external source
 E2B is not a login provider for the simulator. It is an isolated compute lane
 for external data work. The simulator reads `E2B_API_KEY` only from the process
 environment or an approved dotenv file such as
-`C:\Users\jeans\.openclaw\workspace\.env`; it never prints or serializes the
+`[local maintainer path redacted]`; it never prints or serializes the
 key. The real smoke command is:
 
 ```powershell
-.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit e2b-smoke --env-file "C:\Users\jeans\.openclaw\workspace\.env"
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json cloud-kit e2b-smoke --env-file ".env"
 ```
 
 A successful smoke creates a real E2B sandbox, runs a minimal Python marker
@@ -1170,7 +1170,7 @@ Plithogenic, runtime, or Panel behavior unless requested.
 
 `core/plithogenic_probability_statistics.py` adds a deterministic bridge based
 on local source
-`C:\Users\jeans\Desktop\livre pdf\PlithogenicProbabilityStatistics20.pdf`.
+`[local maintainer path redacted]`.
 It qualifies plithogenic/topology runtime metadata as empirical sample,
 probability family, refined `T/I/F` statistics, multi-variable to uni-variable
 decision, and topology variable completion.

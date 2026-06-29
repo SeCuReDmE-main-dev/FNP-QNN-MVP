@@ -22,7 +22,7 @@ Verified source anchors:
 - Vedral video 2 official page: "This Quantum Gravity Experiment Will Rewrite Physics", Quantum Foundations Podcast with Dr. Maria Violaris, published July 9, 2025.
 - Oxford profile: Prof. Vlatko Vedral is listed as Professor of Quantum Information Science.
 - SeQUeNCe GitHub and arXiv paper are optional export targets, not runtime dependencies.
-- Local book source: `C:\Users\jeans\Desktop\livre pdf\final_english_book\final clean version\FractalNeutroGeometry_FINAL_VERSION.pdf`.
+- Local book source: `[local maintainer path redacted]`.
 
 The local PDF confirms the chamber discipline used here:
 

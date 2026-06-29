@@ -5,7 +5,7 @@ Determine whether CeLeBrUm can remain private while being exposed through an FFe
 ## Environment / Stack Context
 
 - Current workspace: `FNP-QNN-MVP-version-desise-simulator-`
-- Related private/local backend substrate: `C:\Users\jeans\Desktop\FfeD`
+- Related private/local backend substrate: `[local maintainer path redacted]`
 - Candidate CeLeBrUm serving repo inspected from GitHub: `SeCuReDmE-main-dev/celebrum-model-server`
 - Existing local simulator already has optional Docker services for `vllm`, `etcd`, Datadog Agent, and E2B audit.
 
@@ -74,14 +74,14 @@ Determine whether CeLeBrUm can remain private while being exposed through an FFe
 
 ## Sources
 
-- `C:\Users\jeans\AppData\Local\Temp\celebrum-model-server-codex\README.md`
-- `C:\Users\jeans\AppData\Local\Temp\celebrum-model-server-codex\src\celebrum_model_server\api.py`
-- `C:\Users\jeans\AppData\Local\Temp\celebrum-model-server-codex\src\celebrum_model_server\integrations_api.py`
-- `C:\Users\jeans\AppData\Local\Temp\celebrum-model-server-codex\src\celebrum_model_server\config.py`
-- `C:\Users\jeans\Desktop\FfeD\README.md`
-- `C:\Users\jeans\Desktop\FfeD\ffed-brain-bridge\docs\boundaries\gateway-boundaries.md`
-- `C:\Users\jeans\Desktop\FfeD\ffed-control-plane\src\ffed_control_plane\app.py`
-- `C:\Users\jeans\Desktop\FfeD\ffed-control-plane\src\ffed_control_plane\gate5_plugin_endpoint.py`
-- `C:\Users\jeans\Desktop\FfeD\ffed-ops-docs\docs\architecture\gate5-codex-extension.md`
+- `[local maintainer path redacted]`
+- `[local maintainer path redacted]`
+- `[local maintainer path redacted]`
+- `[local maintainer path redacted]`
+- `[local maintainer path redacted]`
+- `[local maintainer path redacted]`
+- `[local maintainer path redacted]`
+- `[local maintainer path redacted]`
+- `[local maintainer path redacted]`
 - [vLLM metrics documentation](https://docs.vllm.ai/en/v0.14.0/usage/metrics/)
 - [Datadog vLLM integration](https://docs.datadoghq.com/integrations/vllm/)
