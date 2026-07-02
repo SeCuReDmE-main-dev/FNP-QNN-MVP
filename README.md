@@ -52,7 +52,7 @@ Public contact: fnpqnn@securedme.ca
 
 > **Official school governance.** This maintained classroom simulator uses Codex/OpenAI and Antigravity/Gemini as the only official AI-assisted school routes. Ollama Cloud and generic uncensored/local model routes are not official school providers. See [SCHOOL_TOOL_GOVERNANCE.md](SCHOOL_TOOL_GOVERNANCE.md) and [AGENTS.md](AGENTS.md).
 
-> **Notice and disclaimer.** The existing project license remains active. See [NOTICE](NOTICE) and [DISCLAIMER](DISCLAIMER) for attribution, school-governance, and misuse-responsibility boundaries.
+> **License.** This project uses the Secured Educational License 2.0 (SEL-2.0). It is provided for education, research, simulation, classroom training, and supervised learning. Misuse, unsafe private forks, unsupported provider routes, and unsupervised authority claims are not maintained or endorsed by the official school version. See [LICENSE](LICENSE), [NOTICE](NOTICE), [DISCLAIMER](DISCLAIMER), and [SAFETY.md](SAFETY.md).
 
 
 

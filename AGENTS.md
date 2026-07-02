@@ -1,5 +1,15 @@
 # AGENTS.md
 
+## SecuredMe Education Governance Alignment
+
+- Current phase: pre-alpha / in development.
+- Repository license: Secured Educational License 2.0 (SEL-2.0), local metadata reference LicenseRef-SEL-2.0.
+- Official AI-assisted classroom routes: Codex/OpenAI and Antigravity/Gemini only.
+- Do not add Ollama Cloud, uncensored local AI, raw-token student flows, or unknown agent providers as official school routes.
+- Preserve human-review boundaries; do not claim production, clinical, regulatory, enforcement, safety-critical, or autonomous authority readiness.
+- Private modified copies, broken forks, and unreviewed rewrites are not a maintainer support obligation.
+
+
 ## Purpose
 
 This file gives coding agents the working rules for the FNP-QNN repository.
@@ -320,7 +330,7 @@ The full/private `FNP-QNN` repository contains broad research material. The MVP 
 Migration rule:
 
 ```text
-copy concept → rewrite minimal primitive → add tests → document boundary → expose only if deterministic and public-safe
+copy concept â†’ rewrite minimal primitive â†’ add tests â†’ document boundary â†’ expose only if deterministic and public-safe
 ```
 
 ## P0 mandatory transfers
@@ -419,8 +429,8 @@ tests/test_quantum_feature_transforms.py
 Include only pure transforms:
 
 ```text
-complex wavefunction → amplitude/phase features
-structure vector → phi-scaled complex state
+complex wavefunction â†’ amplitude/phase features
+structure vector â†’ phi-scaled complex state
 ```
 
 Do not port AccessDatabaseManager, `.accdb` paths, SQL operations, or live brain-structure updates.
@@ -560,9 +570,9 @@ Official asset pipeline:
 
 ```text
 source asset
-→ cut asset
-→ framed asset
-→ panel-ready asset
+â†’ cut asset
+â†’ framed asset
+â†’ panel-ready asset
 ```
 
 Three-layer asset model:
@@ -675,7 +685,7 @@ Never expose private CeLeBrUm material through public FNP-QNN docs, public dashb
 Do these 10 actions:
 
 ```text
-1. Add LICENSE at repository root, recommended Apache-2.0.
+1. Add LICENSE at repository root, recommended SEL-2.0.
 2. Add EDUCATION.md.
 3. Add CONTRIBUTING.md.
 4. Replace harsh README contribution warning with maintainer-guided language.
@@ -700,7 +710,7 @@ FNP-QNN is a local research control room for building, testing, and visualizing 
 French:
 
 ```text
-FNP-QNN est un cockpit local de recherche pour construire, tester et visualiser des pipelines expérimentaux mémoire → encodage → réseau → évidence.
+FNP-QNN est un cockpit local de recherche pour construire, tester et visualiser des pipelines expÃ©rimentaux mÃ©moire â†’ encodage â†’ rÃ©seau â†’ Ã©vidence.
 ```
 
 Do not pitch the full private research universe first. Pitch a public-safe educational open source simulator with a local evidence server strategy, a tested Neurobit/FNP-QNN primitive, and a clear path to a visual Network Designer MVP.
