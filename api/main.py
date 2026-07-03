@@ -44,6 +44,8 @@ from core import (
     CerebrumRuntimeBridge,
     FfeDPluginBridge,
     LifeScienceObservationPort,
+    LVFMGateLedger,
+    LVFMGateRecord,
     NeuroBitProfile,
     PhiFramework,
     QNNNucleus,
@@ -67,6 +69,7 @@ from core import (
     partial_membership_mean,
     penrose_hameroff_runtime_profile,
     plithogenic_runtime_fusion_profile,
+    publish_gate_state,
     revolutionary_topology_runtime_profile,
     run_all_multiverse_experiments,
     run_all_time_physics_experiments,
@@ -138,6 +141,7 @@ cerebrum_adapter = CerebrumAdapter()
 qnn_nucleus = QNNNucleus(adapter=cerebrum_adapter)
 cerebrum_runtime_bridge = CerebrumRuntimeBridge(adapter=cerebrum_adapter)
 life_science_port = LifeScienceObservationPort()
+lvfm_gate_ledger = LVFMGateLedger()
 runtime_state_store = RuntimeStateStore()
 
 STATE_KEYS = {
@@ -492,6 +496,25 @@ def _runtime_result(payload: Dict[str, Any] | None, run_qnn: bool = False) -> Di
     return result
 
 
+def _runtime_gate_run(
+    payload: Dict[str, Any] | None,
+    run_qnn: bool = False,
+    publish_to_registry: bool = False,
+    registry_threshold: float = -0.1,
+) -> Dict[str, Any]:
+    runtime_payload = _runtime_payload(payload)
+    result = _runtime_result(runtime_payload, run_qnn=run_qnn)
+    gate_record = LVFMGateRecord.from_snapshot(result.get("lvfm", {}), runtime_payload)
+    gate_record = lvfm_gate_ledger.append(gate_record)
+    response: Dict[str, Any] = {"runtime": result, "gate": gate_record.to_dict()}
+    if publish_to_registry:
+        response["registry"] = publish_gate_state(
+            gate_record.to_dict(),
+            threshold=registry_threshold,
+        ).__dict__
+    return response
+
+
 def _legacy_runtime_result() -> Dict[str, Any]:
     legacy_root = os.path.join(PROJECT_ROOT, "examples")
     bridge = CerebrumRuntimeBridge(adapter=cerebrum_adapter, legacy_cerebrum_path=legacy_root)
@@ -609,6 +632,32 @@ async def cerebrum_runtime_state_latest() -> Dict[str, Any]:
         "status": "ok",
         "record": record,
         "state_store": _state_store_status(),
+    }
+
+
+@app.post("/cerebrum/runtime/gate-run")
+async def cerebrum_runtime_gate_run(
+    payload: RuntimeRunRequest,
+    publish_to_registry: bool = False,
+    registry_threshold: float = -0.1,
+) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        **_runtime_gate_run(
+            payload.to_runtime_payload(),
+            run_qnn=payload.run_qnn,
+            publish_to_registry=publish_to_registry,
+            registry_threshold=registry_threshold,
+        ),
+    }
+
+
+@app.get("/cerebrum/runtime/gate-history")
+async def cerebrum_runtime_gate_history(limit: int = 25) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "count": min(limit, 1000),
+        "records": lvfm_gate_ledger.recent(limit=min(limit, 1000)),
     }
 
 
@@ -1214,6 +1263,27 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
                 f"Pairs: {len(result['pairs'])}\n"
                 f"Feature dimension: {result['feature_dimension']}\n"
                 f"QNN backend: {qnn_backend}"
+            ),
+            type="cerebrum-runtime",
+            data=result,
+        )
+    if command_name == "cerebrum-runtime-gate-run":
+        payload = request.payload.to_runtime_payload() if request.payload is not None else {}
+        run_qnn = bool(request.payload.run_qnn) if request.payload is not None else True
+        result = _runtime_gate_run(
+            payload,
+            run_qnn=run_qnn,
+            publish_to_registry=request.publish_to_registry,
+            registry_threshold=request.registry_threshold,
+        )
+        return CommandResponse(
+            success=True,
+            output=(
+                "Cerebrum LVFM gate run complete:\n"
+                f"gate_id={result['gate']['gate_id']}\n"
+                f"verdict={result['gate']['decision'].get('verdict')}\n"
+                f"trace={result['gate']['decision'].get('trace_line')}\n"
+                f"log={result['gate']['source_path']}"
             ),
             type="cerebrum-runtime",
             data=result,

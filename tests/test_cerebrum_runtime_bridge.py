@@ -10,7 +10,9 @@ from api.main import app
 from core import (
     CerebrumRuntimeBridge,
     LifeScienceObservationPort,
+    LVFMRuntimeGraph,
     QNNNucleus,
+    RegisterBit,
     admission_to_runtime_payload,
     build_admission,
     cloud_kit_status,
@@ -499,6 +501,25 @@ class CerebrumRuntimeBridgeTests(unittest.TestCase):
         self.assertEqual(runtime_payload["memories"][0]["provenance"]["bridge"], "cloud-rag-to-lvfm")
 
 
+class LVFMGraphShapeTests(unittest.TestCase):
+    def test_lvfm_compact_snapshot_includes_traceable_labels(self):
+        graph = LVFMRuntimeGraph()
+        graph.register_node("n1", RegisterBit(0.7, 0.2, 0.1), register_weight=1.0)
+        graph.register_node("n2", RegisterBit(0.1, 0.3, 0.6), register_weight=1.2)
+        graph.add_edge("n1", "n2", weight=0.85)
+
+        snapshot = graph.to_snapshot()
+        compact = snapshot["snapshot"]["compact"]
+
+        self.assertEqual(set(compact["n1"].keys()), {"T", "I", "dF", "F", "register_weight"})
+        self.assertIn("exact_bits", snapshot["snapshot"])
+        self.assertIn("register_keys", snapshot["snapshot"])
+        self.assertIn("trace", snapshot["snapshot"])
+        self.assertIn("trace_line", snapshot["decision"])
+        self.assertIn("dF", snapshot["decision"]["trace_line"])
+        self.assertGreater(snapshot["decision"]["confidence"], -1.0)
+
+
 class CerebrumRuntimeApiTests(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
@@ -540,6 +561,58 @@ class CerebrumRuntimeApiTests(unittest.TestCase):
         self.assertIn("snapshot", runtime["lvfm"])
         self.assertIn("decision", runtime["lvfm"])
         self.assertIn("persistence", body)
+
+    def test_runtime_run_includes_t_i_df_trace(self):
+        response = self.client.post("/cerebrum/runtime/run", json={"epochs": 4, "memories": []})
+        self.assertEqual(response.status_code, 200)
+        runtime = response.json()["runtime"]
+        snapshot = runtime["lvfm"]["snapshot"]
+        self.assertIn("compact", snapshot)
+        for record in snapshot["compact"].values():
+            self.assertIn("T", record)
+            self.assertIn("I", record)
+            self.assertIn("dF", record)
+            self.assertIn("F", record)
+        decision = runtime["lvfm"]["decision"]
+        self.assertIn("trace_line", decision)
+        self.assertTrue("T=" in decision["trace_line"])
+        self.assertTrue("I=" in decision["trace_line"])
+        self.assertTrue("dF=" in decision["trace_line"])
+        self.assertIn("F=", decision["trace_line"])
+
+    def test_runtime_gate_run_persists_gate_bits(self):
+        log_path = Path("output/lvfm_gate_history.jsonl")
+        original = log_path.read_text(encoding="utf-8") if log_path.exists() else None
+        try:
+            if log_path.exists():
+                log_path.unlink()
+
+            response = self.client.post("/cerebrum/runtime/gate-run", json={"epochs": 4, "run_qnn": False})
+            self.assertEqual(response.status_code, 200)
+            payload = response.json()
+            self.assertIn("gate", payload)
+            gate = payload["gate"]
+            self.assertIn("snapshot", gate)
+            self.assertIn("exact_bits", gate["snapshot"])
+            self.assertIn("compact", gate["snapshot"])
+            self.assertIn("register_keys", gate["snapshot"])
+            self.assertGreaterEqual(len(gate["snapshot"]["exact_bits"]), 1)
+            first_node = next(iter(gate["snapshot"]["exact_bits"].keys()))
+            self.assertIn("metadata", gate["snapshot"]["register_keys"][first_node])
+            self.assertIn("source_path", gate)
+            self.assertTrue(Path(gate["source_path"]).exists())
+
+            latest = log_path.read_text(encoding="utf-8").splitlines()[-1]
+            data = json.loads(latest)
+            self.assertEqual(data["gate_id"], gate["gate_id"])
+            self.assertIn("exact_bits", data["snapshot"])
+            self.assertIn("register_keys", data["snapshot"])
+        finally:
+            if original is None:
+                if log_path.exists():
+                    log_path.unlink()
+            else:
+                log_path.write_text(original, encoding="utf-8")
 
     def test_runtime_run_accepts_qlc_gateway_mesh_payload(self):
         qlc_mesh_payload = {

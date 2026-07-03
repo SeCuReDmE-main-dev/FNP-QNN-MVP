@@ -364,6 +364,8 @@ class QNNSmokeRequest(BaseModel):
     labels: Optional[List[int]] = None
     epochs: int = Field(default=24, ge=0, le=256)
     test_size: float = Field(default=0.25, ge=0.0, le=0.9)
+    publish_to_registry: bool = False
+    registry_threshold: float = Field(default=-0.1, ge=-1.0, le=1.0)
     state_basis: Literal["binary", "neutrobit"] = "binary"
     puncture_delta: Optional[float] = Field(default=None, gt=0.0)
     observer_strength: Optional[float] = Field(default=None, ge=0.0, le=1.0)

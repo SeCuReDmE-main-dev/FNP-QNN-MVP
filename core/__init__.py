@@ -23,6 +23,8 @@ from .lvfm_runtime_graph import (
     RegisterBit,
     RegisterKey,
 )
+from .lvfm_gate_ledger import LVFMGateLedger, LVFMGateRecord
+from .lvfm_registry_anchor import DEFAULT_LOCK_THRESHOLD, RegistryAnchoringResult, compute_lock_state, publish_gate_state
 from .life_science_port import LifeScienceObservationPort
 from .phi_framework import PhiFramework, QuantumState
 from .qlc_runtime_normalizer import normalize_qlc_runtime_payload, qlc_runtime_summary
@@ -174,6 +176,12 @@ __all__ = [
     "LVFMDirection",
     "LVFMDecision",
     "LVFMRuntimeGraph",
+    "LVFMGateLedger",
+    "LVFMGateRecord",
+    "DEFAULT_LOCK_THRESHOLD",
+    "RegistryAnchoringResult",
+    "compute_lock_state",
+    "publish_gate_state",
     "LifeScienceObservationPort",
     "normalize_qlc_runtime_payload",
     "qlc_runtime_summary",

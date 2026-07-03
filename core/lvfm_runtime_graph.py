@@ -26,7 +26,6 @@ class RegisterBit:
         object.__setattr__(self, "t", _to_float(self.t, label="t"))
         object.__setattr__(self, "d_f", _to_float(self.d_f, label="dF"))
         object.__setattr__(self, "f", _to_float(self.f, label="f"))
-
         if self.t < 0.0 or self.d_f < 0.0 or self.f < 0.0:
             raise ValueError("T, dF, and F must be non-negative")
 
@@ -86,6 +85,7 @@ class LVFMDecision:
     t_mass: float
     i_mass: float
     f_mass: float
+    d_f_mass: float
     confidence: float
     notes: Tuple[str, ...]
 
@@ -191,6 +191,7 @@ class LVFMRuntimeGraph:
                 t_mass=0.0,
                 i_mass=0.0,
                 f_mass=0.0,
+                d_f_mass=0.0,
                 confidence=0.0,
                 notes=("graph empty",),
             )
@@ -224,11 +225,11 @@ class LVFMRuntimeGraph:
         t_norm = t_mass / denom
         i_norm = i_mass / denom
         f_norm = f_mass / denom
+        d_f_norm = i_norm
         confidence = (t_mass - f_mass) / max(total_weight, 1e-12)
         verdict = "allow" if confidence >= -0.1 and f_norm <= 0.75 and i_norm <= 0.95 else "hold"
-
         trace_line = (
-            f"T={t_norm:.3f}|I={i_norm:.3f}|dF={i_norm:.3f}|"
+            f"T={t_norm:.3f}|I={i_norm:.3f}|dF={d_f_norm:.3f}|"
             f"F={f_norm:.3f}|nodes={self.node_count()}|edges={self.edge_count()}|verdict={verdict}"
         )
         if not notes:
@@ -239,15 +240,35 @@ class LVFMRuntimeGraph:
             t_mass=t_norm,
             i_mass=i_norm,
             f_mass=f_norm,
+            d_f_mass=d_f_norm,
             confidence=confidence,
             notes=tuple(notes),
         )
 
     def to_snapshot(self) -> Dict[str, Any]:
         decision = self.evaluate_gate()
+        exact_bits: Dict[str, Dict[str, float]] = {}
+        register_keys: Dict[str, Dict[str, Any]] = {}
+        for node_id in self._ordered_node_ids():
+            key = self.nodes[node_id]
+            bit = key.bit.normalized().clamp01()
+            exact = {
+                "T": float(bit.t),
+                "I": float(bit.i_mass),
+                "dF": float(bit.d_f),
+                "F": float(bit.f),
+                "register_weight": float(key.register_weight),
+            }
+            exact_bits[node_id] = exact
+            register_keys[node_id] = {
+                "bit": exact,
+                "metadata": dict(key.metadata),
+            }
         return {
             "snapshot": {
                 "compact": self.compact_snapshot(),
+                "exact_bits": exact_bits,
+                "register_keys": register_keys,
                 "trace": self.weighted_trace(),
             },
             "decision": {
@@ -256,6 +277,7 @@ class LVFMRuntimeGraph:
                 "t_mass": round(decision.t_mass, 6),
                 "i_mass": round(decision.i_mass, 6),
                 "f_mass": round(decision.f_mass, 6),
+                "dF_mass": round(decision.d_f_mass, 6),
                 "confidence": round(decision.confidence, 6),
                 "notes": list(decision.notes),
             },
