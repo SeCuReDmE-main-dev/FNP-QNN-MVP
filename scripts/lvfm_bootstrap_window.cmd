@@ -18,8 +18,9 @@ if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
 cd /d "%REPO_ROOT%"
 
 set "PYTHON="
-if defined PYTHON_HOME set "PYTHON=%PYTHON_HOME%\python.exe"
+if not defined PYTHON if exist "%REPO_ROOT%\.venv\Scripts\python.exe" set "PYTHON=%REPO_ROOT%\.venv\Scripts\python.exe"
 if not defined PYTHON if exist "%REPO_ROOT%venv\Scripts\python.exe" set "PYTHON=%REPO_ROOT%venv\Scripts\python.exe"
+if not defined PYTHON if defined PYTHON_HOME set "PYTHON=%PYTHON_HOME%\python.exe"
 if not defined PYTHON if exist "%LOCALAPPDATA%\Programs\Python\Python312\python.exe" set "PYTHON=%LOCALAPPDATA%\Programs\Python\Python312\python.exe"
 if not defined PYTHON if exist "%LOCALAPPDATA%\Programs\Python\Python310\python.exe" set "PYTHON=%LOCALAPPDATA%\Programs\Python\Python310\python.exe"
 if not defined PYTHON if exist "%LOCALAPPDATA%\Programs\Python\Python39\python.exe" set "PYTHON=%LOCALAPPDATA%\Programs\Python\Python39\python.exe"
@@ -37,7 +38,11 @@ echo [SeCuReDmE LVFM] launcher=%~f0
 echo [SeCuReDmE LVFM] repository=%REPO_ROOT%
 echo [SeCuReDmE LVFM] logfile=%LOG_PATH%
 echo.
-"%PYTHON%" scripts\lvfm_windows_bootstrap.py --api-base http://127.0.0.1:8000 --publish-registry --output-path "%LOG_PATH%" --run-once
+set "START_API_FLAG="
+if /I "%LVFM_START_API_IF_DOWN%"=="1" set "START_API_FLAG=--start-api-if-down"
+if /I "%LVFM_START_API_IF_DOWN%"=="true" set "START_API_FLAG=--start-api-if-down"
+
+"%PYTHON%" scripts\lvfm_windows_bootstrap.py --api-base http://127.0.0.1:8000 --publish-registry --output-path "%LOG_PATH%" --run-once %START_API_FLAG%
 echo [SeCuReDmE LVFM] exit_code=%errorlevel%
 pause
 endlocal

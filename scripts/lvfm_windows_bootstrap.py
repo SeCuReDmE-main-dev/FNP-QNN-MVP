@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import socket
+import subprocess
 import time
 from dataclasses import dataclass
 import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
-from urllib import request
-from urllib.parse import urlencode
+from urllib import error, request
+from urllib.parse import urlencode, urlparse
 
 SCRIPT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_ROOT.parent
@@ -19,6 +21,11 @@ if str(REPO_ROOT) not in sys.path:
 from core.lvfm_registry_anchor import compute_lock_state
 
 DEFAULT_API_BASE = "http://127.0.0.1:8000"
+DEFAULT_API_START_TIMEOUT_SECONDS = 300
+
+
+class APIUnavailableError(RuntimeError):
+    """Raised when the local simulator API is not reachable."""
 
 
 @dataclass(frozen=True)
@@ -43,6 +50,70 @@ def _post_gate_run(api_base: str, payload: Dict[str, Any], publish_to_registry: 
     req.add_header("content-type", "application/json")
     with request.urlopen(req, data=json.dumps(payload).encode("utf-8"), timeout=30) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+def _health_url(api_base: str) -> str:
+    return f"{api_base.rstrip('/')}/health"
+
+
+def _uvicorn_command(api_base: str) -> str:
+    port = urlparse(api_base).port or 8000
+    return f'"{sys.executable}" -m uvicorn api.main:app --host 127.0.0.1 --port {port}'
+
+
+def _api_available(api_base: str, timeout_seconds: float = 2.0) -> bool:
+    parsed = urlparse(api_base)
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or 8000
+    try:
+        with socket.create_connection((host, port), timeout=timeout_seconds):
+            return True
+    except OSError:
+        pass
+
+    try:
+        with request.urlopen(_health_url(api_base), timeout=timeout_seconds) as response:
+            return 200 <= response.status < 500
+    except (OSError, error.URLError):
+        return False
+
+
+def _start_api_process(api_base: str) -> subprocess.Popen:
+    port = str(urlparse(api_base).port or 8000)
+    log_path = REPO_ROOT / "output" / "lvfm_api_autostart.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_handle = log_path.open("a", encoding="utf-8")
+    print(f"[SeCuReDmE LVFM] auto_start_api_log={log_path}")
+    return subprocess.Popen(
+        [sys.executable, "-m", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", port],
+        cwd=str(REPO_ROOT),
+        stdout=log_handle,
+        stderr=subprocess.STDOUT,
+    )
+
+
+def ensure_api_available(api_base: str, start_api_if_down: bool, start_timeout_seconds: int) -> None:
+    if _api_available(api_base):
+        return
+
+    if not start_api_if_down:
+        command = _uvicorn_command(api_base)
+        raise APIUnavailableError(
+            "API non disponible at "
+            f"{api_base}. Start it with: {command}"
+        )
+
+    print(f"[SeCuReDmE LVFM] api_down={api_base}; starting local uvicorn")
+    process = _start_api_process(api_base)
+    deadline = time.monotonic() + max(1, start_timeout_seconds)
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            raise APIUnavailableError(f"API auto-start exited early with code {process.returncode}")
+        if _api_available(api_base):
+            print(f"[SeCuReDmE LVFM] api_ready={api_base}")
+            return
+        time.sleep(1)
+    raise APIUnavailableError(f"API auto-start timed out after {start_timeout_seconds}s for {api_base}")
 
 
 def _read_payload(path: Optional[str]) -> Dict[str, Any]:
@@ -191,19 +262,40 @@ def main() -> None:
     parser.add_argument("--registry-threshold", type=float, default=-0.1, help="Confidence threshold for lock.")
     parser.add_argument("--output-path", default=None, help="Optional path to write last gate response JSON.")
     parser.add_argument("--run-once", action="store_true", help="Run once even if interval is positive.")
+    parser.add_argument(
+        "--start-api-if-down",
+        action="store_true",
+        help="Explicitly start uvicorn if the local simulator API is not already reachable.",
+    )
+    parser.add_argument(
+        "--api-start-timeout-seconds",
+        type=int,
+        default=DEFAULT_API_START_TIMEOUT_SECONDS,
+        help="Seconds to wait for --start-api-if-down to make /health reachable.",
+    )
     args = parser.parse_args()
 
     # keep compatibility: if --run-once is explicit, no loop despite interval
     interval = 0 if args.run_once else max(0, args.interval_seconds)
 
-    bootstrap_loop(
-        api_base=args.api_base,
-        payload_path=args.payload_path,
-        interval_seconds=interval,
-        publish_to_registry=args.publish_registry,
-        registry_threshold=args.registry_threshold,
-        output_path=args.output_path,
-    )
+    try:
+        ensure_api_available(
+            api_base=args.api_base,
+            start_api_if_down=args.start_api_if_down,
+            start_timeout_seconds=args.api_start_timeout_seconds,
+        )
+        bootstrap_loop(
+            api_base=args.api_base,
+            payload_path=args.payload_path,
+            interval_seconds=interval,
+            publish_to_registry=args.publish_registry,
+            registry_threshold=args.registry_threshold,
+            output_path=args.output_path,
+        )
+    except APIUnavailableError as exc:
+        print(f"[SeCuReDmE LVFM] ERROR: {exc}")
+        print("[SeCuReDmE LVFM] exit_code=2")
+        raise SystemExit(2) from exc
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ Objectif: valider le mécanisme `window key + registry snapshot + score T-I-dF` 
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\setup-lvfm-registry-boot.ps1" `
-  -RepoRoot "C:\Users\jeans\Desktop\Case study\modele\fnp-qnn\FNP-QNN-MVP-version-disease-simulator-" `
+  -RepoRoot "C:\Users\jeans\Desktop\Case study\modele\FNP-QNN-MVP\FNP-QNN-MVP" `
   -CreateStartupLink `
   -WriteRunKey `
   -PublishRegistry `

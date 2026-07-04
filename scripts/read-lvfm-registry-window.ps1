@@ -20,6 +20,7 @@ $snapshot = [ordered]@{
     log_path = $launcherProps.LogPath
     api_base = $launcherProps.ApiBase
     publish_registry = $launcherProps.PublishRegistry
+    start_api_if_down = $launcherProps.StartApiIfDown
     registry_threshold = $launcherProps.RegistryThreshold
     last_configured_utc = $launcherProps.LastConfiguredUtc
     gate = $null
@@ -32,6 +33,7 @@ if (-not $AsJson) {
     Write-Host "LogPath=$($launcherProps.LogPath)"
     Write-Host "ApiBase=$($launcherProps.ApiBase)"
     Write-Host "PublishRegistry=$($launcherProps.PublishRegistry)"
+    Write-Host "StartApiIfDown=$($launcherProps.StartApiIfDown)"
     Write-Host "RegistryThreshold=$($launcherProps.RegistryThreshold)"
     Write-Host "LastConfiguredUtc=$($launcherProps.LastConfiguredUtc)"
 }

@@ -526,6 +526,25 @@ def _legacy_runtime_result() -> Dict[str, Any]:
     return result
 
 
+def _runtime_gate_run(
+    payload: Dict[str, Any] | None,
+    run_qnn: bool = False,
+    publish_to_registry: bool = False,
+    registry_threshold: float = -0.1,
+) -> Dict[str, Any]:
+    runtime_payload = _runtime_payload(payload)
+    result = _runtime_result(runtime_payload, run_qnn=run_qnn)
+    gate_record = LVFMGateRecord.from_snapshot(result.get("lvfm", {}), runtime_payload)
+    gate_record = lvfm_gate_ledger.append(gate_record)
+    response: Dict[str, Any] = {"runtime": result, "gate": gate_record.to_dict()}
+    if publish_to_registry:
+        response["registry"] = publish_gate_state(
+            gate_record.to_dict(),
+            threshold=registry_threshold,
+        ).__dict__
+    return response
+
+
 @app.get("/dashboard", include_in_schema=False)
 async def dashboard() -> FileResponse:
     index_path = os.path.join(WEB_ROOT, "index.html")

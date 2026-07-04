@@ -9,6 +9,8 @@ dist/
 build/
 *.egg-info/
 output/tmp/
+output/lvfm_*.log
+output/lvfm_*.jsonl
 reports/generated/
 reports/runtime_logs/
 panel_server*.log

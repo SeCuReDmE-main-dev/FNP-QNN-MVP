@@ -5,6 +5,7 @@ param(
     [string]$RepoRoot = (Get-Location).Path,
     [string]$ApiBase = "http://127.0.0.1:8000",
     [switch]$PublishRegistry,
+    [switch]$StartApiIfDown,
     [double]$RegistryThreshold = -0.1,
     [int]$IntervalSeconds = 0,
     [switch]$CreateStartupLink,
@@ -46,8 +47,10 @@ if ($PublishRegistry) {
 }
 
 $intervalArg = if ($IntervalSeconds -gt 0) { "--interval-seconds $IntervalSeconds" } else { "" }
+$startApiArg = if ($StartApiIfDown) { "--start-api-if-down" } else { "" }
 $thresholdArg = "--registry-threshold $RegistryThreshold"
-$pythonCmd = "$PythonExecutable $(Expand-CommandArgument $bootstrap) --api-base $(Expand-CommandArgument $ApiBase) $publishFlag $intervalArg $thresholdArg --output-path $(Expand-CommandArgument $logFile) --run-once"
+$bootstrapArgs = "$(Expand-CommandArgument $bootstrap) --api-base $(Expand-CommandArgument $ApiBase) $publishFlag $intervalArg $startApiArg $thresholdArg --output-path $(Expand-CommandArgument $logFile) --run-once"
+$pythonCmd = "$PythonExecutable $bootstrapArgs"
 
 Write-Host "Launcher: $windowLauncher"
 Write-Host "Command:"
@@ -64,6 +67,7 @@ New-ItemProperty -Path $launcherSubKey -Name "LauncherPath" -PropertyType String
 New-ItemProperty -Path $launcherSubKey -Name "LogPath" -PropertyType String -Value $logFile -Force | Out-Null
 New-ItemProperty -Path $launcherSubKey -Name "ApiBase" -PropertyType String -Value $ApiBase -Force | Out-Null
 New-ItemProperty -Path $launcherSubKey -Name "PublishRegistry" -PropertyType String -Value ([string]$PublishRegistry.IsPresent) -Force | Out-Null
+New-ItemProperty -Path $launcherSubKey -Name "StartApiIfDown" -PropertyType String -Value ([string]$StartApiIfDown.IsPresent) -Force | Out-Null
 New-ItemProperty -Path $launcherSubKey -Name "RegistryThreshold" -PropertyType String -Value $RegistryThreshold -Force | Out-Null
 New-ItemProperty -Path $launcherSubKey -Name "LastConfiguredUtc" -PropertyType String -Value (Get-Date).ToUniversalTime().ToString("o") -Force | Out-Null
 
@@ -80,7 +84,7 @@ if (-not $UseTaskScheduler) {
 
 Write-Host "Registering scheduled task entry: $TaskName"
 
-$action = New-ScheduledTaskAction -Execute $PythonExecutable -Argument $pythonCmd
+$action = New-ScheduledTaskAction -Execute $PythonExecutable -Argument $bootstrapArgs
 $trigger = New-ScheduledTaskTrigger -AtLogOn
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType InteractiveToken -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
