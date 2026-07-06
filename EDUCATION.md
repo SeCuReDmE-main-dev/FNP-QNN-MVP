@@ -34,6 +34,17 @@ admitted carriers for later simulation work:
 - `I_secondary`;
 - `I_detector`.
 
+If the packet includes `chapter4_profile`, the gate can preserve only the
+Synthia lexical guard:
+
+- `admitted_chapter4_guard`;
+- `allowed_payload`;
+- `excluded_payload_summary`.
+
+This supports partitioned language: a recoverable metaphor can remain in
+`excluded_payload_summary` while only the admitted public-safe payload continues
+toward later simulation work.
+
 Use:
 
 ```bash

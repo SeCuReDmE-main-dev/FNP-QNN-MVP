@@ -36,6 +36,10 @@ def _chapter3_packet():
     return json.loads(Path("tests/fixtures/neutrino_chapter3_valid_admission.json").read_text(encoding="utf-8"))
 
 
+def _chapter4_packet():
+    return json.loads(Path("tests/fixtures/neutrino_chapter4_valid_admission.json").read_text(encoding="utf-8"))
+
+
 def _assert_no_key(payload, forbidden_key):
     if isinstance(payload, dict):
         testcase = unittest.TestCase()
@@ -168,6 +172,74 @@ class NeutrinoAdmissionGateTests(unittest.TestCase):
         payload = json.loads(stdout.getvalue())
         self.assertTrue(payload["can_compute_fnp"])
         self.assertEqual(payload["admitted_chapter3_carriers"]["I_detector"]["detector_projection_status"], "indirect")
+
+    def test_chapter4_profile_is_admitted_as_guard_without_computation(self):
+        payload = neutrino_guardrail_check(_chapter4_packet())
+
+        self.assertTrue(payload["can_compute_fnp"])
+        guard = payload["admitted_chapter4_guard"]
+        self.assertEqual(guard["profile_version"], "chapter4.lex_neutrino_public_safe.v1")
+        self.assertEqual(guard["approval_scope"], "full_lexical_payload")
+        self.assertTrue(payload["allowed_payload"])
+        _assert_no_key(payload, "dF")
+        _assert_no_key(payload, "D_f")
+        _assert_no_key(payload, "i_fractal")
+
+    def test_chapter4_partitioned_packet_requires_allowed_payload(self):
+        packet = _chapter4_packet()
+        lex_packet = packet["LexPacket_neutrino"]
+        lex_packet["decision"]["status"] = "accepted_with_partition"
+        guard = lex_packet["chapter4_profile"]["protection_profile"]["SynthiaGuard_neutrino"]
+        guard["approval_scope"] = "allowed_payload_only"
+        guard["excluded_payload"] = {"metaphor_payload": "conceptual_language_only"}
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertTrue(decision.can_compute_fnp)
+        self.assertEqual(decision.allowed_payload["event_id"], "chapter4-public-safe-neutrino-001")
+        self.assertEqual(decision.excluded_payload_summary["metaphor_payload"], "conceptual_language_only")
+
+    def test_chapter4_partitioned_packet_without_allowed_payload_is_blocked(self):
+        packet = _chapter4_packet()
+        lex_packet = packet["LexPacket_neutrino"]
+        lex_packet["decision"]["status"] = "accepted_with_partition"
+        guard = lex_packet["chapter4_profile"]["protection_profile"]["SynthiaGuard_neutrino"]
+        guard["allowed_payload"] = {}
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("missing_chapter4_allowed_payload", decision.reason_codes)
+
+    def test_chapter4_blocked_guard_blocks_fnp(self):
+        packet = _chapter4_packet()
+        guard_packet = packet["LexPacket_neutrino"]["chapter4_profile"]["protection_profile"]["ProtectionPacket_neutrino"]
+        guard_packet["simulation_detection_guard"]["action"] = "block"
+        guard_packet["simulation_detection_guard"]["reason_codes"] = ["simulation_trace_as_detection"]
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("chapter4_guard_blocked", decision.reason_codes)
+
+    def test_chapter4_forbidden_fnp_field_is_blocked(self):
+        packet = _chapter4_packet()
+        packet["LexPacket_neutrino"]["chapter4_profile"]["lex_metrics"]["dF"] = 0.4
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("synthia_packet_contains_fnp_computation_fields", decision.reason_codes)
+
+    def test_cli_guardrail_check_accepts_chapter4_fixture(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(["--json", "neutrino", "guardrail-check", "--input", "tests/fixtures/neutrino_chapter4_valid_admission.json"])
+
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(stdout.getvalue())
+        self.assertTrue(payload["can_compute_fnp"])
+        self.assertEqual(payload["admitted_chapter4_guard"]["profile_version"], "chapter4.lex_neutrino_public_safe.v1")
 
 
 if __name__ == "__main__":
