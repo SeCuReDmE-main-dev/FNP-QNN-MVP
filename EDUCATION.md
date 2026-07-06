@@ -15,6 +15,30 @@ It is intended for learning and supervised experimentation around:
 - six bounded time-physics experiment profiles;
 - local evidence dashboards;
 - future visual network-design workflows.
+- public-safe neutrino admission checks using a Synthia lexical gate packet.
+
+## Neutrino Admission Gate
+
+The neutrino admission gate validates whether a Synthia `LexPacket_neutrino`
+allows downstream FNP-QNN simulation work. It does not compute `D_f`, `dF`, or
+`i_fractal`; it only decides whether the simulator may proceed after lexical
+admission.
+
+Use:
+
+```bash
+python -m fnp_qnn_cli --json neutrino guardrail-check --input tests/fixtures/neutrino_valid_admission.json
+```
+
+The maintained boundary is:
+
+- educational simulation;
+- simulation is not detection;
+- weak interaction primary guardrail;
+- Synthia classifies before FNP-QNN computes;
+- `dL_lex != dF`;
+- `I_lexicon != i_fractal`;
+- candidate is not proof.
 
 ## Not For Clinical Use
 

@@ -120,6 +120,12 @@ from .nidus_idearum_math import (
     source_weighted_triplet_fusion,
     triplet_quality_profile,
 )
+from .neutrino_admission_gate import (
+    FNPAdmissionDecision,
+    neutrino_guardrail_check,
+    neutrino_guardrail_check_from_file,
+    validate_synthia_admission,
+)
 from .plithogenic_logic import (
     plithogenic_attribute_profile,
     plithogenic_contradiction_degree,
@@ -257,6 +263,10 @@ __all__ = [
     "partial_membership_mean",
     "source_weighted_triplet_fusion",
     "triplet_quality_profile",
+    "FNPAdmissionDecision",
+    "neutrino_guardrail_check",
+    "neutrino_guardrail_check_from_file",
+    "validate_synthia_admission",
     "plithogenic_attribute_profile",
     "plithogenic_contradiction_degree",
     "plithogenic_neutrosophic_conjunction",
