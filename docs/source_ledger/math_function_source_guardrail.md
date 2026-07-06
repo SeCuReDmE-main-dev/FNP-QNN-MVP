@@ -54,6 +54,16 @@ Boundary: alpha-local educational research simulator only. No clinical, diagnost
 | `DANI_NOVAK_PHI_HIGHER_DIMENSIONS_SHEET_REDACTED` | `https://docs.google.com/spreadsheets/d/1LICbMOdp689MwMvwToTQJkKf0SQNVKMNoRMKeRP1WFw/edit` | Private-provenance Google Sheet shared by Dani Novak; no Gmail body, message id, attachment id, or display URL stored |
 | `GENESIS_ECHOES_PAPER_I_DRIVE_DOC` | `https://docs.google.com/document/d/1kDqt3WML2ev0uBNH9OKseIb7XF5k6H9ScRzusJ47gf4/edit` | Interpretive Drive document; not primary theorem proof |
 | `PRIVATE_DANI_NOVAK_GMAIL_PROVENANCE_REDACTED` | `[private Gmail provenance redacted]` | Confirms the Sheet provenance in the user mailbox; private email content is not tracked |
+| `PHI_FRAMEWORK_RESEARCH_DRIVE_DOC` | `https://docs.google.com/document/d/10DNzmxVqZCvMNBN4tIvQpbkXwCLIIqbCnsx5TJlqj7s/edit` | Deferred interpretive Phi Framework source; not primary theorem proof |
+| `PHI_CALCULUS_CHEATSHEET_DRIVE_DOC` | `https://docs.google.com/document/d/1sOi-vZhIZiyyOMPnu55S7eAuEKdI3lB8K4D5Z6zqJPw/edit` | Deferred phi calculus source |
+| `BRIDGE_CALCULUS_DRIVE_DOC` | `https://docs.google.com/document/d/14hBgjKn8QTjZjQUx0s8DuCNM7h12Q7zVQcgFM2MjA7Q/edit` | Deferred bridge calculus source |
+| `AIR_ELEMENT_FORMALIZATION_DRIVE_DOC` | `https://docs.google.com/document/d/1cq-xpYcrd3hDM-Xb53txItr-vS9CQM8G90SCorZZlnM/edit` | Deferred air calculus source |
+| `FIRE_ELEMENT_SYNTHESIS_DRIVE_DOC` | `https://docs.google.com/document/d/1QW6HmQAzVp95sqyuA7xfxvpivYkdELzrDKsnU-FejZk/edit` | Deferred fire calculus source |
+| `WATER_ELEMENT_CONFIGURATION_DRIVE_DOC` | `https://docs.google.com/document/d/1DT3kwD9YSyRxRj8XWyYYuChlkaOazeUCwLB0nPUdVgw/edit` | Deferred water calculus source |
+| `FOUNDATIONS_GOLDEN_CALCULUS_DRIVE_DOC` | `https://docs.google.com/document/d/1vTWOkZdKvnSs2_slirxPbBclGy7Qicj2kveLMqj3SuQ/edit` | Deferred earth/golden calculus source |
+| `UNIFIED_FFED_CALCULI_DRIVE_DOC` | `https://docs.google.com/document/d/1lH3OTdklWpRcT4QxZEPguzFsq1fwqUpG527W7emCY2g/edit` | Deferred unified FfeD calculi source |
+| `ANTI_ENTROPY_IMPERATIVE_DRIVE_DOC` | `https://docs.google.com/document/d/11f4kORbVcy3OmIRbQ00nxS76sPdw4V3orc0jffI7tA0/edit` | Deferred anti-entropy white-paper source |
+| `ANTI_ENTROPY_THEOREM_DRIVE_DOC` | `https://docs.google.com/document/d/189YGum2CXa7V7b8Cdhvc3k-sSjWmbuldPgDOQG3NcII/edit` | Deferred anti-entropy theorem source |
 
 ## Function Registry
 

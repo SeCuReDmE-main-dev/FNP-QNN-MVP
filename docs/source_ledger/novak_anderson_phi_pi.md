@@ -29,6 +29,26 @@ security, cosmology, or consciousness validation.
 - No autonomous scientific conclusion beyond the implemented formulas and tests.
 - No private Gmail body, message id, attachment id, or display URL is stored in tracked files.
 
+## Deferred Phi Framework Source Candidates
+
+These Drive documents were found during the phi-framework source search. They
+are tracked as interpretive or future-work candidates only; this implementation
+does not implement their full Air, Fire, Water, Earth, Bridge, or Anti-Entropy
+calculi.
+
+| Source id | Drive document | Current classification |
+| --- | --- | --- |
+| `PHI_FRAMEWORK_RESEARCH_DRIVE_DOC` | `10DNzmxVqZCvMNBN4tIvQpbkXwCLIIqbCnsx5TJlqj7s` | Interpretive Phi Framework research source. |
+| `PHI_CALCULUS_CHEATSHEET_DRIVE_DOC` | `1sOi-vZhIZiyyOMPnu55S7eAuEKdI3lB8K4D5Z6zqJPw` | Deferred phi calculus source. |
+| `BRIDGE_CALCULUS_DRIVE_DOC` | `14hBgjKn8QTjZjQUx0s8DuCNM7h12Q7zVQcgFM2MjA7Q` | Deferred bridge calculus source. |
+| `AIR_ELEMENT_FORMALIZATION_DRIVE_DOC` | `1cq-xpYcrd3hDM-Xb53txItr-vS9CQM8G90SCorZZlnM` | Deferred air calculus source. |
+| `FIRE_ELEMENT_SYNTHESIS_DRIVE_DOC` | `1QW6HmQAzVp95sqyuA7xfxvpivYkdELzrDKsnU-FejZk` | Deferred fire calculus source. |
+| `WATER_ELEMENT_CONFIGURATION_DRIVE_DOC` | `1DT3kwD9YSyRxRj8XWyYYuChlkaOazeUCwLB0nPUdVgw` | Deferred water calculus source. |
+| `FOUNDATIONS_GOLDEN_CALCULUS_DRIVE_DOC` | `1vTWOkZdKvnSs2_slirxPbBclGy7Qicj2kveLMqj3SuQ` | Deferred earth/golden calculus source. |
+| `UNIFIED_FFED_CALCULI_DRIVE_DOC` | `1lH3OTdklWpRcT4QxZEPguzFsq1fwqUpG527W7emCY2g` | Deferred unified FfeD calculi source. |
+| `ANTI_ENTROPY_IMPERATIVE_DRIVE_DOC` | `11f4kORbVcy3OmIRbQ00nxS76sPdw4V3orc0jffI7tA0` | Deferred anti-entropy white-paper source. |
+| `ANTI_ENTROPY_THEOREM_DRIVE_DOC` | `189YGum2CXa7V7b8Cdhvc3k-sSjWmbuldPgDOQG3NcII` | Deferred anti-entropy theorem source. |
+
 ## Simulator Surface
 
 - Core module: `core/novak_anderson_phi_pi.py`

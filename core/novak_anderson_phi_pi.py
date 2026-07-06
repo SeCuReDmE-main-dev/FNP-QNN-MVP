@@ -19,6 +19,16 @@ DANI_SHEET_SOURCE_ID = "DANI_NOVAK_PHI_HIGHER_DIMENSIONS_SHEET_REDACTED"
 GENESIS_ECHOES_SOURCE_ID = "GENESIS_ECHOES_PAPER_I_DRIVE_DOC"
 PRIVATE_GMAIL_PROVENANCE_SOURCE_ID = "PRIVATE_DANI_NOVAK_GMAIL_PROVENANCE_REDACTED"
 LOCAL_RUNTIME_SOURCE_ID = "LOCAL_RUNTIME"
+PHI_FRAMEWORK_RESEARCH_SOURCE_ID = "PHI_FRAMEWORK_RESEARCH_DRIVE_DOC"
+PHI_CALCULUS_CHEATSHEET_SOURCE_ID = "PHI_CALCULUS_CHEATSHEET_DRIVE_DOC"
+BRIDGE_CALCULUS_SOURCE_ID = "BRIDGE_CALCULUS_DRIVE_DOC"
+AIR_ELEMENT_FORMALIZATION_SOURCE_ID = "AIR_ELEMENT_FORMALIZATION_DRIVE_DOC"
+FIRE_ELEMENT_SYNTHESIS_SOURCE_ID = "FIRE_ELEMENT_SYNTHESIS_DRIVE_DOC"
+WATER_ELEMENT_CONFIGURATION_SOURCE_ID = "WATER_ELEMENT_CONFIGURATION_DRIVE_DOC"
+FOUNDATIONS_GOLDEN_CALCULUS_SOURCE_ID = "FOUNDATIONS_GOLDEN_CALCULUS_DRIVE_DOC"
+UNIFIED_FFED_CALCULI_SOURCE_ID = "UNIFIED_FFED_CALCULI_DRIVE_DOC"
+ANTI_ENTROPY_IMPERATIVE_SOURCE_ID = "ANTI_ENTROPY_IMPERATIVE_DRIVE_DOC"
+ANTI_ENTROPY_THEOREM_SOURCE_ID = "ANTI_ENTROPY_THEOREM_DRIVE_DOC"
 
 SOURCE_LEDGER: Dict[str, str] = {
     PHI_PI_PAPER_SOURCE_ID: (
@@ -34,6 +44,16 @@ SOURCE_LEDGER: Dict[str, str] = {
     GENESIS_ECHOES_SOURCE_ID: "https://docs.google.com/document/d/1kDqt3WML2ev0uBNH9OKseIb7XF5k6H9ScRzusJ47gf4/edit",
     PRIVATE_GMAIL_PROVENANCE_SOURCE_ID: "private provenance confirmed; no message body or message id is stored",
     LOCAL_RUNTIME_SOURCE_ID: "local deterministic simulator implementation",
+    PHI_FRAMEWORK_RESEARCH_SOURCE_ID: "https://docs.google.com/document/d/10DNzmxVqZCvMNBN4tIvQpbkXwCLIIqbCnsx5TJlqj7s/edit",
+    PHI_CALCULUS_CHEATSHEET_SOURCE_ID: "https://docs.google.com/document/d/1sOi-vZhIZiyyOMPnu55S7eAuEKdI3lB8K4D5Z6zqJPw/edit",
+    BRIDGE_CALCULUS_SOURCE_ID: "https://docs.google.com/document/d/14hBgjKn8QTjZjQUx0s8DuCNM7h12Q7zVQcgFM2MjA7Q/edit",
+    AIR_ELEMENT_FORMALIZATION_SOURCE_ID: "https://docs.google.com/document/d/1cq-xpYcrd3hDM-Xb53txItr-vS9CQM8G90SCorZZlnM/edit",
+    FIRE_ELEMENT_SYNTHESIS_SOURCE_ID: "https://docs.google.com/document/d/1QW6HmQAzVp95sqyuA7xfxvpivYkdELzrDKsnU-FejZk/edit",
+    WATER_ELEMENT_CONFIGURATION_SOURCE_ID: "https://docs.google.com/document/d/1DT3kwD9YSyRxRj8XWyYYuChlkaOazeUCwLB0nPUdVgw/edit",
+    FOUNDATIONS_GOLDEN_CALCULUS_SOURCE_ID: "https://docs.google.com/document/d/1vTWOkZdKvnSs2_slirxPbBclGy7Qicj2kveLMqj3SuQ/edit",
+    UNIFIED_FFED_CALCULI_SOURCE_ID: "https://docs.google.com/document/d/1lH3OTdklWpRcT4QxZEPguzFsq1fwqUpG527W7emCY2g/edit",
+    ANTI_ENTROPY_IMPERATIVE_SOURCE_ID: "https://docs.google.com/document/d/11f4kORbVcy3OmIRbQ00nxS76sPdw4V3orc0jffI7tA0/edit",
+    ANTI_ENTROPY_THEOREM_SOURCE_ID: "https://docs.google.com/document/d/189YGum2CXa7V7b8Cdhvc3k-sSjWmbuldPgDOQG3NcII/edit",
 }
 
 RESEARCH_BOUNDARY = (
@@ -262,6 +282,18 @@ def source_packet() -> Dict[str, Any]:
         "source_ledger": dict(SOURCE_LEDGER),
         "primary_public_sources": [PHI_PI_PAPER_SOURCE_ID, FIBONACCI_VECTOR_SOURCE_ID],
         "private_provenance_sources": [DANI_SHEET_SOURCE_ID, PRIVATE_GMAIL_PROVENANCE_SOURCE_ID],
+        "deferred_phi_framework_sources": [
+            PHI_FRAMEWORK_RESEARCH_SOURCE_ID,
+            PHI_CALCULUS_CHEATSHEET_SOURCE_ID,
+            BRIDGE_CALCULUS_SOURCE_ID,
+            AIR_ELEMENT_FORMALIZATION_SOURCE_ID,
+            FIRE_ELEMENT_SYNTHESIS_SOURCE_ID,
+            WATER_ELEMENT_CONFIGURATION_SOURCE_ID,
+            FOUNDATIONS_GOLDEN_CALCULUS_SOURCE_ID,
+            UNIFIED_FFED_CALCULI_SOURCE_ID,
+            ANTI_ENTROPY_IMPERATIVE_SOURCE_ID,
+            ANTI_ENTROPY_THEOREM_SOURCE_ID,
+        ],
         "privacy_boundary": "private Gmail bodies, message ids, attachment ids, and display URLs are not stored",
         "forbidden_claims": list(FORBIDDEN_CLAIMS),
         "research_boundary": RESEARCH_BOUNDARY,
@@ -285,4 +317,3 @@ def novak_anderson_status(max_n: int = 256) -> Dict[str, Any]:
         "dim4_ratio_profile": component_ratio_profile(4, 32),
         "source_packet": source_packet(),
     }
-
