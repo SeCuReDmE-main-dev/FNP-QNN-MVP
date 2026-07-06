@@ -49,6 +49,11 @@ Boundary: alpha-local educational research simulator only. No clinical, diagnost
 | `BIG_THINK_BLOCK_UNIVERSE_TRANSCRIPT_2026` | `https://bigthink.com/series/the-big-think-interview/block-universe-alkhalili/` | Big Think article/transcript source context for time flow, block universe, now, entropy, decoherence, cosmology, and time-travel chapters |
 | `ALKHALILI_CHEN_DECOHERENT_ARROW_2024` | `https://arxiv.org/abs/2405.03418` | Al-Khalili and Chen source context for the entanglement/decoherence arrow lane |
 | `PUP_ON_TIME_CONTEXT_2026` | `https://princetonuniversitypress.substack.com/p/quantum-entanglement-and-the-illusion` | Princeton University Press / On Time context for the educational time-flow framing |
+| `ANDERSON_NOVAK_PHI_PI_2008` | `https://hascmathart.weebly.com/uploads/7/6/8/7/7687070/a_connection_between_the_numbers_phi_and_pi_2.pdf` | Public phi/pi polygon pseudopi paper |
+| `ANDERSON_NOVAK_FIBONACCI_VECTOR_POLYGONS_2009` | `https://www.researchgate.net/profile/Stuart-Anderson-2/publication/228768410_Fibonacci_vector_sequences_and_regular_polygons/links/54b5ec8c0cf26833efd345f7/Fibonacci-vector-sequences-and-regular-polygons.pdf` | Public Fibonacci-vector and odd-polygon Golden Numbers paper |
+| `DANI_NOVAK_PHI_HIGHER_DIMENSIONS_SHEET_REDACTED` | `https://docs.google.com/spreadsheets/d/1LICbMOdp689MwMvwToTQJkKf0SQNVKMNoRMKeRP1WFw/edit` | Private-provenance Google Sheet shared by Dani Novak; no Gmail body, message id, attachment id, or display URL stored |
+| `GENESIS_ECHOES_PAPER_I_DRIVE_DOC` | `https://docs.google.com/document/d/1kDqt3WML2ev0uBNH9OKseIb7XF5k6H9ScRzusJ47gf4/edit` | Interpretive Drive document; not primary theorem proof |
+| `PRIVATE_DANI_NOVAK_GMAIL_PROVENANCE_REDACTED` | `[private Gmail provenance redacted]` | Confirms the Sheet provenance in the user mailbox; private email content is not tracked |
 
 ## Function Registry
 
@@ -74,6 +79,7 @@ Boundary: alpha-local educational research simulator only. No clinical, diagnost
 | `apply_gate_sequence_qiskit()` | `core/neurobit_gates.py` | `LOCAL_RUNTIME` | Optional Qiskit-compatible trace path | `tests/test_neurobit_gates.py` |
 | `complex_wavefunction_to_amplitude_phase_features()` | `core/quantum_feature_transforms.py` | `LOCAL_RUNTIME` | Pure feature transform | `tests/test_quantum_feature_transforms.py` |
 | `structure_vector_to_phi_scaled_state()` | `core/quantum_feature_transforms.py` | `LOCAL_RUNTIME` | Phi-scaled local feature transform | `tests/test_quantum_feature_transforms.py` |
+| `alpha()`, `golden_number()`, `pseudopi()`, `inverse_pseudopi()`, `pseudophi()`, `pseudopi_product()`, `fibonacci_vector_sequence()`, `component_ratio_profile()`, `convergence_profile()`, `novak_anderson_status()` | `core/novak_anderson_phi_pi.py` | `ANDERSON_NOVAK_PHI_PI_2008`, `ANDERSON_NOVAK_FIBONACCI_VECTOR_POLYGONS_2009`, `DANI_NOVAK_PHI_HIGHER_DIMENSIONS_SHEET_REDACTED`, `GENESIS_ECHOES_PAPER_I_DRIVE_DOC`, `PRIVATE_DANI_NOVAK_GMAIL_PROVENANCE_REDACTED`, `LOCAL_RUNTIME` | `GET /fnp-qnn/novak-anderson/status`; `POST /fnp-qnn/novak-anderson/convergence`; `/commands/novak-anderson-phi-pi`; `/execute-command` compatibility shim | `tests/test_novak_anderson_phi_pi.py`, `tests/test_api_novak_anderson_phi_pi.py` |
 | `triplet_quality_profile()` | `core/nidus_idearum_math.py` | `NIDUS_II` | `/fnp-qnn/nidus/triplet/profile` | `tests/test_nidus_idearum_math.py`, `tests/test_api_qnn_smoke.py` |
 | `source_weighted_triplet_fusion()` | `core/nidus_idearum_math.py` | `NIDUS_II` | `/fnp-qnn/nidus/fusion/profile` | `tests/test_nidus_idearum_math.py`, `tests/test_api_qnn_smoke.py` |
 | `partial_membership_mean()` | `core/nidus_idearum_math.py` | `NIDUS_II` | `/fnp-qnn/nidus/partial-membership/mean` | `tests/test_nidus_idearum_math.py`, `tests/test_api_qnn_smoke.py` |

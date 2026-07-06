@@ -139,10 +139,28 @@ Validated locally:
 - `python examples/learning_experiment_lab.py --age 15`
 - Torch surrogate fallback.
 - NeuroBit gate and tunnel-noise demo.
+- Novak-Anderson phi/pi theorem convergence layer.
 
 Current public website note: the local repository README, docs, APIs, tests, and
 source ledger were updated on 2026-06-27. The public website at
 `https://fnpqnn.securedme.ca/` was not updated in this session.
+
+## 2026-07-06 Novak-Anderson Phi/Pi Layer
+
+The simulator now includes a source-backed Novak-Anderson phi/pi theorem layer.
+It implements odd-polygon Golden Numbers, pseudopi, inverse pseudopi,
+pseudophi, and Fibonacci-vector convergence checks from public Anderson/Novak
+sources plus a redacted private-provenance Dani Novak Sheet reference.
+
+Public surfaces:
+
+- `GET /fnp-qnn/novak-anderson/status`
+- `POST /fnp-qnn/novak-anderson/convergence`
+- `/commands/novak-anderson-phi-pi`
+
+Boundary: this proves the implemented formulas and numerical convergence checks
+against the cited mathematical sources. It is not a physical quantum,
+cosmology, cryptography, clinical, consciousness, or production-security proof.
 
 ## 2026-06-27 Implementation Record
 
@@ -721,7 +739,7 @@ Compatibility endpoint:
 
 - `POST /execute-command`
 
-`/execute-command` is an internal compatibility shim. It does not execute shell commands. It only routes allowed simulator commands such as `phi-status`, `cerebrum-runtime-status`, `cerebrum-runtime-run`, `cerebrum-runtime-legacy-demo`, and `qnn-smoke`.
+`/execute-command` is an internal compatibility shim. It does not execute shell commands. It only routes allowed simulator commands such as `phi-status`, `novak-anderson-phi-pi`, `cerebrum-runtime-status`, `cerebrum-runtime-run`, `cerebrum-runtime-legacy-demo`, and `qnn-smoke`.
 
 ## Install
 

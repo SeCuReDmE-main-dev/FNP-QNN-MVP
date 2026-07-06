@@ -359,6 +359,26 @@ class EncodeRequest(BaseModel):
         return value
 
 
+class NovakAndersonConvergenceRequest(BaseModel):
+    max_n: int = Field(default=256, ge=2, le=100000)
+    sample_ns: List[int] = Field(default_factory=list)
+
+    @field_validator("sample_ns")
+    @classmethod
+    def validate_sample_ns(cls, value: List[int]) -> List[int]:
+        if len(value) > 48:
+            raise ValueError("At most 48 sample orders are accepted")
+        if any(item < 2 for item in value):
+            raise ValueError("sample_ns entries must be at least 2")
+        return value
+
+    @model_validator(mode="after")
+    def validate_samples_within_max(self):
+        if any(item > self.max_n for item in self.sample_ns):
+            raise ValueError("sample_ns entries must be less than or equal to max_n")
+        return self
+
+
 class QNNSmokeRequest(BaseModel):
     samples: Optional[List[List[Observation]]] = None
     labels: Optional[List[int]] = None
@@ -901,6 +921,7 @@ class CommandRequest(BaseModel):
     time_physics_decoherence_strength: float = Field(default=0.66, ge=0.0, le=1.0)
     time_physics_cosmological_boundary_pressure: float = Field(default=0.55, ge=0.0, le=1.0)
     time_physics_paradox_pressure: float = Field(default=0.15, ge=0.0, le=1.0)
+    novak_anderson_max_n: int = Field(default=256, ge=2, le=100000)
 
     @model_validator(mode="before")
     @classmethod

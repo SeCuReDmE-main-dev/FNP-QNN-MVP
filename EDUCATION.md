@@ -11,6 +11,7 @@ It is intended for learning and supervised experimentation around:
 - NeuroBit gate profiles and traces;
 - Penrose/Hameroff study metadata;
 - Hydra-EM-GPCN hypothesis profiles using `GPCN-Set_phi`;
+- Novak-Anderson phi/pi theorem convergence checks;
 - five bounded Quantum Paradoxes multiverse experiment profiles;
 - six bounded time-physics experiment profiles;
 - local evidence dashboards;
@@ -62,6 +63,23 @@ The maintained boundary is:
 - `dL_lex != dF`;
 - `I_lexicon != i_fractal`;
 - candidate is not proof.
+
+## Novak-Anderson Phi/Pi Lab
+
+The Novak-Anderson layer lets students inspect how odd-sided polygon Golden
+Numbers connect the golden ratio to the pseudopi chain, and how the pseudopi
+function approaches pi as polygon order increases.
+
+Good lab checks include:
+
+- verify `golden_number(2, 2) = phi`;
+- verify `pseudopi(2) = 5 / phi`;
+- compare Fibonacci-vector component ratios with polygon Golden Numbers;
+- inspect convergence error as `n` increases.
+
+This lab proves only the implemented formulas and numerical convergence checks.
+It does not prove a physical quantum effect, cosmology, cryptographic security,
+clinical behavior, or consciousness.
 
 ## Not For Clinical Use
 

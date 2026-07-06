@@ -203,6 +203,34 @@
       "evidence_or_test": "tests/test_cerebrum_qnn.py surrogate smoke tests"
     },
     {
+      "id": "api_novak_anderson_status",
+      "label": "Novak-Anderson phi/pi theorem status",
+      "family": "api_endpoints",
+      "source_path": "api/main.py",
+      "entrypoint": "GET /fnp-qnn/novak-anderson/status",
+      "input_schema": "none",
+      "output_shape": "status, source packet, convergence checks, stim availability",
+      "side_effects": "none",
+      "risk_level": "low",
+      "mvp_relevance": "stable_contract",
+      "panel_function": "status_check",
+      "evidence_or_test": "tests/test_api_novak_anderson_phi_pi.py"
+    },
+    {
+      "id": "api_novak_anderson_convergence",
+      "label": "Novak-Anderson phi/pi convergence profile",
+      "family": "api_endpoints",
+      "source_path": "api/main.py",
+      "entrypoint": "POST /fnp-qnn/novak-anderson/convergence",
+      "input_schema": "NovakAndersonConvergenceRequest max_n and optional sample_ns",
+      "output_shape": "sampled convergence rows and proof checks",
+      "side_effects": "none",
+      "risk_level": "low",
+      "mvp_relevance": "stable_contract",
+      "panel_function": "run_api_action",
+      "evidence_or_test": "tests/test_api_novak_anderson_phi_pi.py"
+    },
+    {
       "id": "api_commands_route",
       "label": "Run allowlisted simulator command",
       "family": "api_endpoints",
@@ -257,6 +285,20 @@
       "mvp_relevance": "stable_contract",
       "panel_function": "status_check",
       "evidence_or_test": "api/main.py _command_response"
+    },
+    {
+      "id": "command_novak_anderson_phi_pi",
+      "label": "Novak-Anderson phi/pi command",
+      "family": "allowlisted_commands",
+      "source_path": "api/main.py",
+      "entrypoint": "novak-anderson-phi-pi",
+      "input_schema": "CommandRequest optional novak_anderson_max_n",
+      "output_shape": "convergence summary and source-backed status payload",
+      "side_effects": "none",
+      "risk_level": "low",
+      "mvp_relevance": "stable_contract",
+      "panel_function": "status_check",
+      "evidence_or_test": "tests/test_api_novak_anderson_phi_pi.py"
     },
     {
       "id": "command_runtime_status",

@@ -29,6 +29,8 @@ or disabled.
 | Legacy fixture demo | `GET /cerebrum/runtime/legacy-demo` | `run_demo` | low | README run section |
 | QNN candidate matrix | `GET /qnn/candidates` | `status_check` | low | QNN tests |
 | QNN smoke | `POST /qnn/smoke` | `run_api_action` | medium | QNN smoke tests |
+| Novak-Anderson phi/pi status | `GET /fnp-qnn/novak-anderson/status` | `status_check` | low | `tests/test_api_novak_anderson_phi_pi.py` |
+| Novak-Anderson convergence | `POST /fnp-qnn/novak-anderson/convergence` | `run_api_action` | low | `tests/test_api_novak_anderson_phi_pi.py` |
 | Command route | `POST /commands/{command_name}` | `run_api_action` | medium | command route tests |
 | Compatibility shim | `POST /execute-command` | `run_api_action` | medium | shell rejection test |
 
@@ -45,6 +47,7 @@ or disabled.
 | Command | Panel function | Risk | Notes |
 | --- | --- | --- | --- |
 | `phi-status` | `status_check` | low | Generates in-memory synthetic particles. |
+| `novak-anderson-phi-pi` | `status_check` | low | Runs source-backed classical phi/pi convergence checks. |
 | `cerebrum-runtime-status` | `status_check` | low | Read-only runtime status. |
 | `cerebrum-runtime-run` | `run_api_action` | medium | Runs local runtime and QNN path. |
 | `cerebrum-runtime-gate-run` | `experimental_hidden` | high | Writes LVFM history and can publish registry state. |

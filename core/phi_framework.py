@@ -10,6 +10,8 @@ import math
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 
+from .novak_anderson_phi_pi import novak_anderson_status
+
 # Golden ratio - foundation of φ-framework
 PHI = (1 + math.sqrt(5)) / 2
 
@@ -191,6 +193,11 @@ class PhiFramework:
                 progression.append(min(1.0, next_value))
         
         return progression
+
+    def novak_anderson_phi_pi_status(self, max_n: int = 256) -> Dict[str, any]:
+        """Return source-backed Novak-Anderson phi/pi theorem status."""
+
+        return novak_anderson_status(max_n=max_n)
 
 # Example usage and demonstration
 def demo_phi_framework():

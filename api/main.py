@@ -33,6 +33,7 @@ from api.schemas import (
     NidusTripletProfileRequest,
     NeuroBitProfileRequest,
     NeuroBitTunnelRequest,
+    NovakAndersonConvergenceRequest,
     PenroseHameroffObjectiveReductionRequest,
     QNNSmokeRequest,
     RuntimeRunRequest,
@@ -64,7 +65,9 @@ from core import (
     anesthesia_sweep_profile,
     gravity_null_test_status,
     hydra_em_gpcn_orch_profile,
+    convergence_profile,
     multiverse_experiments_status,
+    novak_anderson_status,
     objective_reduction_profile,
     partial_membership_mean,
     penrose_hameroff_runtime_profile,
@@ -787,6 +790,19 @@ async def qnn_candidates() -> Dict[str, Any]:
     }
 
 
+@app.get("/fnp-qnn/novak-anderson/status")
+async def novak_anderson_status_endpoint() -> Dict[str, Any]:
+    return novak_anderson_status()
+
+
+@app.post("/fnp-qnn/novak-anderson/convergence")
+async def novak_anderson_convergence(payload: NovakAndersonConvergenceRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": convergence_profile(max_n=payload.max_n, sample_ns=payload.sample_ns or None),
+    }
+
+
 @app.get("/fnp-qnn/gravity-null-test/status")
 async def gravity_null_test_status_endpoint() -> Dict[str, Any]:
     return gravity_null_test_status()
@@ -1262,6 +1278,21 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             output=f"Phi research status: golden_ratio={phi_engine.phi:.12f}; synthetic_particles={len(particles)}",
             type="phi-system",
             data={"phi": phi_engine.phi, "particles": len(particles)},
+        )
+    if command_name == "novak-anderson-phi-pi":
+        result = novak_anderson_status(max_n=request.novak_anderson_max_n)
+        final_row = result["convergence"]["rows"][-1]
+        return CommandResponse(
+            success=True,
+            output=(
+                "Novak-Anderson phi/pi convergence complete:\n"
+                f"max_n={result['convergence']['max_n']}\n"
+                f"pseudopi={final_row['pseudopi']:.12f}\n"
+                f"pi_error={final_row['pseudopi_error_to_pi']:.6g}\n"
+                f"stim_available={result['stim_available']}"
+            ),
+            type="novak-anderson-phi-pi",
+            data=result,
         )
     if command_name == "cerebrum-runtime-status":
         return CommandResponse(

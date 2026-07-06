@@ -27,6 +27,18 @@ from .lvfm_gate_ledger import LVFMGateLedger, LVFMGateRecord
 from .lvfm_registry_anchor import DEFAULT_LOCK_THRESHOLD, RegistryAnchoringResult, compute_lock_state, publish_gate_state
 from .life_science_port import LifeScienceObservationPort
 from .phi_framework import PhiFramework, QuantumState
+from .novak_anderson_phi_pi import (
+    PHI as NOVAK_ANDERSON_PHI,
+    component_ratio_profile,
+    convergence_profile,
+    fibonacci_vector_sequence,
+    golden_number,
+    inverse_pseudopi,
+    novak_anderson_status,
+    pseudophi,
+    pseudopi,
+    pseudopi_product,
+)
 from .qlc_runtime_normalizer import normalize_qlc_runtime_payload, qlc_runtime_summary
 from .qnn_nucleus import QNNBenchmarkResult, QNNCandidate, QNNNucleus
 from .ffed_plugin_bridge import FfeDPluginBridge, MVP5_PLUGIN_IDS, NEXT5_PLUGIN_IDS
@@ -189,6 +201,16 @@ __all__ = [
     "compute_lock_state",
     "publish_gate_state",
     "LifeScienceObservationPort",
+    "NOVAK_ANDERSON_PHI",
+    "component_ratio_profile",
+    "convergence_profile",
+    "fibonacci_vector_sequence",
+    "golden_number",
+    "inverse_pseudopi",
+    "novak_anderson_status",
+    "pseudophi",
+    "pseudopi",
+    "pseudopi_product",
     "normalize_qlc_runtime_payload",
     "qlc_runtime_summary",
     "QNNCandidate",
