@@ -78,6 +78,30 @@ This repository is an alpha-local, non-clinical research simulator for:
 
 It is not a clinical, diagnostic, therapeutic, safety, emergency, or production-public system. Public claims must stay tied to local tests, demo output, or explicit reports in this repository.
 
+## Neutrino Admission Gate
+
+FNP-QNN includes a public-safe neutrino admission gate for educational
+simulation workflows. It validates a Synthia `LexPacket_neutrino` before any
+FNP-QNN computation is allowed. The gate is contract-only: it checks `Adm_lex`,
+`dL_lex`, and the Synthia decision status, then returns whether downstream FNP
+computation may proceed.
+
+This gate keeps the public boundary explicit:
+
+- educational simulation;
+- simulation is not detection;
+- weak interaction primary guardrail;
+- Synthia classifies before FNP-QNN computes;
+- `dL_lex != dF`;
+- `I_lexicon != i_fractal`;
+- candidate is not proof.
+
+Run the public-safe check with:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino guardrail-check --input tests\fixtures\neutrino_valid_admission.json
+```
+
 ## Current Status
 
 Validated locally:
@@ -1501,7 +1525,6 @@ Start with:
   {{ pre-alpha educational research simulator: contributions are open through a maintainer-reviewed education pilot. Please read CONTRIBUTING.md before opening issues or pull requests. Unscoped or incomplete proposals may be closed. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20full%20logo.png)
-
 
 
 

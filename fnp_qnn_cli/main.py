@@ -340,6 +340,11 @@ def build_parser() -> argparse.ArgumentParser:
         neurobit_parser.add_argument("--dF", dest="delta_falsity", type=float, default=None)
     tunnel.add_argument("--data", default=None, help="Tunnel demo data string.")
 
+    neutrino = subparsers.add_parser("neutrino", help="Public-safe neutrino simulation guardrails.")
+    neutrino_sub = neutrino.add_subparsers(dest="neutrino_command", required=True)
+    neutrino_guardrail = neutrino_sub.add_parser("guardrail-check", help="Validate Synthia lexical admission.")
+    neutrino_guardrail.add_argument("--input", required=True, help="Path to Synthia LexPacket JSON.")
+
     legacy = subparsers.add_parser("legacy", help="Legacy fixture commands.")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
     legacy_sub.add_parser("demo", help="Run legacy fixture replay.")
@@ -792,6 +797,12 @@ def run_args(args: argparse.Namespace) -> int:
         )
         runner = neurobit_gates if args.neurobit_command == "gates" else neurobit_tunnel
         return _emit(runner(payload), as_json)
+
+    if args.section == "neutrino" and args.neutrino_command == "guardrail-check":
+        from core.neutrino_admission_gate import neutrino_guardrail_check_from_file
+
+        payload = neutrino_guardrail_check_from_file(args.input)
+        return _emit(payload, as_json)
 
     if args.section == "legacy" and args.legacy_command == "demo":
         return _emit(command_response("cerebrum-runtime-legacy-demo"), as_json)
