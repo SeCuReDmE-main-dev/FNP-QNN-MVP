@@ -1,6 +1,7 @@
 import contextlib
 import io
 import json
+from pathlib import Path
 import unittest
 
 from core.neutrino_admission_gate import neutrino_guardrail_check, validate_synthia_admission
@@ -29,6 +30,10 @@ def _accepted_packet():
             "boundary": "simulation_not_detection",
         }
     }
+
+
+def _chapter3_packet():
+    return json.loads(Path("tests/fixtures/neutrino_chapter3_valid_admission.json").read_text(encoding="utf-8"))
 
 
 def _assert_no_key(payload, forbidden_key):
@@ -99,6 +104,70 @@ class NeutrinoAdmissionGateTests(unittest.TestCase):
         self.assertEqual(payload["schema_version"], "fnp.neutrino_admission.v1")
         self.assertTrue(payload["can_compute_fnp"])
         _assert_no_key(payload, "dF")
+
+    def test_chapter3_profile_is_admitted_as_carriers_without_computation(self):
+        payload = neutrino_guardrail_check(_chapter3_packet())
+
+        self.assertTrue(payload["can_compute_fnp"])
+        carriers = payload["admitted_chapter3_carriers"]
+        self.assertEqual(carriers["profile_version"], "chapter3.neutrino_public_safe.v1")
+        self.assertEqual(carriers["I_flavor"]["created_flavor"], "nu_mu")
+        self.assertEqual(carriers["I_interaction"]["channel"], "weak_CC")
+        _assert_no_key(payload, "dF")
+        _assert_no_key(payload, "D_f")
+        _assert_no_key(payload, "i_fractal")
+
+    def test_chapter3_equal_flavor_and_mass_basis_is_blocked(self):
+        packet = _chapter3_packet()
+        packet["LexPacket_neutrino"]["chapter3_profile"]["mass_profile"]["I_mass"]["mass_basis"] = {
+            "nu_1": 0.0,
+            "nu_2": 1.0,
+            "nu_3": 0.0,
+        }
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("mass_basis_equals_flavor_basis", decision.reason_codes)
+
+    def test_chapter3_direct_detector_projection_is_blocked(self):
+        packet = _chapter3_packet()
+        detector = packet["LexPacket_neutrino"]["chapter3_profile"]["detector_profile"]["I_detector"]
+        detector["detector_projection_status"] = "direct"
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("visible_neutrino_claim", decision.reason_codes)
+
+    def test_chapter3_secondary_primary_force_collapse_is_blocked(self):
+        packet = _chapter3_packet()
+        secondary = packet["LexPacket_neutrino"]["chapter3_profile"]["secondary_profile"]["I_secondary"]
+        secondary["primary_force"] = "strong_primary"
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("secondary_response_as_primary_force", decision.reason_codes)
+
+    def test_chapter3_nested_fnp_computation_field_is_blocked(self):
+        packet = _chapter3_packet()
+        packet["LexPacket_neutrino"]["chapter3_profile"]["phase_profile"]["I_phase"]["dF"] = 0.3
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("synthia_packet_contains_fnp_computation_fields", decision.reason_codes)
+
+    def test_cli_guardrail_check_accepts_chapter3_fixture(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = main(["--json", "neutrino", "guardrail-check", "--input", "tests/fixtures/neutrino_chapter3_valid_admission.json"])
+
+        self.assertEqual(exit_code, 0)
+        payload = json.loads(stdout.getvalue())
+        self.assertTrue(payload["can_compute_fnp"])
+        self.assertEqual(payload["admitted_chapter3_carriers"]["I_detector"]["detector_projection_status"], "indirect")
 
 
 if __name__ == "__main__":

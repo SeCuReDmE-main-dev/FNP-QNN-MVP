@@ -86,11 +86,18 @@ FNP-QNN computation is allowed. The gate is contract-only: it checks `Adm_lex`,
 `dL_lex`, and the Synthia decision status, then returns whether downstream FNP
 computation may proceed.
 
+When the Synthia packet includes an additive `chapter3_profile`, FNP-QNN reads
+the admitted carriers without computing `D_f`, `dF`, or `i_fractal` in the
+guardrail step. The admitted carriers are `I_flavor`, `I_mass`, `I_phase`,
+`I_interaction`, `I_secondary`, and `I_detector`.
+
 This gate keeps the public boundary explicit:
 
 - educational simulation;
 - simulation is not detection;
+- flavor state is not mass propagation state;
 - weak interaction primary guardrail;
+- secondary detector response is not a primary strong-force interaction;
 - Synthia classifies before FNP-QNN computes;
 - `dL_lex != dF`;
 - `I_lexicon != i_fractal`;
@@ -100,6 +107,12 @@ Run the public-safe check with:
 
 ```powershell
 .\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino guardrail-check --input tests\fixtures\neutrino_valid_admission.json
+```
+
+For the chapter-3 carrier contract, use:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino guardrail-check --input tests\fixtures\neutrino_chapter3_valid_admission.json
 ```
 
 ## Current Status
@@ -1525,7 +1538,6 @@ Start with:
   {{ pre-alpha educational research simulator: contributions are open through a maintainer-reviewed education pilot. Please read CONTRIBUTING.md before opening issues or pull requests. Unscoped or incomplete proposals may be closed. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20full%20logo.png)
-
 
 
 
