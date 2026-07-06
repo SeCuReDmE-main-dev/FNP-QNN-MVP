@@ -46,11 +46,24 @@ This supports partitioned language: a recoverable metaphor can remain in
 `excluded_payload_summary` while only the admitted public-safe payload continues
 toward later simulation work.
 
+If the packet includes `chapter5_intake_profile`, the admission gate can also
+preserve `admitted_chapter5_intake`. A separate chapter-5 command can then
+normalize a supplied public-safe carrier request into `D_f_hat`:
+
 Use:
 
 ```bash
 python -m fnp_qnn_cli --json neutrino guardrail-check --input tests/fixtures/neutrino_valid_admission.json
 ```
+
+Chapter-5 carrier example:
+
+```bash
+python -m fnp_qnn_cli --json neutrino chapter5-carrier --input tests/fixtures/neutrino_chapter5_valid_admission.json
+```
+
+The chapter-5 carrier command does not compute `dF`, `i_fractal`, or
+`i_fractal_candidate`; those remain outside this public-safe step.
 
 The maintained boundary is:
 

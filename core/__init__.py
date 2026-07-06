@@ -138,6 +138,10 @@ from .neutrino_admission_gate import (
     neutrino_guardrail_check_from_file,
     validate_synthia_admission,
 )
+from .neutrino_chapter5_carrier import (
+    neutrino_chapter5_carrier,
+    neutrino_chapter5_carrier_from_file,
+)
 from .plithogenic_logic import (
     plithogenic_attribute_profile,
     plithogenic_contradiction_degree,
@@ -288,6 +292,8 @@ __all__ = [
     "FNPAdmissionDecision",
     "neutrino_guardrail_check",
     "neutrino_guardrail_check_from_file",
+    "neutrino_chapter5_carrier",
+    "neutrino_chapter5_carrier_from_file",
     "validate_synthia_admission",
     "plithogenic_attribute_profile",
     "plithogenic_contradiction_degree",

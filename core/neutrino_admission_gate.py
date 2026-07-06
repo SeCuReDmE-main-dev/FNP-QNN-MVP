@@ -55,9 +55,24 @@ REFUSAL_CATEGORIES = (
     "chapter4_not_approved_for_fnp",
     "chapter4_guard_blocked",
     "missing_chapter4_allowed_payload",
+    "invalid_chapter5_intake_profile",
+    "chapter5_not_approved_for_fnp_intake",
+    "missing_chapter5_allowed_payload",
+    "missing_carrier_request",
+    "invalid_carrier_family",
+    "missing_scale_context",
     "synthia_packet_contains_fnp_computation_fields",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
+VALID_CHAPTER5_CARRIER_FAMILIES = {
+    "phase_carrier",
+    "detector_projection_carrier",
+    "secondary_trace_carrier",
+    "plithogenic_contradiction_carrier",
+    "multi_attribute_tension_carrier",
+    "scale_transition_carrier",
+    "null_carrier",
+}
 
 
 @dataclass(frozen=True)
@@ -69,6 +84,7 @@ class FNPAdmissionDecision:
     dL_lex: float | None
     admitted_chapter3_carriers: Mapping[str, object] | None
     admitted_chapter4_guard: Mapping[str, object] | None = None
+    admitted_chapter5_intake: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -85,6 +101,8 @@ class FNPAdmissionDecision:
             payload["admitted_chapter3_carriers"] = dict(self.admitted_chapter3_carriers)
         if self.admitted_chapter4_guard is not None:
             payload["admitted_chapter4_guard"] = dict(self.admitted_chapter4_guard)
+        if self.admitted_chapter5_intake is not None:
+            payload["admitted_chapter5_intake"] = dict(self.admitted_chapter5_intake)
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -142,6 +160,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter5_reasons, admitted_chapter5_intake = _validate_chapter5_intake_profile(packet)
+    for code in chapter5_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -159,6 +182,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         dL_lex=d_l_lex,
         admitted_chapter3_carriers=admitted_chapter3_carriers,
         admitted_chapter4_guard=admitted_chapter4_guard,
+        admitted_chapter5_intake=admitted_chapter5_intake,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -175,6 +199,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "decision": decision.as_dict(),
         "admitted_chapter3_carriers": decision.admitted_chapter3_carriers,
         "admitted_chapter4_guard": decision.admitted_chapter4_guard,
+        "admitted_chapter5_intake": decision.admitted_chapter5_intake,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -226,7 +251,7 @@ def _reason_list(value: object) -> list[str]:
 
 
 def _contains_fnp_computation_fields(packet: Mapping[str, Any]) -> bool:
-    return _contains_key_recursive(packet, {"D_f", "dF", "i_fractal"})
+    return _contains_key_recursive(packet, {"D_f", "D_f_hat", "dF", "i_fractal", "i_fractal_candidate"})
 
 
 def _validate_chapter3_profile(packet: Mapping[str, Any]) -> tuple[list[str], Mapping[str, object] | None]:
@@ -334,6 +359,48 @@ def _admitted_chapter4_guard(
             for key, value in protection_packet.items()
             if isinstance(value, Mapping) and "action" in value
         },
+    }
+
+
+def _validate_chapter5_intake_profile(packet: Mapping[str, Any]) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter5_intake_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter5_intake_profile"], None
+
+    reason_codes: list[str] = []
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    guard_state = _nested_mapping(profile, "guard_state")
+    if guard_state.get("approved_for_fnp_intake") is not True:
+        reason_codes.append("chapter5_not_approved_for_fnp_intake")
+
+    event_request = _nested_mapping(profile, "E_FNP_neutrino_request")
+    if str(event_request.get("allowed_payload_status", "")).strip().lower() != "present":
+        reason_codes.append("missing_chapter5_allowed_payload")
+
+    policy = _nested_mapping(profile, "carrier_request_policy")
+    family = str(policy.get("requested_family", "")).strip()
+    if not family:
+        reason_codes.append("missing_carrier_request")
+    elif family not in VALID_CHAPTER5_CARRIER_FAMILIES:
+        reason_codes.append("invalid_carrier_family")
+
+    scale = _nested_mapping(profile, "scale_context_request")
+    if str(scale.get("status", "")).strip().lower() != "present":
+        reason_codes.append("missing_scale_context")
+
+    if reason_codes:
+        return reason_codes, None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "event_request": dict(event_request),
+        "carrier_request_policy": dict(policy),
+        "scale_context_request": dict(scale),
+        "guard_state": dict(guard_state),
+        "Adm_FNP_required": bool(profile.get("Adm_FNP_required")),
     }
 
 

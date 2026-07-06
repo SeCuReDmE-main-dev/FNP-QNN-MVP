@@ -127,6 +127,19 @@ For the chapter-4 lexical guard contract, use:
 .\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino guardrail-check --input tests\fixtures\neutrino_chapter4_valid_admission.json
 ```
 
+When the Synthia packet includes an additive `chapter5_intake_profile`, the
+admission gate can preserve `admitted_chapter5_intake` without computing. A
+separate public-safe command can then build only the bounded local carrier
+packet for `D_f` and `D_f_hat`:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter5-carrier --input tests\fixtures\neutrino_chapter5_valid_admission.json
+```
+
+The chapter-5 carrier command does not compute `dF`, `i_fractal`, or
+`i_fractal_candidate`. It keeps `D_f_hat` as a bounded local carrier only and
+leaves downstream friction for the later chapter-5 step.
+
 ## Current Status
 
 Validated locally:
