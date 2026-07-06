@@ -344,6 +344,8 @@ def build_parser() -> argparse.ArgumentParser:
     neutrino_sub = neutrino.add_subparsers(dest="neutrino_command", required=True)
     neutrino_guardrail = neutrino_sub.add_parser("guardrail-check", help="Validate Synthia lexical admission.")
     neutrino_guardrail.add_argument("--input", required=True, help="Path to Synthia LexPacket JSON.")
+    neutrino_chapter5 = neutrino_sub.add_parser("chapter5-carrier", help="Build chapter-5 D_f_hat carrier packet.")
+    neutrino_chapter5.add_argument("--input", required=True, help="Path to Synthia LexPacket JSON with carrier_request.")
 
     legacy = subparsers.add_parser("legacy", help="Legacy fixture commands.")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
@@ -802,6 +804,12 @@ def run_args(args: argparse.Namespace) -> int:
         from core.neutrino_admission_gate import neutrino_guardrail_check_from_file
 
         payload = neutrino_guardrail_check_from_file(args.input)
+        return _emit(payload, as_json)
+
+    if args.section == "neutrino" and args.neutrino_command == "chapter5-carrier":
+        from core.neutrino_chapter5_carrier import neutrino_chapter5_carrier_from_file
+
+        payload = neutrino_chapter5_carrier_from_file(args.input)
         return _emit(payload, as_json)
 
     if args.section == "legacy" and args.legacy_command == "demo":

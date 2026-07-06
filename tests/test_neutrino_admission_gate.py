@@ -40,6 +40,10 @@ def _chapter4_packet():
     return json.loads(Path("tests/fixtures/neutrino_chapter4_valid_admission.json").read_text(encoding="utf-8"))
 
 
+def _chapter5_packet():
+    return json.loads(Path("tests/fixtures/neutrino_chapter5_valid_admission.json").read_text(encoding="utf-8"))
+
+
 def _assert_no_key(payload, forbidden_key):
     if isinstance(payload, dict):
         testcase = unittest.TestCase()
@@ -240,6 +244,37 @@ class NeutrinoAdmissionGateTests(unittest.TestCase):
         payload = json.loads(stdout.getvalue())
         self.assertTrue(payload["can_compute_fnp"])
         self.assertEqual(payload["admitted_chapter4_guard"]["profile_version"], "chapter4.lex_neutrino_public_safe.v1")
+
+    def test_chapter5_intake_profile_is_admitted_without_carrier_computation(self):
+        payload = neutrino_guardrail_check(_chapter5_packet())
+
+        self.assertTrue(payload["can_compute_fnp"])
+        intake = payload["admitted_chapter5_intake"]
+        self.assertEqual(intake["profile_version"], "chapter5.fnp_intake_public_safe.v1")
+        self.assertEqual(intake["carrier_request_policy"]["requested_family"], "phase_carrier")
+        _assert_no_key(payload, "D_f")
+        _assert_no_key(payload, "D_f_hat")
+        _assert_no_key(payload, "dF")
+        _assert_no_key(payload, "i_fractal")
+        _assert_no_key(payload, "i_fractal_candidate")
+
+    def test_chapter5_intake_without_approval_is_blocked(self):
+        packet = _chapter5_packet()
+        packet["LexPacket_neutrino"]["chapter5_intake_profile"]["guard_state"]["approved_for_fnp_intake"] = False
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("chapter5_not_approved_for_fnp_intake", decision.reason_codes)
+
+    def test_chapter5_synthia_carrier_field_is_blocked(self):
+        packet = _chapter5_packet()
+        packet["LexPacket_neutrino"]["chapter5_intake_profile"]["D_f_hat"] = 0.5
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("synthia_packet_contains_fnp_computation_fields", decision.reason_codes)
 
 
 if __name__ == "__main__":
