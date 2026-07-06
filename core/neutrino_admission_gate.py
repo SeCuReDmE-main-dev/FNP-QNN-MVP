@@ -47,7 +47,14 @@ REFUSAL_CATEGORIES = (
     "secondary_response_as_primary_force",
     "new_force_from_nuclear_activity",
     "gravity_detection_channel_claim",
+    "metaphor_as_physics",
+    "speculation_as_physical_conclusion",
+    "missing_source_for_physical_claim",
     "invalid_chapter3_profile",
+    "invalid_chapter4_profile",
+    "chapter4_not_approved_for_fnp",
+    "chapter4_guard_blocked",
+    "missing_chapter4_allowed_payload",
     "synthia_packet_contains_fnp_computation_fields",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
@@ -61,6 +68,9 @@ class FNPAdmissionDecision:
     next_action: str
     dL_lex: float | None
     admitted_chapter3_carriers: Mapping[str, object] | None
+    admitted_chapter4_guard: Mapping[str, object] | None = None
+    allowed_payload: Mapping[str, object] | None = None
+    excluded_payload_summary: Mapping[str, object] | None = None
 
     def as_dict(self) -> dict[str, object]:
         payload = {
@@ -73,6 +83,12 @@ class FNPAdmissionDecision:
         }
         if self.admitted_chapter3_carriers is not None:
             payload["admitted_chapter3_carriers"] = dict(self.admitted_chapter3_carriers)
+        if self.admitted_chapter4_guard is not None:
+            payload["admitted_chapter4_guard"] = dict(self.admitted_chapter4_guard)
+        if self.allowed_payload is not None:
+            payload["allowed_payload"] = dict(self.allowed_payload)
+        if self.excluded_payload_summary is not None:
+            payload["excluded_payload_summary"] = dict(self.excluded_payload_summary)
         return payload
 
 
@@ -121,6 +137,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter4_reasons, admitted_chapter4_guard, allowed_payload, excluded_payload_summary = _validate_chapter4_profile(packet)
+    for code in chapter4_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -137,6 +158,9 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         next_action="compute_fnp",
         dL_lex=d_l_lex,
         admitted_chapter3_carriers=admitted_chapter3_carriers,
+        admitted_chapter4_guard=admitted_chapter4_guard,
+        allowed_payload=allowed_payload,
+        excluded_payload_summary=excluded_payload_summary,
     )
 
 
@@ -150,6 +174,9 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "can_compute_fnp": decision.can_compute_fnp,
         "decision": decision.as_dict(),
         "admitted_chapter3_carriers": decision.admitted_chapter3_carriers,
+        "admitted_chapter4_guard": decision.admitted_chapter4_guard,
+        "allowed_payload": decision.allowed_payload,
+        "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
         "boundary": BOUNDARY,
         "claim_boundary": (
@@ -238,6 +265,76 @@ def _validate_chapter3_profile(packet: Mapping[str, Any]) -> tuple[list[str], Ma
         reason_codes.append("secondary_response_as_primary_force")
 
     return reason_codes, carriers
+
+
+def _validate_chapter4_profile(
+    packet: Mapping[str, Any],
+) -> tuple[list[str], Mapping[str, object] | None, Mapping[str, object] | None, Mapping[str, object] | None]:
+    profile = packet.get("chapter4_profile")
+    if profile is None:
+        return [], None, None, None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter4_profile"], None, None, None
+
+    reason_codes: list[str] = []
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    protection = _nested_mapping(profile, "protection_profile")
+    guard = _nested_mapping(protection, "SynthiaGuard_neutrino")
+    protection_packet = _nested_mapping(protection, "ProtectionPacket_neutrino")
+    if not guard or not protection_packet:
+        reason_codes.append("invalid_chapter4_profile")
+        return reason_codes, None, None, None
+
+    approved = guard.get("approved_for_fnp")
+    approved_for_fnp = approved is True or str(approved).strip().lower() == "true_for_allowed_payload_only"
+    if not approved_for_fnp:
+        reason_codes.append("chapter4_not_approved_for_fnp")
+
+    if _chapter4_guard_has_block(protection_packet):
+        reason_codes.append("chapter4_guard_blocked")
+
+    allowed_payload = guard.get("allowed_payload") if isinstance(guard.get("allowed_payload"), Mapping) else None
+    decision = packet.get("decision") if isinstance(packet.get("decision"), Mapping) else {}
+    if str(decision.get("status", "")).strip() == "accepted_with_partition" and not allowed_payload:
+        reason_codes.append("missing_chapter4_allowed_payload")
+
+    excluded_payload = guard.get("excluded_payload") if isinstance(guard.get("excluded_payload"), Mapping) else {}
+    admitted_guard = _admitted_chapter4_guard(profile, protection_packet, guard)
+    return reason_codes, admitted_guard, allowed_payload, dict(excluded_payload)
+
+
+def _chapter4_guard_has_block(protection_packet: Mapping[str, Any]) -> bool:
+    for value in protection_packet.values():
+        if isinstance(value, Mapping) and str(value.get("action", "")).strip().lower() == "block":
+            return True
+    hard_blocks = protection_packet.get("hard_block_reason_codes", [])
+    return isinstance(hard_blocks, list) and bool(hard_blocks)
+
+
+def _admitted_chapter4_guard(
+    profile: Mapping[str, Any],
+    protection_packet: Mapping[str, Any],
+    guard: Mapping[str, Any],
+) -> dict[str, object]:
+    lex_metrics = _nested_mapping(profile, "lex_metrics")
+    return {
+        "profile_version": profile.get("profile_version"),
+        "approval_scope": guard.get("approval_scope"),
+        "approved_for_fnp": guard.get("approved_for_fnp"),
+        "lex_metrics": {
+            "H_lex": lex_metrics.get("H_lex"),
+            "G_lex": lex_metrics.get("G_lex"),
+            "I_lexicon": lex_metrics.get("I_lexicon"),
+            "dL_lex": lex_metrics.get("dL_lex"),
+        },
+        "protection_actions": {
+            key: value.get("action")
+            for key, value in protection_packet.items()
+            if isinstance(value, Mapping) and "action" in value
+        },
+    }
 
 
 def _admitted_chapter3_carriers(profile: Mapping[str, Any]) -> dict[str, object]:

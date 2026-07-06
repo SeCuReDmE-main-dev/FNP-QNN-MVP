@@ -91,6 +91,12 @@ the admitted carriers without computing `D_f`, `dF`, or `i_fractal` in the
 guardrail step. The admitted carriers are `I_flavor`, `I_mass`, `I_phase`,
 `I_interaction`, `I_secondary`, and `I_detector`.
 
+When the packet includes an additive `chapter4_profile`, FNP-QNN reads only the
+Synthia admission guard. It preserves `admitted_chapter4_guard`,
+`allowed_payload`, and `excluded_payload_summary` so a partitioned lexical
+packet can proceed without carrying metaphor or speculation into computation.
+This guard still does not compute `D_f`, `dF`, or `i_fractal`.
+
 This gate keeps the public boundary explicit:
 
 - educational simulation;
@@ -113,6 +119,12 @@ For the chapter-3 carrier contract, use:
 
 ```powershell
 .\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino guardrail-check --input tests\fixtures\neutrino_chapter3_valid_admission.json
+```
+
+For the chapter-4 lexical guard contract, use:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino guardrail-check --input tests\fixtures\neutrino_chapter4_valid_admission.json
 ```
 
 ## Current Status
