@@ -25,6 +25,7 @@ REFUSAL_CATEGORIES = (
     "real_detection_claim",
     "strong_primary_interaction_claim",
     "literal_mass_gain_loss_claim",
+    "literal_mass_change_claim",
     "decay_as_internal_flavor_mechanism",
     "fusion_as_internal_flavor_mechanism",
     "choice_or_intention_language",
@@ -34,7 +35,22 @@ REFUSAL_CATEGORIES = (
     "missing_interaction_channel",
     "detector_trace_confused_with_particle",
     "candidate_confused_with_proof",
+    "unknown_flavor_as_truth",
+    "flavor_mass_collapse",
+    "mass_basis_equals_flavor_basis",
+    "pmns_measured_claim",
+    "invalid_energy_gev",
+    "phase_tension_as_new_physics",
+    "visible_neutrino_claim",
+    "simulation_trace_as_detection",
+    "trace_as_neutrino_total",
+    "secondary_response_as_primary_force",
+    "new_force_from_nuclear_activity",
+    "gravity_detection_channel_claim",
+    "invalid_chapter3_profile",
+    "synthia_packet_contains_fnp_computation_fields",
 )
+VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
 
 
 @dataclass(frozen=True)
@@ -44,9 +60,10 @@ class FNPAdmissionDecision:
     reason_codes: tuple[str, ...]
     next_action: str
     dL_lex: float | None
+    admitted_chapter3_carriers: Mapping[str, object] | None
 
     def as_dict(self) -> dict[str, object]:
-        return {
+        payload = {
             "can_compute_fnp": self.can_compute_fnp,
             "status": self.status,
             "reason_codes": list(self.reason_codes),
@@ -54,6 +71,9 @@ class FNPAdmissionDecision:
             "source_layer": SOURCE_LAYER,
             "dL_lex": self.dL_lex,
         }
+        if self.admitted_chapter3_carriers is not None:
+            payload["admitted_chapter3_carriers"] = dict(self.admitted_chapter3_carriers)
+        return payload
 
 
 def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecision:
@@ -96,6 +116,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if "I_lexicon_equals_i_fractal" not in reason_codes:
             reason_codes.append("I_lexicon_equals_i_fractal")
 
+    chapter3_reasons, admitted_chapter3_carriers = _validate_chapter3_profile(packet)
+    for code in chapter3_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -103,6 +128,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
             reason_codes=tuple(reason_codes),
             next_action="block_fnp",
             dL_lex=d_l_lex,
+            admitted_chapter3_carriers=None,
         )
     return FNPAdmissionDecision(
         can_compute_fnp=True,
@@ -110,6 +136,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         reason_codes=("synthia_admission_valid",),
         next_action="compute_fnp",
         dL_lex=d_l_lex,
+        admitted_chapter3_carriers=admitted_chapter3_carriers,
     )
 
 
@@ -122,6 +149,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "required_synthia_schema_version": SYNTHIA_SCHEMA_VERSION,
         "can_compute_fnp": decision.can_compute_fnp,
         "decision": decision.as_dict(),
+        "admitted_chapter3_carriers": decision.admitted_chapter3_carriers,
         "source_layer": SOURCE_LAYER,
         "boundary": BOUNDARY,
         "claim_boundary": (
@@ -158,6 +186,7 @@ def _blocked(reason_code: str, next_action: str) -> FNPAdmissionDecision:
         reason_codes=(reason_code,),
         next_action=next_action,
         dL_lex=None,
+        admitted_chapter3_carriers=None,
     )
 
 
@@ -170,7 +199,94 @@ def _reason_list(value: object) -> list[str]:
 
 
 def _contains_fnp_computation_fields(packet: Mapping[str, Any]) -> bool:
-    return any(key in packet for key in ("D_f", "dF", "i_fractal"))
+    return _contains_key_recursive(packet, {"D_f", "dF", "i_fractal"})
+
+
+def _validate_chapter3_profile(packet: Mapping[str, Any]) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter3_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter3_profile"], None
+
+    reason_codes: list[str] = []
+    carriers = _admitted_chapter3_carriers(profile)
+
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    flavor_basis = _nested_mapping(profile, "flavor_profile", "I_flavor", "flavor_basis")
+    mass_basis = _nested_mapping(profile, "mass_profile", "I_mass", "mass_basis")
+    if _basis_vectors_equal(flavor_basis, mass_basis):
+        reason_codes.append("mass_basis_equals_flavor_basis")
+
+    interaction = _nested_mapping(profile, "interaction_profile", "I_interaction")
+    channel = str(interaction.get("channel", "")).strip()
+    if channel and channel not in VALID_INTERACTION_CHANNELS:
+        reason_codes.append("strong_primary_interaction_claim")
+
+    detector = _nested_mapping(profile, "detector_profile", "I_detector")
+    detector_text = _json_text(detector)
+    if str(detector.get("detector_projection_status", "")).strip().lower() == "direct":
+        reason_codes.append("visible_neutrino_claim")
+    if _contains_any(detector_text, ("i_detector = i_neutrino", "neutrino_seen_directly", "neutrino_total")):
+        reason_codes.append("trace_as_neutrino_total")
+
+    secondary = _nested_mapping(profile, "secondary_profile", "I_secondary")
+    secondary_text = _json_text(secondary)
+    if _contains_any(secondary_text, ("primary_force", "strong_primary", "secondary_response = primary_force")):
+        reason_codes.append("secondary_response_as_primary_force")
+
+    return reason_codes, carriers
+
+
+def _admitted_chapter3_carriers(profile: Mapping[str, Any]) -> dict[str, object]:
+    return {
+        "profile_version": profile.get("profile_version"),
+        "I_flavor": dict(_nested_mapping(profile, "flavor_profile", "I_flavor")),
+        "I_mass": dict(_nested_mapping(profile, "mass_profile", "I_mass")),
+        "I_phase": dict(_nested_mapping(profile, "phase_profile", "I_phase")),
+        "I_interaction": dict(_nested_mapping(profile, "interaction_profile", "I_interaction")),
+        "I_secondary": dict(_nested_mapping(profile, "secondary_profile", "I_secondary")),
+        "I_detector": dict(_nested_mapping(profile, "detector_profile", "I_detector")),
+    }
+
+
+def _nested_mapping(payload: Mapping[str, Any], *path: str) -> Mapping[str, Any]:
+    current: object = payload
+    for key in path:
+        if not isinstance(current, Mapping):
+            return {}
+        current = current.get(key)
+    return current if isinstance(current, Mapping) else {}
+
+
+def _basis_vectors_equal(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
+    if not left or not right:
+        return False
+    left_values = [_optional_float(value) for value in left.values()]
+    right_values = [_optional_float(value) for value in right.values()]
+    if len(left_values) != len(right_values):
+        return False
+    if any(value is None for value in left_values + right_values):
+        return False
+    return all(abs(float(a) - float(b)) < 1e-12 for a, b in zip(left_values, right_values))
+
+
+def _contains_key_recursive(value: object, forbidden_keys: set[str]) -> bool:
+    if isinstance(value, Mapping):
+        return any(str(key) in forbidden_keys or _contains_key_recursive(item, forbidden_keys) for key, item in value.items())
+    if isinstance(value, list):
+        return any(_contains_key_recursive(item, forbidden_keys) for item in value)
+    return False
+
+
+def _json_text(value: object) -> str:
+    return json.dumps(value, sort_keys=True, ensure_ascii=True, default=str).lower()
+
+
+def _contains_any(text: str, patterns: tuple[str, ...]) -> bool:
+    return any(pattern.lower() in text for pattern in patterns)
 
 
 def _optional_float(value: object) -> float | None:

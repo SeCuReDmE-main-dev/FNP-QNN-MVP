@@ -24,6 +24,16 @@ allows downstream FNP-QNN simulation work. It does not compute `D_f`, `dF`, or
 `i_fractal`; it only decides whether the simulator may proceed after lexical
 admission.
 
+If the Synthia packet includes `chapter3_profile`, the gate can preserve the
+admitted carriers for later simulation work:
+
+- `I_flavor`;
+- `I_mass`;
+- `I_phase`;
+- `I_interaction`;
+- `I_secondary`;
+- `I_detector`.
+
 Use:
 
 ```bash
@@ -34,7 +44,9 @@ The maintained boundary is:
 
 - educational simulation;
 - simulation is not detection;
+- flavor state is not mass propagation state;
 - weak interaction primary guardrail;
+- secondary detector response is not a primary strong-force interaction;
 - Synthia classifies before FNP-QNN computes;
 - `dL_lex != dF`;
 - `I_lexicon != i_fractal`;
