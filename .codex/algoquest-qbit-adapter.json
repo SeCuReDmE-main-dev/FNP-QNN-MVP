@@ -1,0 +1,31 @@
+{
+  "schema": "securedme.education.algoquest-qbit-app-adapter.v1",
+  "app_slug": "fnpqnn",
+  "hub_slug": "algoquest",
+  "contract_version": "v1",
+  "required_checks": [
+    "webauth_template",
+    "adapter_map",
+    "install_sequence",
+    "event_emitter",
+    "metrics_envelope",
+    "qbit_badge",
+    "qbit_nudge",
+    "secret_rejection",
+    "consent_scope",
+    "route_plan_dry_run"
+  ],
+  "contracts": [
+    "securedme.education.gateway-install-sequence.v1",
+    "securedme.education.session-role.v1",
+    "securedme.education.student-learning-event.v1",
+    "securedme.education.metrics-envelope.v1",
+    "securedme.education.qbit-intervention.v1"
+  ],
+  "event_unit": "securedme.education.student-learning-event.v1",
+  "metric_store": "student",
+  "consent_scope": "suite",
+  "route_plan_dry_run": true,
+  "dry_run": true,
+  "raw_secret_stored": false
+}
