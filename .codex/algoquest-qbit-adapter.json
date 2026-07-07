@@ -23,6 +23,8 @@
     "securedme.education.qbit-intervention.v1"
   ],
   "event_unit": "securedme.education.student-learning-event.v1",
+  "sdk_hook_path": "core/algoquest_qbit_adapter.py",
+  "sdk_hook_kind": "python",
   "metric_store": "student",
   "consent_scope": "suite",
   "route_plan_dry_run": true,
