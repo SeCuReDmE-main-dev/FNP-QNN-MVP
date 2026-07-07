@@ -73,6 +73,19 @@ computing friction. The required vector is `I_neutrino_vec`, with ten carriers:
 `I_neutrino_vec` is not `dL_lex`, not `dF`, not a detector signature, and not
 proof of detection.
 
+If the packet includes `chapter7_transition_profile`, the admission gate can
+also preserve `admitted_chapter7_transition`. The separate chapter-7 readout
+command may then compute the public-safe simulation readout after Synthia has
+approved the transition:
+
+```bash
+python -m fnp_qnn_cli --json neutrino chapter7-readout --input tests/fixtures/neutrino_chapter7_valid_admission.json
+```
+
+This readout may return `D_f`, `D_f_hat`, `dF`, and
+`i_fractal_candidate`, but only as a conditional educational simulation
+candidate. It is not detector evidence and it is not physical proof.
+
 The maintained boundary is:
 
 - educational simulation;

@@ -73,6 +73,9 @@ REFUSAL_CATEGORIES = (
     "vector_claim_as_physical_detection",
     "vector_claim_as_physical_proof",
     "synthia_packet_contains_fnp_computation_fields",
+    "invalid_chapter7_transition_profile",
+    "chapter7_not_ready_after_synthia",
+    "chapter7_lexicon_gap_mismatch",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
 VALID_CHAPTER5_CARRIER_FAMILIES = {
@@ -110,6 +113,7 @@ class FNPAdmissionDecision:
     admitted_chapter5_intake: Mapping[str, object] | None = None
     admitted_chapter6_vector: Mapping[str, object] | None = None
     chapter6_guardrail_check: Mapping[str, object] | None = None
+    admitted_chapter7_transition: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -132,6 +136,8 @@ class FNPAdmissionDecision:
             payload["admitted_chapter6_vector"] = dict(self.admitted_chapter6_vector)
         if self.chapter6_guardrail_check is not None:
             payload["chapter6_guardrail_check"] = dict(self.chapter6_guardrail_check)
+        if self.admitted_chapter7_transition is not None:
+            payload["admitted_chapter7_transition"] = dict(self.admitted_chapter7_transition)
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -199,6 +205,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter7_reasons, admitted_chapter7_transition = _validate_chapter7_transition_profile(packet, d_l_lex)
+    for code in chapter7_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -219,6 +230,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         admitted_chapter5_intake=admitted_chapter5_intake,
         admitted_chapter6_vector=admitted_chapter6_vector,
         chapter6_guardrail_check=chapter6_guardrail_check,
+        admitted_chapter7_transition=admitted_chapter7_transition,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -238,6 +250,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "admitted_chapter5_intake": decision.admitted_chapter5_intake,
         "admitted_chapter6_vector": decision.admitted_chapter6_vector,
         "chapter6_guardrail_check": decision.chapter6_guardrail_check,
+        "admitted_chapter7_transition": decision.admitted_chapter7_transition,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -506,6 +519,50 @@ def _validate_chapter6_vector_profile(
         if isinstance(profile.get("vector_invariants"), list)
         else [],
     }, dict(guardrail)
+
+
+def _validate_chapter7_transition_profile(
+    packet: Mapping[str, Any],
+    packet_d_l_lex: float | None,
+) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter7_transition_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter7_transition_profile"], None
+
+    reason_codes: list[str] = []
+    if profile.get("profile_version") != "chapter7.synthia_transition_public_safe.v1":
+        reason_codes.append("invalid_chapter7_transition_profile")
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    passage = _nested_mapping(profile, "passage_test")
+    reading = _nested_mapping(profile, "synthia_reading")
+    gate = _nested_mapping(profile, "chapter7_gate")
+    if not passage or not reading or not gate:
+        reason_codes.append("invalid_chapter7_transition_profile")
+    if passage.get("ready_for_FNP") != "false_before_Synthia":
+        reason_codes.append("invalid_chapter7_transition_profile")
+    if gate.get("ready_for_FNP") != "true_after_Synthia" or gate.get("approved_for_fnp") is not True:
+        reason_codes.append("chapter7_not_ready_after_synthia")
+
+    reading_d_l_lex = _optional_float(reading.get("dL_lex"))
+    if packet_d_l_lex is None or reading_d_l_lex is None or abs(packet_d_l_lex - reading_d_l_lex) > 1e-8:
+        reason_codes.append("chapter7_lexicon_gap_mismatch")
+
+    if reason_codes:
+        return reason_codes, None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "I_neutrino_definition": profile.get("I_neutrino_definition"),
+        "passage_test": dict(passage),
+        "synthia_reading": dict(reading),
+        "chapter7_gate": dict(gate),
+        "transition_invariants": list(profile.get("transition_invariants", []))
+        if isinstance(profile.get("transition_invariants"), list)
+        else [],
+    }
 
 
 def _admitted_chapter3_carriers(profile: Mapping[str, Any]) -> dict[str, object]:

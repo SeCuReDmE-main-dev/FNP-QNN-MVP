@@ -148,6 +148,20 @@ the ten carriers `I_source`, `I_flavor`, `I_mass`, `I_mix`, `I_phase`,
 `I_uncertainty`. `I_neutrino_vec` remains a chamber object: it is not `dL_lex`,
 not `dF`, not a detector signature, and not proof of a real neutrino detection.
 
+When the Synthia packet includes an additive `chapter7_transition_profile`, the
+admission gate can preserve `admitted_chapter7_transition` without computing.
+A separate public-safe command can then build the chapter-7 readout only after
+Synthia admission:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter7-readout --input tests\fixtures\neutrino_chapter7_valid_admission.json
+```
+
+The chapter-7 readout can expose `D_f`, `D_f_hat`, `dF`, and
+`i_fractal_candidate` as simulation outputs after admission. The candidate is
+not proof, simulation is not detection, and `I_neutrino_vec` remains the
+primary chamber object.
+
 ## Current Status
 
 Validated locally:
