@@ -162,6 +162,20 @@ The chapter-7 readout can expose `D_f`, `D_f_hat`, `dF`, and
 not proof, simulation is not detection, and `I_neutrino_vec` remains the
 primary chamber object.
 
+When the Synthia packet includes an additive `chapter8_run_profile`, the
+admission gate can preserve `admitted_chapter8_run`. A separate public-safe
+command validates only first-run permission:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter8-run --input tests\fixtures\neutrino_chapter8_valid_admission.json
+```
+
+The chapter-8 run command returns a triadic run status and permission to
+continue under guardrails. It does not compute `D_f`, `D_f_hat`, `dF`,
+`i_fractal`, or `i_fractal_candidate`. `permission_to_continue` is not proof,
+`admissible_under_guardrails` is not detection, and suspended or rejected runs
+must stay visible instead of being converted into numeric shortcuts.
+
 ## Current Status
 
 Validated locally:

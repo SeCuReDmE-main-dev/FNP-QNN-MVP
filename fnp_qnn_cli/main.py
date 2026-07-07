@@ -348,6 +348,8 @@ def build_parser() -> argparse.ArgumentParser:
     neutrino_chapter5.add_argument("--input", required=True, help="Path to Synthia LexPacket JSON with carrier_request.")
     neutrino_chapter7 = neutrino_sub.add_parser("chapter7-readout", help="Build chapter-7 public-safe FNP readout.")
     neutrino_chapter7.add_argument("--input", required=True, help="Path to Synthia LexPacket JSON with chapter7_readout_request.")
+    neutrino_chapter8 = neutrino_sub.add_parser("chapter8-run", help="Validate chapter-8 first-run permission.")
+    neutrino_chapter8.add_argument("--input", required=True, help="Path to Synthia LexPacket JSON with chapter8_run_profile.")
 
     legacy = subparsers.add_parser("legacy", help="Legacy fixture commands.")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
@@ -818,6 +820,12 @@ def run_args(args: argparse.Namespace) -> int:
         from core.neutrino_chapter7_readout import neutrino_chapter7_readout_from_file
 
         payload = neutrino_chapter7_readout_from_file(args.input)
+        return _emit(payload, as_json)
+
+    if args.section == "neutrino" and args.neutrino_command == "chapter8-run":
+        from core.neutrino_chapter8_run_permission import neutrino_chapter8_run_permission_from_file
+
+        payload = neutrino_chapter8_run_permission_from_file(args.input)
         return _emit(payload, as_json)
 
     if args.section == "legacy" and args.legacy_command == "demo":

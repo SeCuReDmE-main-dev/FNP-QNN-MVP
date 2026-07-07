@@ -86,6 +86,19 @@ This readout may return `D_f`, `D_f_hat`, `dF`, and
 `i_fractal_candidate`, but only as a conditional educational simulation
 candidate. It is not detector evidence and it is not physical proof.
 
+If the packet includes `chapter8_run_profile`, the admission gate can preserve
+`admitted_chapter8_run`. The separate chapter-8 command validates whether the
+first run may continue:
+
+```bash
+python -m fnp_qnn_cli --json neutrino chapter8-run --input tests/fixtures/neutrino_chapter8_valid_admission.json
+```
+
+This command returns permission status only. It does not compute `D_f`,
+`D_f_hat`, `dF`, `i_fractal`, or `i_fractal_candidate`. The allowed status
+`admissible_under_guardrails` means the run may continue inside the educational
+simulation boundary; it is not detection and not proof.
+
 The maintained boundary is:
 
 - educational simulation;
