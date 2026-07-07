@@ -65,6 +65,14 @@ python -m fnp_qnn_cli --json neutrino chapter5-carrier --input tests/fixtures/ne
 The chapter-5 carrier command does not compute `dF`, `i_fractal`, or
 `i_fractal_candidate`; those remain outside this public-safe step.
 
+If the packet includes `chapter6_vector_profile`, the admission gate can also
+preserve `admitted_chapter6_vector` and `chapter6_guardrail_check` without
+computing friction. The required vector is `I_neutrino_vec`, with ten carriers:
+`I_source`, `I_flavor`, `I_mass`, `I_mix`, `I_phase`, `I_medium`,
+`I_interaction`, `I_secondary`, `I_detector`, and `I_uncertainty`.
+`I_neutrino_vec` is not `dL_lex`, not `dF`, not a detector signature, and not
+proof of detection.
+
 The maintained boundary is:
 
 - educational simulation;

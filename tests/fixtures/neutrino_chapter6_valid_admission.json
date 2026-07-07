@@ -1,0 +1,148 @@
+{
+  "LexPacket_neutrino": {
+    "schema_version": "synthia.lex_neutrino.v1",
+    "event_id": "chapter6-public-safe-neutrino-001",
+    "Adm_lex": true,
+    "dL_lex": 0.12,
+    "decision": {
+      "status": "accepted",
+      "next_action": "admit_to_fnp",
+      "reason_codes": []
+    },
+    "refusal_packet": {
+      "blocked": false,
+      "reason_codes": [],
+      "next_action": "admit_to_fnp",
+      "source_layer": "lexical"
+    },
+    "source_layer": "lexical",
+    "boundary": "simulation_not_detection",
+    "chapter6_vector_profile": {
+      "profile_version": "chapter6.i_neutrino_vector_public_safe.v1",
+      "vector_definition": "I_neutrino = I_neutrino_vec within chamber frame only",
+      "I_neutrino_vec": {
+        "carrier_order": [
+          "I_source",
+          "I_flavor",
+          "I_mass",
+          "I_mix",
+          "I_phase",
+          "I_medium",
+          "I_interaction",
+          "I_secondary",
+          "I_detector",
+          "I_uncertainty"
+        ],
+        "carriers": {
+          "I_source": {
+            "source_type": "toy_simulation",
+            "source_status": "simulation_input",
+            "source_truth_status": "present",
+            "boundary": "no_real_detection_claim"
+          },
+          "I_flavor": {
+            "created_flavor": "nu_mu",
+            "flavor_basis": {
+              "e": 0.0,
+              "mu": 1.0,
+              "tau": 0.0
+            },
+            "guardrail": "flavor_weak_state != mass_propagation_state"
+          },
+          "I_mass": {
+            "mass_basis": {
+              "nu_1": 0.17,
+              "nu_2": 0.33,
+              "nu_3": 0.5
+            },
+            "mass_weights_status": "toy_simulation"
+          },
+          "I_mix": {
+            "mixing_model": "PMNS_like_toy",
+            "mixing_status": "toy_simulation"
+          },
+          "I_phase": {
+            "distance_km": 295.0,
+            "energy_gev": 0.6,
+            "L_over_E": 491.66666667,
+            "phase_evolution_status": "available"
+          },
+          "I_medium": {
+            "medium_type": "vacuum",
+            "density_status": "not_applicable",
+            "matter_effect_status": "ignored_in_phase1",
+            "MSW_status": "not_used"
+          },
+          "I_interaction": {
+            "channel": "weak_CC",
+            "primary_interaction": "weak"
+          },
+          "I_secondary": {
+            "products": [
+              "muon_like_track"
+            ],
+            "secondary_status": "declared"
+          },
+          "I_detector": {
+            "projection": "toy muon-like indirect projection",
+            "detector_projection_status": "indirect",
+            "visibility_status": "indirect"
+          },
+          "I_uncertainty": {
+            "TIF_profile": {
+              "T": 0.88,
+              "I": 0.12,
+              "F": 0.0
+            },
+            "source_gap": "none",
+            "model_gap": "phase1_toy",
+            "detector_gap": "high_for_real_detection",
+            "simulation_gap": "declared",
+            "FNP_pending_status": "no_FNP_before_admission",
+            "unknown_fields": [],
+            "guardrail_residuals": [
+              "no_real_detection_claim",
+              "no_strong_primary_claim",
+              "no_literal_mass_change_claim"
+            ]
+          }
+        },
+        "missing_carriers": [],
+        "vector_status": "assembled"
+      },
+      "GuardrailCheck": {
+        "source_declared": true,
+        "simulation_status_declared": true,
+        "no_real_detection_claim": true,
+        "flavor_mass_separated": true,
+        "mass_weights_marked_toy": true,
+        "weak_channel_declared": true,
+        "strong_primary_claim": false,
+        "detector_trace_not_object": true,
+        "phase_not_choice": true,
+        "dL_lex_not_downstream_friction": true,
+        "lexical_load": 0.12,
+        "ready_for_Synthia": true,
+        "ready_for_FNP": "false_before_Synthia"
+      },
+      "readiness": {
+        "ready_for_Synthia": true,
+        "ready_for_FNP": "false_before_Synthia",
+        "next_required_gate": "Synthia lexical admission before FNP friction"
+      },
+      "projection_policy": {
+        "lexical_projection": "dL_lex = Pi_lex(I_neutrino_vec)",
+        "friction_policy": "FNP friction only after admission",
+        "lexical_load_value": 0.12
+      },
+      "vector_invariants": [
+        "I_neutrino_vec != dL_lex",
+        "I_neutrino_vec != downstream friction",
+        "I_neutrino_vec != detector_signature",
+        "dL_lex != downstream friction",
+        "I_lexicon != downstream fractal admission",
+        "simulation != real_detection"
+      ]
+    }
+  }
+}

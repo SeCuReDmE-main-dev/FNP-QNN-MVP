@@ -44,6 +44,10 @@ def _chapter5_packet():
     return json.loads(Path("tests/fixtures/neutrino_chapter5_valid_admission.json").read_text(encoding="utf-8"))
 
 
+def _chapter6_packet():
+    return json.loads(Path("tests/fixtures/neutrino_chapter6_valid_admission.json").read_text(encoding="utf-8"))
+
+
 def _assert_no_key(payload, forbidden_key):
     if isinstance(payload, dict):
         testcase = unittest.TestCase()
@@ -275,6 +279,61 @@ class NeutrinoAdmissionGateTests(unittest.TestCase):
 
         self.assertFalse(decision.can_compute_fnp)
         self.assertIn("synthia_packet_contains_fnp_computation_fields", decision.reason_codes)
+
+    def test_chapter6_vector_profile_is_admitted_without_computation(self):
+        payload = neutrino_guardrail_check(_chapter6_packet())
+
+        self.assertTrue(payload["can_compute_fnp"])
+        vector = payload["admitted_chapter6_vector"]["I_neutrino_vec"]
+        self.assertEqual(len(vector["carrier_order"]), 10)
+        self.assertIn("I_uncertainty", vector["carriers"])
+        self.assertTrue(payload["chapter6_guardrail_check"]["ready_for_Synthia"])
+        self.assertEqual(payload["chapter6_guardrail_check"]["ready_for_FNP"], "false_before_Synthia")
+        _assert_no_key(payload, "D_f")
+        _assert_no_key(payload, "D_f_hat")
+        _assert_no_key(payload, "dF")
+        _assert_no_key(payload, "i_fractal")
+        _assert_no_key(payload, "i_fractal_candidate")
+
+    def test_chapter6_missing_carrier_is_blocked(self):
+        packet = _chapter6_packet()
+        carriers = packet["LexPacket_neutrino"]["chapter6_vector_profile"]["I_neutrino_vec"]["carriers"]
+        carriers.pop("I_medium")
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("missing_i_neutrino_vector_carrier", decision.reason_codes)
+
+    def test_chapter6_missing_uncertainty_is_blocked(self):
+        packet = _chapter6_packet()
+        carriers = packet["LexPacket_neutrino"]["chapter6_vector_profile"]["I_neutrino_vec"]["carriers"]
+        carriers.pop("I_uncertainty")
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("i_uncertainty_missing", decision.reason_codes)
+
+    def test_chapter6_forbidden_fnp_field_is_blocked(self):
+        packet = _chapter6_packet()
+        profile = packet["LexPacket_neutrino"]["chapter6_vector_profile"]
+        profile["I_neutrino_vec"]["carriers"]["I_phase"]["dF"] = 0.4
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("synthia_packet_contains_fnp_computation_fields", decision.reason_codes)
+
+    def test_chapter6_ready_for_fnp_before_synthia_is_blocked(self):
+        packet = _chapter6_packet()
+        guard = packet["LexPacket_neutrino"]["chapter6_vector_profile"]["GuardrailCheck"]
+        guard["ready_for_FNP"] = True
+
+        decision = validate_synthia_admission(packet)
+
+        self.assertFalse(decision.can_compute_fnp)
+        self.assertIn("ready_for_fnp_before_synthia", decision.reason_codes)
 
 
 if __name__ == "__main__":

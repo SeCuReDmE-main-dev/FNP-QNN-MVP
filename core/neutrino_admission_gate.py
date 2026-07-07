@@ -61,6 +61,17 @@ REFUSAL_CATEGORIES = (
     "missing_carrier_request",
     "invalid_carrier_family",
     "missing_scale_context",
+    "invalid_chapter6_vector_profile",
+    "missing_i_neutrino_vector_carrier",
+    "i_neutrino_vec_equals_dL_lex",
+    "i_neutrino_vec_equals_dF",
+    "i_neutrino_vec_equals_detector_signature",
+    "i_uncertainty_missing",
+    "uncertainty_collapsed_to_zero",
+    "ready_for_fnp_before_synthia",
+    "guardrail_check_missing",
+    "vector_claim_as_physical_detection",
+    "vector_claim_as_physical_proof",
     "synthia_packet_contains_fnp_computation_fields",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
@@ -73,6 +84,18 @@ VALID_CHAPTER5_CARRIER_FAMILIES = {
     "scale_transition_carrier",
     "null_carrier",
 }
+CHAPTER6_REQUIRED_CARRIERS = (
+    "I_source",
+    "I_flavor",
+    "I_mass",
+    "I_mix",
+    "I_phase",
+    "I_medium",
+    "I_interaction",
+    "I_secondary",
+    "I_detector",
+    "I_uncertainty",
+)
 
 
 @dataclass(frozen=True)
@@ -85,6 +108,8 @@ class FNPAdmissionDecision:
     admitted_chapter3_carriers: Mapping[str, object] | None
     admitted_chapter4_guard: Mapping[str, object] | None = None
     admitted_chapter5_intake: Mapping[str, object] | None = None
+    admitted_chapter6_vector: Mapping[str, object] | None = None
+    chapter6_guardrail_check: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -103,6 +128,10 @@ class FNPAdmissionDecision:
             payload["admitted_chapter4_guard"] = dict(self.admitted_chapter4_guard)
         if self.admitted_chapter5_intake is not None:
             payload["admitted_chapter5_intake"] = dict(self.admitted_chapter5_intake)
+        if self.admitted_chapter6_vector is not None:
+            payload["admitted_chapter6_vector"] = dict(self.admitted_chapter6_vector)
+        if self.chapter6_guardrail_check is not None:
+            payload["chapter6_guardrail_check"] = dict(self.chapter6_guardrail_check)
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -165,6 +194,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter6_reasons, admitted_chapter6_vector, chapter6_guardrail_check = _validate_chapter6_vector_profile(packet)
+    for code in chapter6_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -183,6 +217,8 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         admitted_chapter3_carriers=admitted_chapter3_carriers,
         admitted_chapter4_guard=admitted_chapter4_guard,
         admitted_chapter5_intake=admitted_chapter5_intake,
+        admitted_chapter6_vector=admitted_chapter6_vector,
+        chapter6_guardrail_check=chapter6_guardrail_check,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -200,6 +236,8 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "admitted_chapter3_carriers": decision.admitted_chapter3_carriers,
         "admitted_chapter4_guard": decision.admitted_chapter4_guard,
         "admitted_chapter5_intake": decision.admitted_chapter5_intake,
+        "admitted_chapter6_vector": decision.admitted_chapter6_vector,
+        "chapter6_guardrail_check": decision.chapter6_guardrail_check,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -402,6 +440,72 @@ def _validate_chapter5_intake_profile(packet: Mapping[str, Any]) -> tuple[list[s
         "guard_state": dict(guard_state),
         "Adm_FNP_required": bool(profile.get("Adm_FNP_required")),
     }
+
+
+def _validate_chapter6_vector_profile(
+    packet: Mapping[str, Any],
+) -> tuple[list[str], Mapping[str, object] | None, Mapping[str, object] | None]:
+    profile = packet.get("chapter6_vector_profile")
+    if profile is None:
+        return [], None, None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter6_vector_profile"], None, None
+
+    reason_codes: list[str] = []
+    if profile.get("profile_version") != "chapter6.i_neutrino_vector_public_safe.v1":
+        reason_codes.append("invalid_chapter6_vector_profile")
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    vector = _nested_mapping(profile, "I_neutrino_vec")
+    carriers = _nested_mapping(vector, "carriers")
+    carrier_order = vector.get("carrier_order")
+    if not vector or not carriers or not isinstance(carrier_order, list):
+        reason_codes.append("invalid_chapter6_vector_profile")
+    else:
+        missing = [name for name in CHAPTER6_REQUIRED_CARRIERS if name not in carriers or not carriers.get(name)]
+        if missing:
+            reason_codes.append("missing_i_neutrino_vector_carrier")
+        if "I_uncertainty" in missing or not isinstance(carriers.get("I_uncertainty"), Mapping):
+            reason_codes.append("i_uncertainty_missing")
+        if list(carrier_order) != list(CHAPTER6_REQUIRED_CARRIERS):
+            reason_codes.append("invalid_chapter6_vector_profile")
+
+    guardrail = _nested_mapping(profile, "GuardrailCheck")
+    if not guardrail:
+        reason_codes.append("guardrail_check_missing")
+    else:
+        if guardrail.get("ready_for_Synthia") is not True:
+            reason_codes.append("guardrail_check_missing")
+        if guardrail.get("ready_for_FNP") is True or str(guardrail.get("ready_for_FNP", "")).lower() == "true":
+            reason_codes.append("ready_for_fnp_before_synthia")
+        if guardrail.get("strong_primary_claim") is True:
+            reason_codes.append("strong_primary_interaction_claim")
+        if guardrail.get("no_real_detection_claim") is False:
+            reason_codes.append("real_detection_claim")
+        if guardrail.get("detector_trace_not_object") is False:
+            reason_codes.append("trace_as_neutrino_total")
+
+    text = _json_text(profile)
+    if _contains_any(text, ("i_neutrino_vec = dl_lex", "i_neutrino_vec equals dl_lex")):
+        reason_codes.append("i_neutrino_vec_equals_dL_lex")
+    if _contains_any(text, ("i_neutrino_vec = df", "i_neutrino_vec equals df")):
+        reason_codes.append("i_neutrino_vec_equals_dF")
+    if _contains_any(text, ("i_neutrino_vec = detector_signature", "i_neutrino_vec equals detector_signature")):
+        reason_codes.append("i_neutrino_vec_equals_detector_signature")
+
+    if reason_codes:
+        return reason_codes, None, dict(guardrail) if guardrail else None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "vector_definition": profile.get("vector_definition"),
+        "I_neutrino_vec": dict(vector),
+        "readiness": dict(_nested_mapping(profile, "readiness")),
+        "projection_policy": dict(_nested_mapping(profile, "projection_policy")),
+        "vector_invariants": list(profile.get("vector_invariants", []))
+        if isinstance(profile.get("vector_invariants"), list)
+        else [],
+    }, dict(guardrail)
 
 
 def _admitted_chapter3_carriers(profile: Mapping[str, Any]) -> dict[str, object]:
