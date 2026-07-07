@@ -10,6 +10,7 @@
     "event_emitter",
     "metrics_envelope",
     "qbit_badge",
+    "qbit_badge_asset_file",
     "qbit_nudge",
     "secret_rejection",
     "consent_scope",
@@ -29,5 +30,10 @@
   "consent_scope": "suite",
   "route_plan_dry_run": true,
   "dry_run": true,
-  "raw_secret_stored": false
+  "raw_secret_stored": false,
+  "qbit_badge_asset": ".codex/algoquest-qbit-assets/algoquest-tiny-mark.png",
+  "qbit_badge_asset_role": "tiny-cross-app-mark",
+  "qbit_badge_asset_sha256": "CCE91C32706FC46EAD23A84CDD344D94204DA8D8450A3E24FCFFB613903D934D",
+  "qbit_badge_asset_source": "algoquest-ams-discovry-labs-module-/assets/brand-selected/algoquest-tiny-mark.png"
 }
+
