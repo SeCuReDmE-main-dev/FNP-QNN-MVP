@@ -76,6 +76,15 @@ REFUSAL_CATEGORIES = (
     "invalid_chapter7_transition_profile",
     "chapter7_not_ready_after_synthia",
     "chapter7_lexicon_gap_mismatch",
+    "invalid_chapter8_run_profile",
+    "chapter8_not_admissible",
+    "chapter8_missing_permission",
+    "chapter8_permission_as_proof",
+    "chapter8_admissible_as_detection",
+    "chapter8_suspended_as_zero",
+    "chapter8_rejected_as_noise",
+    "chapter8_unbounded_next_step",
+    "chapter8_candidate_as_proof",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
 VALID_CHAPTER5_CARRIER_FAMILIES = {
@@ -114,6 +123,7 @@ class FNPAdmissionDecision:
     admitted_chapter6_vector: Mapping[str, object] | None = None
     chapter6_guardrail_check: Mapping[str, object] | None = None
     admitted_chapter7_transition: Mapping[str, object] | None = None
+    admitted_chapter8_run: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -138,6 +148,8 @@ class FNPAdmissionDecision:
             payload["chapter6_guardrail_check"] = dict(self.chapter6_guardrail_check)
         if self.admitted_chapter7_transition is not None:
             payload["admitted_chapter7_transition"] = dict(self.admitted_chapter7_transition)
+        if self.admitted_chapter8_run is not None:
+            payload["admitted_chapter8_run"] = dict(self.admitted_chapter8_run)
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -210,6 +222,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter8_reasons, admitted_chapter8_run = _validate_chapter8_run_profile(packet)
+    for code in chapter8_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -231,6 +248,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         admitted_chapter6_vector=admitted_chapter6_vector,
         chapter6_guardrail_check=chapter6_guardrail_check,
         admitted_chapter7_transition=admitted_chapter7_transition,
+        admitted_chapter8_run=admitted_chapter8_run,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -251,6 +269,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "admitted_chapter6_vector": decision.admitted_chapter6_vector,
         "chapter6_guardrail_check": decision.chapter6_guardrail_check,
         "admitted_chapter7_transition": decision.admitted_chapter7_transition,
+        "admitted_chapter8_run": decision.admitted_chapter8_run,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -562,6 +581,66 @@ def _validate_chapter7_transition_profile(
         "transition_invariants": list(profile.get("transition_invariants", []))
         if isinstance(profile.get("transition_invariants"), list)
         else [],
+    }
+
+
+def _validate_chapter8_run_profile(packet: Mapping[str, Any]) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter8_run_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter8_run_profile"], None
+
+    reason_codes: list[str] = []
+    if profile.get("profile_version") != "chapter8.first_run_public_safe.v1":
+        reason_codes.append("invalid_chapter8_run_profile")
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    run_input = _nested_mapping(profile, "run_input")
+    synthia_gate = _nested_mapping(profile, "synthia_gate")
+    run_decision = _nested_mapping(profile, "run_decision")
+    run_permission = _nested_mapping(profile, "run_permission")
+    if not run_input or not synthia_gate or not run_decision or not run_permission:
+        reason_codes.append("invalid_chapter8_run_profile")
+
+    if run_input.get("ready_for_FNP") != "false_before_Synthia":
+        reason_codes.append("invalid_chapter8_run_profile")
+    if synthia_gate.get("ready_for_FNP") != "true_after_Synthia" or synthia_gate.get("approved_for_fnp") is not True:
+        reason_codes.append("chapter8_not_admissible")
+
+    run_status = str(run_decision.get("run_status", "")).strip()
+    if run_status not in {"admissible_under_guardrails", "suspended", "rejected"}:
+        reason_codes.append("invalid_chapter8_run_profile")
+    if run_status != "admissible_under_guardrails":
+        reason_codes.append("chapter8_not_admissible")
+
+    if run_permission.get("permission_to_continue") is not True:
+        reason_codes.append("chapter8_missing_permission")
+    if run_permission.get("allowed_next_step") != "FNP_QNN_readout":
+        reason_codes.append("chapter8_unbounded_next_step")
+
+    forbidden = run_permission.get("forbidden_upgrades")
+    forbidden_set = set(forbidden) if isinstance(forbidden, list) else set()
+    required_forbidden = {
+        "permission_to_continue_as_proof",
+        "admissible_as_detection",
+        "simulation_as_real_detection",
+        "candidate_as_proof",
+        "FNP_before_Synthia",
+    }
+    if not required_forbidden <= forbidden_set:
+        reason_codes.append("invalid_chapter8_run_profile")
+
+    if reason_codes:
+        return reason_codes, None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "run_input": dict(run_input),
+        "synthia_gate": dict(synthia_gate),
+        "run_decision": dict(run_decision),
+        "run_permission": dict(run_permission),
+        "invariants": list(profile.get("invariants", [])) if isinstance(profile.get("invariants"), list) else [],
     }
 
 
