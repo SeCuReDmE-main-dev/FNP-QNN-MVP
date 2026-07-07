@@ -140,6 +140,14 @@ The chapter-5 carrier command does not compute `dF`, `i_fractal`, or
 `i_fractal_candidate`. It keeps `D_f_hat` as a bounded local carrier only and
 leaves downstream friction for the later chapter-5 step.
 
+When the Synthia packet includes an additive `chapter6_vector_profile`, the
+admission gate can preserve `admitted_chapter6_vector` and
+`chapter6_guardrail_check` without computing friction. The vector must contain
+the ten carriers `I_source`, `I_flavor`, `I_mass`, `I_mix`, `I_phase`,
+`I_medium`, `I_interaction`, `I_secondary`, `I_detector`, and
+`I_uncertainty`. `I_neutrino_vec` remains a chamber object: it is not `dL_lex`,
+not `dF`, not a detector signature, and not proof of a real neutrino detection.
+
 ## Current Status
 
 Validated locally:
