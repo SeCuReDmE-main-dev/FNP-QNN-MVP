@@ -190,6 +190,20 @@ guardrails. It does not reproduce T2K, does not measure CP violation, does not
 claim real detection, does not treat a source stack as proof, and does not
 compute `D_f`, `D_f_hat`, `dF`, `i_fractal`, or `i_fractal_candidate`.
 
+When the Synthia packet includes an additive `chapter10_chamber_profile`, the
+admission gate can preserve `admitted_chapter10_chamber`. A separate public-safe
+command validates the declared chamber, container, simulated event, and run
+contract for the next first passage:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter10-contract --input tests\fixtures\neutrino_chapter10_valid_admission.json
+```
+
+The chapter-10 contract command may prepare the chapter-11 run under declared
+controls. It does not execute the run, does not reproduce T2K, does not measure
+CP violation, does not treat a chamber or container as detector proof, and does
+not compute `D_f`, `D_f_hat`, `dF`, `i_fractal`, or `i_fractal_candidate`.
+
 ## Current Status
 
 Validated locally:

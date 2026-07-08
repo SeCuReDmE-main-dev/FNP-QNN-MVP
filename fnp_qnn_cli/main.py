@@ -352,6 +352,15 @@ def build_parser() -> argparse.ArgumentParser:
     neutrino_chapter8.add_argument("--input", required=True, help="Path to Synthia LexPacket JSON with chapter8_run_profile.")
     neutrino_chapter9 = neutrino_sub.add_parser("chapter9-choice", help="Validate chapter-9 central experiment choice.")
     neutrino_chapter9.add_argument("--input", required=True, help="Path to Synthia LexPacket JSON with chapter9_source_choice_profile.")
+    neutrino_chapter10 = neutrino_sub.add_parser(
+        "chapter10-contract",
+        help="Validate chapter-10 chamber/container/run contract.",
+    )
+    neutrino_chapter10.add_argument(
+        "--input",
+        required=True,
+        help="Path to Synthia LexPacket JSON with chapter10_chamber_profile.",
+    )
 
     legacy = subparsers.add_parser("legacy", help="Legacy fixture commands.")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
@@ -834,6 +843,12 @@ def run_args(args: argparse.Namespace) -> int:
         from core.neutrino_chapter9_experiment_choice import neutrino_chapter9_experiment_choice_from_file
 
         payload = neutrino_chapter9_experiment_choice_from_file(args.input)
+        return _emit(payload, as_json)
+
+    if args.section == "neutrino" and args.neutrino_command == "chapter10-contract":
+        from core.neutrino_chapter10_run_contract import neutrino_chapter10_run_contract_from_file
+
+        payload = neutrino_chapter10_run_contract_from_file(args.input)
         return _emit(payload, as_json)
 
     if args.section == "legacy" and args.legacy_command == "demo":

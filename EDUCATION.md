@@ -111,6 +111,20 @@ This command can only prepare the next educational container. It is not T2K
 reproduction, not a CP measurement, not detector evidence, not physical proof,
 and not a downstream fractal calculation.
 
+If the packet includes `chapter10_chamber_profile`, the admission gate can
+preserve `admitted_chapter10_chamber`. The separate chapter-10 command validates
+the declared chamber, container, simulated event, and run contract for the next
+controlled passage:
+
+```bash
+python -m fnp_qnn_cli --json neutrino chapter10-contract --input tests/fixtures/neutrino_chapter10_valid_admission.json
+```
+
+This command can only prepare a chapter-11 run contract. It does not execute the
+run, does not reproduce T2K, does not measure CP violation, does not treat a
+container as physical proof, and does not compute `D_f`, `D_f_hat`, `dF`,
+`i_fractal`, or `i_fractal_candidate`.
+
 The maintained boundary is:
 
 - educational simulation;
