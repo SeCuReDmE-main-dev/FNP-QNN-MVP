@@ -99,6 +99,18 @@ This command returns permission status only. It does not compute `D_f`,
 `admissible_under_guardrails` means the run may continue inside the educational
 simulation boundary; it is not detection and not proof.
 
+If the packet includes `chapter9_source_choice_profile`, the admission gate can
+preserve `admitted_chapter9_source_choice`. The separate chapter-9 command
+validates the public source registry and the central T2K-like simulation choice:
+
+```bash
+python -m fnp_qnn_cli --json neutrino chapter9-choice --input tests/fixtures/neutrino_chapter9_valid_admission.json
+```
+
+This command can only prepare the next educational container. It is not T2K
+reproduction, not a CP measurement, not detector evidence, not physical proof,
+and not a downstream fractal calculation.
+
 The maintained boundary is:
 
 - educational simulation;

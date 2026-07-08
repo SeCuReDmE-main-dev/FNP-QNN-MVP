@@ -176,6 +176,20 @@ continue under guardrails. It does not compute `D_f`, `D_f_hat`, `dF`,
 `admissible_under_guardrails` is not detection, and suspended or rejected runs
 must stay visible instead of being converted into numeric shortcuts.
 
+When the Synthia packet includes an additive `chapter9_source_choice_profile`,
+the admission gate can preserve `admitted_chapter9_source_choice`. A separate
+public-safe command validates only the source registry and central T2K-like
+simulation choice:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter9-choice --input tests\fixtures\neutrino_chapter9_valid_admission.json
+```
+
+The chapter-9 choice command may prepare the chapter-10 container under
+guardrails. It does not reproduce T2K, does not measure CP violation, does not
+claim real detection, does not treat a source stack as proof, and does not
+compute `D_f`, `D_f_hat`, `dF`, `i_fractal`, or `i_fractal_candidate`.
+
 ## Current Status
 
 Validated locally:
