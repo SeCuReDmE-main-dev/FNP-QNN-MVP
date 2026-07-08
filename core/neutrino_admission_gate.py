@@ -96,6 +96,21 @@ REFUSAL_CATEGORIES = (
     "chapter9_background_missing_as_zero",
     "chapter9_source_stack_as_proof",
     "chapter9_unbounded_experiment_choice",
+    "invalid_chapter10_chamber_profile",
+    "chapter10_missing_source_registry",
+    "chapter10_missing_container_contract",
+    "chapter10_missing_simulated_event",
+    "chapter10_missing_run_contract",
+    "chapter10_not_ready_after_synthia",
+    "chapter10_fnp_before_synthia",
+    "chapter10_chamber_as_detector",
+    "chapter10_container_as_proof",
+    "chapter10_event_as_detection",
+    "chapter10_t2k_reproduction_claim",
+    "chapter10_cp_measurement_claim",
+    "chapter10_background_missing_as_zero",
+    "chapter10_prepared_tension_as_df",
+    "chapter10_unbounded_manipulation",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
 VALID_CHAPTER5_CARRIER_FAMILIES = {
@@ -121,6 +136,7 @@ CHAPTER6_REQUIRED_CARRIERS = (
 )
 CHAPTER9_REQUIRED_SOURCE_IDS = {"SB60-002", "CH9-T2K-OSC-001", "SB60-052"}
 CHAPTER9_EXPERIMENT_ID = "chapter11_t2k_like_flavor_antiflavor_phase_projection"
+CHAPTER10_REQUIRED_SOURCE_IDS = {"CH10-GEANT4-001", "CH10-SCHEMA-001"}
 
 
 @dataclass(frozen=True)
@@ -138,6 +154,7 @@ class FNPAdmissionDecision:
     admitted_chapter7_transition: Mapping[str, object] | None = None
     admitted_chapter8_run: Mapping[str, object] | None = None
     admitted_chapter9_source_choice: Mapping[str, object] | None = None
+    admitted_chapter10_chamber: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -166,6 +183,8 @@ class FNPAdmissionDecision:
             payload["admitted_chapter8_run"] = dict(self.admitted_chapter8_run)
         if self.admitted_chapter9_source_choice is not None:
             payload["admitted_chapter9_source_choice"] = dict(self.admitted_chapter9_source_choice)
+        if self.admitted_chapter10_chamber is not None:
+            payload["admitted_chapter10_chamber"] = dict(self.admitted_chapter10_chamber)
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -248,6 +267,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter10_reasons, admitted_chapter10_chamber = _validate_chapter10_chamber_profile(packet)
+    for code in chapter10_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -271,6 +295,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         admitted_chapter7_transition=admitted_chapter7_transition,
         admitted_chapter8_run=admitted_chapter8_run,
         admitted_chapter9_source_choice=admitted_chapter9_source_choice,
+        admitted_chapter10_chamber=admitted_chapter10_chamber,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -293,6 +318,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "admitted_chapter7_transition": decision.admitted_chapter7_transition,
         "admitted_chapter8_run": decision.admitted_chapter8_run,
         "admitted_chapter9_source_choice": decision.admitted_chapter9_source_choice,
+        "admitted_chapter10_chamber": decision.admitted_chapter10_chamber,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -766,6 +792,122 @@ def _validate_chapter9_source_choice_profile(packet: Mapping[str, Any]) -> tuple
         "paths": dict(paths),
         "chapter8_dependency": dict(chapter8_dependency),
         "synthia_gate": dict(synthia_gate),
+        "forbidden_upgrades": list(forbidden_set),
+        "boundary": dict(_nested_mapping(profile, "boundary")),
+    }
+
+
+def _validate_chapter10_chamber_profile(packet: Mapping[str, Any]) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter10_chamber_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter10_chamber_profile"], None
+
+    reason_codes: list[str] = []
+    if profile.get("profile_version") != "chapter10.chamber_container_public_safe.v1":
+        reason_codes.append("invalid_chapter10_chamber_profile")
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    source_visibility = _nested_mapping(profile, "source_visibility")
+    chamber = _nested_mapping(profile, "Chamber_10")
+    container = _nested_mapping(profile, "EventContainer_10")
+    event = _nested_mapping(profile, "SimulatedNeutrinoEvent_10")
+    run_contract = _nested_mapping(profile, "RunContract_10")
+    run_prepared = _nested_mapping(profile, "RunPrepared_10")
+    synthia_gate = _nested_mapping(profile, "SynthiaGate_10")
+    chapter9_dependency = _nested_mapping(profile, "chapter9_dependency")
+
+    if not source_visibility or not chamber or not container or not event or not run_contract or not run_prepared:
+        reason_codes.append("invalid_chapter10_chamber_profile")
+
+    provided_sources = source_visibility.get("provided_source_ids")
+    provided_source_ids = {str(item).strip() for item in provided_sources} if isinstance(provided_sources, list) else set()
+    if source_visibility.get("registry_status") != "present" or not CHAPTER10_REQUIRED_SOURCE_IDS <= provided_source_ids:
+        reason_codes.append("chapter10_missing_source_registry")
+
+    if chamber.get("not_detector") is not True:
+        reason_codes.append("chapter10_chamber_as_detector")
+
+    if container.get("required_fields_present") is not True:
+        reason_codes.append("chapter10_missing_container_contract")
+    if str(container.get("container_boundary", "")).strip() != "container_valid != physical_proof":
+        reason_codes.append("chapter10_container_as_proof")
+
+    if str(event.get("event_status", "")).strip() != "educational_simulation":
+        reason_codes.append("chapter10_missing_simulated_event")
+    if str(event.get("detection_status", "")).strip() != "no_real_detection_claim":
+        reason_codes.append("chapter10_event_as_detection")
+    if str(event.get("reproduction_status", "")).strip() != "not_T2K_reproduction":
+        reason_codes.append("chapter10_t2k_reproduction_claim")
+    if str(event.get("measurement_status", "")).strip() != "no_CP_measurement_claim":
+        reason_codes.append("chapter10_cp_measurement_claim")
+
+    if str(run_contract.get("run_contract_status", "")).strip() != "declared":
+        reason_codes.append("chapter10_missing_run_contract")
+    if str(run_contract.get("contract_boundary", "")).strip() != "prepared_tension_slot != dF":
+        reason_codes.append("chapter10_prepared_tension_as_df")
+
+    if run_prepared.get("chapter11_execution_ready") is not True:
+        reason_codes.append("chapter10_not_ready_after_synthia")
+    if run_prepared.get("physical_claim_allowed") is not False:
+        reason_codes.append("chapter10_unbounded_manipulation")
+    if run_prepared.get("FNP_after_Synthia_only") is not True:
+        reason_codes.append("chapter10_fnp_before_synthia")
+
+    if (
+        synthia_gate.get("approved_for_container_validation") is not True
+        or synthia_gate.get("ready_for_FNP") != "true_after_Synthia_for_run_contract_validation"
+    ):
+        reason_codes.append("chapter10_not_ready_after_synthia")
+    if chapter9_dependency and chapter9_dependency.get("ready_for_container") is not True:
+        reason_codes.append("chapter10_not_ready_after_synthia")
+
+    forbidden = profile.get("forbidden_upgrades")
+    forbidden_set = set(forbidden) if isinstance(forbidden, list) else set()
+    required_forbidden = {
+        "chamber_as_detector",
+        "container_valid_as_physical_proof",
+        "simulated_event_as_detection",
+        "T2K_like_as_T2K_reproduction",
+        "path_comparison_as_CP_measurement",
+        "background_missing_as_zero",
+        "prepared_tension_slot_as_dF",
+        "FNP_before_Synthia",
+    }
+    if not required_forbidden <= forbidden_set:
+        reason_codes.append("invalid_chapter10_chamber_profile")
+
+    text = _json_text(profile)
+    if _contains_any(text, ("chamber = detector", "chamber is detector", "chambre = detecteur")):
+        reason_codes.append("chapter10_chamber_as_detector")
+    if _contains_any(text, ("container valid is proof", "container_valid = physical_proof")):
+        reason_codes.append("chapter10_container_as_proof")
+    if _contains_any(text, ("simulated event is detection", "simulatedneutrinoevent_10 = real_neutrino_event")):
+        reason_codes.append("chapter10_event_as_detection")
+    if _contains_any(text, ("t2k reproduced", "t2k reproduction claim", "t2k_like = t2k")):
+        reason_codes.append("chapter10_t2k_reproduction_claim")
+    if _contains_any(text, ("cp measurement claim", "path_comparison = cp_measurement", "cp violation measured")):
+        reason_codes.append("chapter10_cp_measurement_claim")
+    if _contains_any(text, ("background missing equals zero", "background_missing = background_zero")):
+        reason_codes.append("chapter10_background_missing_as_zero")
+    if _contains_any(text, ("prepared_tension_slot = df", "prepared tension is df")):
+        reason_codes.append("chapter10_prepared_tension_as_df")
+
+    if reason_codes:
+        return reason_codes, None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "chapter10_status": profile.get("chapter10_status"),
+        "source_visibility": dict(source_visibility),
+        "Chamber_10": dict(chamber),
+        "EventContainer_10": dict(container),
+        "SimulatedNeutrinoEvent_10": dict(event),
+        "RunContract_10": dict(run_contract),
+        "chapter9_dependency": dict(chapter9_dependency),
+        "SynthiaGate_10": dict(synthia_gate),
+        "RunPrepared_10": dict(run_prepared),
         "forbidden_upgrades": list(forbidden_set),
         "boundary": dict(_nested_mapping(profile, "boundary")),
     }
