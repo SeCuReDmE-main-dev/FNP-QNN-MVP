@@ -85,6 +85,17 @@ REFUSAL_CATEGORIES = (
     "chapter8_rejected_as_noise",
     "chapter8_unbounded_next_step",
     "chapter8_candidate_as_proof",
+    "invalid_chapter9_source_choice_profile",
+    "chapter9_missing_source_registry",
+    "chapter9_missing_central_experiment",
+    "chapter9_not_ready_after_synthia",
+    "chapter9_t2k_reproduction_claim",
+    "chapter9_cp_measurement_claim",
+    "chapter9_experiment_choice_as_detection",
+    "chapter9_math_source_as_physical_proof",
+    "chapter9_background_missing_as_zero",
+    "chapter9_source_stack_as_proof",
+    "chapter9_unbounded_experiment_choice",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
 VALID_CHAPTER5_CARRIER_FAMILIES = {
@@ -108,6 +119,8 @@ CHAPTER6_REQUIRED_CARRIERS = (
     "I_detector",
     "I_uncertainty",
 )
+CHAPTER9_REQUIRED_SOURCE_IDS = {"SB60-002", "CH9-T2K-OSC-001", "SB60-052"}
+CHAPTER9_EXPERIMENT_ID = "chapter11_t2k_like_flavor_antiflavor_phase_projection"
 
 
 @dataclass(frozen=True)
@@ -124,6 +137,7 @@ class FNPAdmissionDecision:
     chapter6_guardrail_check: Mapping[str, object] | None = None
     admitted_chapter7_transition: Mapping[str, object] | None = None
     admitted_chapter8_run: Mapping[str, object] | None = None
+    admitted_chapter9_source_choice: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -150,6 +164,8 @@ class FNPAdmissionDecision:
             payload["admitted_chapter7_transition"] = dict(self.admitted_chapter7_transition)
         if self.admitted_chapter8_run is not None:
             payload["admitted_chapter8_run"] = dict(self.admitted_chapter8_run)
+        if self.admitted_chapter9_source_choice is not None:
+            payload["admitted_chapter9_source_choice"] = dict(self.admitted_chapter9_source_choice)
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -227,6 +243,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter9_reasons, admitted_chapter9_source_choice = _validate_chapter9_source_choice_profile(packet)
+    for code in chapter9_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -249,6 +270,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         chapter6_guardrail_check=chapter6_guardrail_check,
         admitted_chapter7_transition=admitted_chapter7_transition,
         admitted_chapter8_run=admitted_chapter8_run,
+        admitted_chapter9_source_choice=admitted_chapter9_source_choice,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -270,6 +292,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "chapter6_guardrail_check": decision.chapter6_guardrail_check,
         "admitted_chapter7_transition": decision.admitted_chapter7_transition,
         "admitted_chapter8_run": decision.admitted_chapter8_run,
+        "admitted_chapter9_source_choice": decision.admitted_chapter9_source_choice,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -641,6 +664,110 @@ def _validate_chapter8_run_profile(packet: Mapping[str, Any]) -> tuple[list[str]
         "run_decision": dict(run_decision),
         "run_permission": dict(run_permission),
         "invariants": list(profile.get("invariants", [])) if isinstance(profile.get("invariants"), list) else [],
+    }
+
+
+def _validate_chapter9_source_choice_profile(packet: Mapping[str, Any]) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter9_source_choice_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter9_source_choice_profile"], None
+
+    reason_codes: list[str] = []
+    if profile.get("profile_version") != "chapter9.source_choice_public_safe.v1":
+        reason_codes.append("invalid_chapter9_source_choice_profile")
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    source_visibility = _nested_mapping(profile, "source_visibility")
+    central_experiment = _nested_mapping(profile, "central_experiment")
+    paths = _nested_mapping(profile, "paths")
+    chapter8_dependency = _nested_mapping(profile, "chapter8_dependency")
+    synthia_gate = _nested_mapping(profile, "synthia_gate")
+    if not source_visibility or not central_experiment or not paths or not synthia_gate:
+        reason_codes.append("invalid_chapter9_source_choice_profile")
+
+    provided_sources = source_visibility.get("provided_source_ids")
+    provided_source_ids = {str(item).strip() for item in provided_sources} if isinstance(provided_sources, list) else set()
+    if source_visibility.get("registry_status") != "present" or not CHAPTER9_REQUIRED_SOURCE_IDS <= provided_source_ids:
+        reason_codes.append("chapter9_missing_source_registry")
+
+    experiment_id = str(central_experiment.get("experiment_id", "")).strip()
+    if not experiment_id:
+        reason_codes.append("chapter9_missing_central_experiment")
+    elif experiment_id != CHAPTER9_EXPERIMENT_ID:
+        reason_codes.append("chapter9_unbounded_experiment_choice")
+
+    if str(central_experiment.get("status", "")).strip() != "selected_for_simulation":
+        reason_codes.append("chapter9_missing_central_experiment")
+    if str(central_experiment.get("reproduction_status", "")).strip() != "not_T2K_reproduction":
+        reason_codes.append("chapter9_t2k_reproduction_claim")
+    if str(central_experiment.get("detection_status", "")).strip() != "no_real_detection_claim":
+        reason_codes.append("chapter9_experiment_choice_as_detection")
+    if central_experiment.get("ready_for_container") is not True:
+        reason_codes.append("chapter9_missing_central_experiment")
+    if central_experiment.get("ready_for_physical_claim") is True:
+        reason_codes.append("chapter9_experiment_choice_as_detection")
+
+    path_a = _nested_mapping(paths, "Path_A")
+    path_b = _nested_mapping(paths, "Path_B")
+    if (
+        path_a.get("initial_flavor") != "nu_mu"
+        or path_b.get("initial_flavor") != "anti_nu_mu"
+        or path_a.get("status") != "simulation_path"
+        or path_b.get("status") != "simulation_path"
+    ):
+        reason_codes.append("invalid_chapter9_source_choice_profile")
+
+    if (
+        synthia_gate.get("approved_for_container_validation") is not True
+        or synthia_gate.get("ready_for_FNP") != "true_after_Synthia_for_container_validation"
+    ):
+        reason_codes.append("chapter9_not_ready_after_synthia")
+    if chapter8_dependency and chapter8_dependency.get("can_continue_to_chapter9") is not True:
+        reason_codes.append("chapter9_not_ready_after_synthia")
+
+    forbidden = profile.get("forbidden_upgrades")
+    forbidden_set = set(forbidden) if isinstance(forbidden, list) else set()
+    required_forbidden = {
+        "T2K_like_as_T2K_reproduction",
+        "CP_asymmetry_toy_as_CP_measurement",
+        "central_experiment_as_real_detection",
+        "source_stack_as_proof",
+        "background_missing_as_zero",
+        "FNP_before_Synthia",
+    }
+    if not required_forbidden <= forbidden_set:
+        reason_codes.append("invalid_chapter9_source_choice_profile")
+
+    text = _json_text(profile)
+    if _contains_any(text, ("t2k reproduced", "t2k reproduction claim", "t2k_like = t2k")):
+        reason_codes.append("chapter9_t2k_reproduction_claim")
+    if _contains_any(text, ("cp measurement claim", "cp violation measured", "measures cp violation")):
+        reason_codes.append("chapter9_cp_measurement_claim")
+    if _contains_any(text, ("experiment choice is detection", "selected experiment is real detection")):
+        reason_codes.append("chapter9_experiment_choice_as_detection")
+    if _contains_any(text, ("mathematical source proves physical", "math source as physical proof")):
+        reason_codes.append("chapter9_math_source_as_physical_proof")
+    if _contains_any(text, ("background missing equals zero", "background_model_missing = background_zero")):
+        reason_codes.append("chapter9_background_missing_as_zero")
+    if _contains_any(text, ("source stack proves", "source_physical + source_mathematical = proof")):
+        reason_codes.append("chapter9_source_stack_as_proof")
+
+    if reason_codes:
+        return reason_codes, None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "chapter9_status": profile.get("chapter9_status"),
+        "source_visibility": dict(source_visibility),
+        "source_families": dict(_nested_mapping(profile, "source_families")),
+        "central_experiment": dict(central_experiment),
+        "paths": dict(paths),
+        "chapter8_dependency": dict(chapter8_dependency),
+        "synthia_gate": dict(synthia_gate),
+        "forbidden_upgrades": list(forbidden_set),
+        "boundary": dict(_nested_mapping(profile, "boundary")),
     }
 
 
