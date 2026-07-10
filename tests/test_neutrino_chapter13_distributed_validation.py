@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import subprocess
+import sys
 
 from core.neutrino_admission_gate import neutrino_guardrail_check
 from core.neutrino_chapter13_distributed_validation import neutrino_chapter13_distributed_worker
@@ -146,6 +148,28 @@ class Chapter13DistributedValidationTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         result = json.loads(output.getvalue())
         self.assertEqual(result["schema_version"], "fnp.neutrino_chapter13_distributed_worker.v1")
+        self.assertEqual(result["decision"]["status"], "accepted")
+
+    def test_lightweight_sandbox_runner_avoids_optional_api_stack(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temporary = Path(tmp)
+            _write_runtime(temporary)
+            input_path = temporary / "input.json"
+            input_path.write_text(json.dumps(_packet()), encoding="utf-8")
+            process = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "scripts/run_chapter13_distributed_worker.py"),
+                    "--input", str(input_path),
+                    "--pluginpack-path", str(temporary),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
         self.assertEqual(result["decision"]["status"], "accepted")
 
 
