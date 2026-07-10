@@ -136,6 +136,17 @@ The calculation uses an explicit toy `phase_delta` and the admitted lexical
 load. It does not accept a caller-supplied fractal output, reproduce T2K,
 measure CP violation, detect a neutrino, or establish physical proof.
 
+Chapter 12 can then validate a fully declared ten-carrier software chamber:
+
+```bash
+python -m fnp_qnn_cli --json neutrino chapter12-validate --input tests/fixtures/neutrino_chapter12_valid_admission.json
+```
+
+The command requires explicit carrier weights, medium parameters, detector
+response, background status, random seeds, repetition counts, and tolerances.
+It reports internal repeatability and sensitivity evidence only. The public
+claim remains software capability, not experimental or physical validation.
+
 The maintained boundary is:
 
 - educational simulation;

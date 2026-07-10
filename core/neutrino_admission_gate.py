@@ -125,6 +125,15 @@ REFUSAL_CATEGORIES = (
     "chapter11_fnp_before_synthia",
     "chapter11_dl_lex_as_df",
     "chapter11_candidate_as_proof",
+    "invalid_chapter12_validation_profile",
+    "chapter12_not_ready_after_synthia",
+    "chapter12_missing_reference_run",
+    "chapter12_incomplete_carrier_policy",
+    "chapter12_incomplete_matter_model",
+    "chapter12_incomplete_detector_response",
+    "chapter12_hidden_randomness",
+    "chapter12_invalid_repeat_protocol",
+    "chapter12_invalid_proof_upgrade",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
 VALID_CHAPTER5_CARRIER_FAMILIES = {
@@ -170,6 +179,7 @@ class FNPAdmissionDecision:
     admitted_chapter9_source_choice: Mapping[str, object] | None = None
     admitted_chapter10_chamber: Mapping[str, object] | None = None
     admitted_chapter11_passage: Mapping[str, object] | None = None
+    admitted_chapter12_validation: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -202,6 +212,8 @@ class FNPAdmissionDecision:
             payload["admitted_chapter10_chamber"] = dict(self.admitted_chapter10_chamber)
         if self.admitted_chapter11_passage is not None:
             payload["admitted_chapter11_passage"] = dict(self.admitted_chapter11_passage)
+        if self.admitted_chapter12_validation is not None:
+            payload["admitted_chapter12_validation"] = dict(self.admitted_chapter12_validation)
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -294,6 +306,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter12_reasons, admitted_chapter12_validation = _validate_chapter12_validation_profile(packet)
+    for code in chapter12_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -319,6 +336,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         admitted_chapter9_source_choice=admitted_chapter9_source_choice,
         admitted_chapter10_chamber=admitted_chapter10_chamber,
         admitted_chapter11_passage=admitted_chapter11_passage,
+        admitted_chapter12_validation=admitted_chapter12_validation,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -343,6 +361,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "admitted_chapter9_source_choice": decision.admitted_chapter9_source_choice,
         "admitted_chapter10_chamber": decision.admitted_chapter10_chamber,
         "admitted_chapter11_passage": decision.admitted_chapter11_passage,
+        "admitted_chapter12_validation": decision.admitted_chapter12_validation,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -1020,6 +1039,94 @@ def _validate_chapter11_passage_profile(packet: Mapping[str, Any]) -> tuple[list
         "forbidden_upgrades": list(profile.get("forbidden_upgrades", [])),
         "boundary": dict(_nested_mapping(profile, "boundary")),
     }
+
+
+def _validate_chapter12_validation_profile(packet: Mapping[str, Any]) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter12_validation_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter12_validation_profile"], None
+
+    reasons: list[str] = []
+    if profile.get("profile_version") != "chapter12.validation_public_safe.v1":
+        reasons.append("invalid_chapter12_validation_profile")
+    if _contains_fnp_computation_fields(profile):
+        reasons.append("synthia_packet_contains_fnp_computation_fields")
+
+    contract = _nested_mapping(profile, "ValidationContract_12")
+    carrier_policy = _nested_mapping(profile, "carrier_policy")
+    medium_policy = _nested_mapping(profile, "medium_policy")
+    detector_policy = _nested_mapping(profile, "detector_policy")
+    repeat_protocol = _nested_mapping(profile, "repeat_protocol")
+    reading = _nested_mapping(profile, "SynthiaReading_12")
+    capability = _nested_mapping(profile, "capability_boundary")
+    boundary = _nested_mapping(profile, "boundary")
+
+    if profile.get("chapter12_status") != "ready_for_fnp_validation":
+        reasons.append("chapter12_not_ready_after_synthia")
+    if not str(contract.get("reference_run_id", "")).strip():
+        reasons.append("chapter12_missing_reference_run")
+    if contract.get("physical_model_validated") is not False:
+        reasons.append("chapter12_invalid_proof_upgrade")
+    if carrier_policy.get("exact_ten_carrier_set") is not True or carrier_policy.get("provided_count") != 10:
+        reasons.append("chapter12_incomplete_carrier_policy")
+    provided = carrier_policy.get("required_carriers")
+    if not isinstance(provided, list) or set(map(str, provided)) != set(CHAPTER6_REQUIRED_CARRIERS):
+        reasons.append("chapter12_incomplete_carrier_policy")
+    if medium_policy.get("explicit_matter_potential_required") is not True:
+        reasons.append("chapter12_incomplete_matter_model")
+    if detector_policy.get("response_matrix_required") is not True:
+        reasons.append("chapter12_incomplete_detector_response")
+    if detector_policy.get("background_policy") != "explicit_or_none_by_model":
+        reasons.append("chapter12_incomplete_detector_response")
+    if repeat_protocol.get("hidden_randomness") is not False or not repeat_protocol.get("seed_policy"):
+        reasons.append("chapter12_hidden_randomness")
+    if not _valid_chapter12_repeat_protocol(repeat_protocol):
+        reasons.append("chapter12_invalid_repeat_protocol")
+    if reading.get("approved_for_fnp_validation") is not True or reading.get("ready_for_FNP") != "true_after_Synthia":
+        reasons.append("chapter12_not_ready_after_synthia")
+    if capability.get("maximum_proof_state") != "P2_internal_repeatability":
+        reasons.append("chapter12_invalid_proof_upgrade")
+    if capability.get("physical_model_validated") is not False:
+        reasons.append("chapter12_invalid_proof_upgrade")
+    if boundary.get("no_fractal_computation") is not True:
+        reasons.append("invalid_chapter12_validation_profile")
+
+    if reasons:
+        return list(dict.fromkeys(reasons)), None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "chapter12_status": profile.get("chapter12_status"),
+        "ValidationContract_12": dict(contract),
+        "carrier_policy": dict(carrier_policy),
+        "medium_policy": dict(medium_policy),
+        "detector_policy": dict(detector_policy),
+        "repeat_protocol": dict(repeat_protocol),
+        "invariants": list(profile.get("invariants", [])),
+        "SynthiaReading_12": dict(reading),
+        "capability_boundary": dict(capability),
+        "boundary": dict(boundary),
+    }
+
+
+def _valid_chapter12_repeat_protocol(protocol: Mapping[str, Any]) -> bool:
+    deterministic = _optional_float(protocol.get("deterministic_runs"))
+    stochastic = _optional_float(protocol.get("stochastic_runs"))
+    maximum = _optional_float(protocol.get("maximum_runs"))
+    delta_tolerance = _optional_float(protocol.get("delta_max_tolerance"))
+    rmse_tolerance = _optional_float(protocol.get("rmse_tolerance"))
+    return bool(
+        deterministic is not None
+        and stochastic is not None
+        and maximum is not None
+        and 1 <= deterministic <= maximum <= 1000
+        and 1 <= stochastic <= maximum
+        and delta_tolerance is not None
+        and rmse_tolerance is not None
+        and delta_tolerance >= 0
+        and rmse_tolerance >= 0
+    )
 
 
 def _admitted_chapter3_carriers(profile: Mapping[str, Any]) -> dict[str, object]:
