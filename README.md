@@ -1,3 +1,14 @@
+> [!IMPORTANT]
+> **Book II evidence boundary (2026-07-10).** FNP-QNN is an educational and
+> research simulator operating only after Synthia admission. The verified
+> ceiling is `P2_internal_repeatability`: `simulation != detection`,
+> `candidate != proof`, `dL_lex != dF`, and
+> `PenroseRulePacket != physical_substrate`. No result in this repository
+> validates a physical neutrino model, detects a neutrino, reproduces T2K, or
+> establishes new physics. Until the website sweep, this README and
+> [`docs/book2_final_evidence_2026-07-10.md`](docs/book2_final_evidence_2026-07-10.md)
+> are the authoritative public handoff.
+
 [![SecuredMe Education Suite public calendar](https://img.shields.io/badge/SecuredMe%20Education%20Suite-public%20calendar%20%7C%20alpha%20Aug%203%202026-5484ED?style=for-the-badge&logo=googlecalendar&logoColor=white)](https://calendrier.securedme.ca)
 
 **Attribution:** Jean-Sebastien Beaulieu · [ORCID 0009-0007-2904-0443](https://orcid.org/0009-0007-2904-0443) · [SecuredMe](https://securedme.ca) · [FNP-QNN](https://fnp-qnn.securedme.ca)
@@ -243,12 +254,32 @@ deterministic p046 fault schedule scoped to a disposable workspace. A p114
 clarification/rejection or unstable p046 trajectory stops before FNP. Datadog
 is a non-blocking telemetry side channel, never a decision authority.
 
+Chapter 14 closes the Book II computation boundary with a bounded matrix
+threshold command:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter14-threshold --input tests\fixtures\neutrino_chapter14_threshold.json
+```
+
+Only a Synthia-admitted packet may enter. The engine validates exactly ten
+weighted carriers and finite square `A_adj`, `S_sub`, and `P_phason` matrices,
+then computes the bounded transition from `q_t` to `q_t_plus_1`, the local
+`D_f`/`D_f_hat` carrier, `dF`, and `i_fractal_candidate`. It also emits a
+canonical SHA-256 fingerprint for replay. These values are software outputs:
+`PenroseRulePacket != physical_substrate`, simulation is not detection, and a
+candidate is not proof.
+
+The complete public-safe Book II software map, frozen evidence hashes, and
+reproduction commands are maintained in
+[`docs/book2_final_evidence_2026-07-10.md`](docs/book2_final_evidence_2026-07-10.md).
+
 ## Current Status
 
-Validated locally:
+Validated locally (the dated Book II evidence register supersedes older counts
+for the neutrino lane):
 
-- `.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py"`: 279 tests OK, 2 skipped on 2026-06-27.
-- `.\.venv\Scripts\python.exe scripts\validate_alpha_readiness.py`: PASS on 2026-06-27.
+- `python -m unittest discover -s tests`: 400 tests OK, 2 skipped on 2026-07-10.
+- `python scripts\validate_alpha_readiness.py`: PASS on 2026-07-10.
 - `python examples/cerebrum_qnn_demo.py`
 - `python examples/cerebrum_runtime_demo.py`
 - `python examples/cerebrum_runtime_legacy_demo.py`
