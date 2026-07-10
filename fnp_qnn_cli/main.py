@@ -361,6 +361,15 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="Path to Synthia LexPacket JSON with chapter10_chamber_profile.",
     )
+    neutrino_chapter11 = neutrino_sub.add_parser(
+        "chapter11-passage",
+        help="Build the conditional chapter-11 passage readout.",
+    )
+    neutrino_chapter11.add_argument(
+        "--input",
+        required=True,
+        help="Path to an admitted Synthia packet with chapter11_readout_request.",
+    )
 
     legacy = subparsers.add_parser("legacy", help="Legacy fixture commands.")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
@@ -849,6 +858,12 @@ def run_args(args: argparse.Namespace) -> int:
         from core.neutrino_chapter10_run_contract import neutrino_chapter10_run_contract_from_file
 
         payload = neutrino_chapter10_run_contract_from_file(args.input)
+        return _emit(payload, as_json)
+
+    if args.section == "neutrino" and args.neutrino_command == "chapter11-passage":
+        from core.neutrino_chapter11_passage_readout import neutrino_chapter11_passage_readout_from_file
+
+        payload = neutrino_chapter11_passage_readout_from_file(args.input)
         return _emit(payload, as_json)
 
     if args.section == "legacy" and args.legacy_command == "demo":

@@ -204,6 +204,18 @@ controls. It does not execute the run, does not reproduce T2K, does not measure
 CP violation, does not treat a chamber or container as detector proof, and does
 not compute `D_f`, `D_f_hat`, `dF`, `i_fractal`, or `i_fractal_candidate`.
 
+When Synthia admits `chapter11_passage_profile`, the passage command validates
+the common path controls and constructs the first conditional readout:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter11-passage --input tests\fixtures\neutrino_chapter11_valid_admission.json
+```
+
+The command derives its carrier from declared `phase_delta` and Synthia's
+`dL_lex`; callers cannot inject `D_f_11` or a candidate. The output is internal
+software evidence only. `PathComparison_11` is a chamber comparison, not a CP
+measurement, and `i_fractal_candidate_11` is not proof.
+
 ## Current Status
 
 Validated locally:

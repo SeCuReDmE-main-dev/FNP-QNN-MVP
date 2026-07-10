@@ -111,6 +111,20 @@ REFUSAL_CATEGORIES = (
     "chapter10_background_missing_as_zero",
     "chapter10_prepared_tension_as_df",
     "chapter10_unbounded_manipulation",
+    "invalid_chapter11_passage_profile",
+    "chapter11_not_ready_after_synthia",
+    "chapter11_missing_passage_contract",
+    "chapter11_missing_injection_packet",
+    "chapter11_path_pair_missing",
+    "chapter11_path_container_mismatch",
+    "chapter11_path_admission_route_mismatch",
+    "chapter11_t2k_reproduction_claim",
+    "chapter11_cp_measurement_claim",
+    "chapter11_path_comparison_as_cp_measurement",
+    "chapter11_background_missing_as_zero",
+    "chapter11_fnp_before_synthia",
+    "chapter11_dl_lex_as_df",
+    "chapter11_candidate_as_proof",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
 VALID_CHAPTER5_CARRIER_FAMILIES = {
@@ -155,6 +169,7 @@ class FNPAdmissionDecision:
     admitted_chapter8_run: Mapping[str, object] | None = None
     admitted_chapter9_source_choice: Mapping[str, object] | None = None
     admitted_chapter10_chamber: Mapping[str, object] | None = None
+    admitted_chapter11_passage: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -185,6 +200,8 @@ class FNPAdmissionDecision:
             payload["admitted_chapter9_source_choice"] = dict(self.admitted_chapter9_source_choice)
         if self.admitted_chapter10_chamber is not None:
             payload["admitted_chapter10_chamber"] = dict(self.admitted_chapter10_chamber)
+        if self.admitted_chapter11_passage is not None:
+            payload["admitted_chapter11_passage"] = dict(self.admitted_chapter11_passage)
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -272,6 +289,11 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter11_reasons, admitted_chapter11_passage = _validate_chapter11_passage_profile(packet)
+    for code in chapter11_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -296,6 +318,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         admitted_chapter8_run=admitted_chapter8_run,
         admitted_chapter9_source_choice=admitted_chapter9_source_choice,
         admitted_chapter10_chamber=admitted_chapter10_chamber,
+        admitted_chapter11_passage=admitted_chapter11_passage,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -319,6 +342,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "admitted_chapter8_run": decision.admitted_chapter8_run,
         "admitted_chapter9_source_choice": decision.admitted_chapter9_source_choice,
         "admitted_chapter10_chamber": decision.admitted_chapter10_chamber,
+        "admitted_chapter11_passage": decision.admitted_chapter11_passage,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -909,6 +933,91 @@ def _validate_chapter10_chamber_profile(packet: Mapping[str, Any]) -> tuple[list
         "SynthiaGate_10": dict(synthia_gate),
         "RunPrepared_10": dict(run_prepared),
         "forbidden_upgrades": list(forbidden_set),
+        "boundary": dict(_nested_mapping(profile, "boundary")),
+    }
+
+
+def _validate_chapter11_passage_profile(packet: Mapping[str, Any]) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter11_passage_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter11_passage_profile"], None
+
+    reason_codes: list[str] = []
+    if profile.get("profile_version") != "chapter11.passage_public_safe.v1":
+        reason_codes.append("invalid_chapter11_passage_profile")
+    if _contains_fnp_computation_fields(profile):
+        reason_codes.append("synthia_packet_contains_fnp_computation_fields")
+
+    contract = _nested_mapping(profile, "Chapter11PassageContract")
+    injection = _nested_mapping(profile, "Chapter11InjectionPacket")
+    path_a = _nested_mapping(profile, "Path_A_event")
+    path_b = _nested_mapping(profile, "Path_B_event")
+    controls = _nested_mapping(profile, "CommonPathControls")
+    symmetry = _nested_mapping(profile, "ChamberSymmetry_11")
+    reading = _nested_mapping(profile, "SynthiaReading_11")
+
+    if contract.get("status") != "established":
+        reason_codes.append("chapter11_missing_passage_contract")
+    if injection.get("status") != "assembled":
+        reason_codes.append("chapter11_missing_injection_packet")
+    if not path_a or not path_b or path_a.get("status") == "missing" or path_b.get("status") == "missing":
+        reason_codes.append("chapter11_path_pair_missing")
+
+    container_a = str(path_a.get("container_id", "")).strip()
+    container_b = str(path_b.get("container_id", "")).strip()
+    if not container_a or container_a != container_b or symmetry.get("same_container") is not True:
+        reason_codes.append("chapter11_path_container_mismatch")
+    expected_route = "container_to_synthia_to_fnp"
+    if (
+        str(path_a.get("admission_route", "")) != expected_route
+        or str(path_b.get("admission_route", "")) != expected_route
+        or symmetry.get("same_admission_route") is not True
+    ):
+        reason_codes.append("chapter11_path_admission_route_mismatch")
+
+    if controls.get("baseline_policy") != "same" or controls.get("energy_policy") != "same":
+        reason_codes.append("invalid_chapter11_passage_profile")
+    if str(controls.get("background_model_status", "")) in {"", "missing", "missing_or_simplified"}:
+        reason_codes.append("chapter11_background_missing_as_zero")
+    if symmetry.get("same_boundary") is not True:
+        reason_codes.append("invalid_chapter11_passage_profile")
+
+    if profile.get("chapter11_status") != "ready_for_fnp_passage":
+        reason_codes.append("chapter11_not_ready_after_synthia")
+    if reading.get("approved_for_fnp") is not True or reading.get("ready_for_FNP") != "true_after_Synthia":
+        reason_codes.append("chapter11_not_ready_after_synthia")
+    if reading.get("physical_claim_allowed") is not False:
+        reason_codes.append("chapter11_not_ready_after_synthia")
+
+    text = _json_text(profile)
+    if _contains_any(text, ("t2k reproduced", "t2k_like = t2k")):
+        reason_codes.append("chapter11_t2k_reproduction_claim")
+    if _contains_any(text, ("cp violation measured", "cp measurement claim")):
+        reason_codes.append("chapter11_cp_measurement_claim")
+    if _contains_any(text, ("pathcomparison_11 = cp_measurement", "path comparison measures cp")):
+        reason_codes.append("chapter11_path_comparison_as_cp_measurement")
+    if _contains_any(text, ("background missing equals zero", "background_missing = background_zero")):
+        reason_codes.append("chapter11_background_missing_as_zero")
+    if _contains_any(text, ("dl_lex = df_11", "dl_lex = df")):
+        reason_codes.append("chapter11_dl_lex_as_df")
+    if _contains_any(text, ("candidate is proof", "i_fractal_candidate_11 proves")):
+        reason_codes.append("chapter11_candidate_as_proof")
+
+    if reason_codes:
+        return reason_codes, None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "chapter11_status": profile.get("chapter11_status"),
+        "Chapter11PassageContract": dict(contract),
+        "Chapter11InjectionPacket": dict(injection),
+        "Path_A_event": dict(path_a),
+        "Path_B_event": dict(path_b),
+        "CommonPathControls": dict(controls),
+        "ChamberSymmetry_11": dict(symmetry),
+        "SynthiaReading_11": dict(reading),
+        "forbidden_upgrades": list(profile.get("forbidden_upgrades", [])),
         "boundary": dict(_nested_mapping(profile, "boundary")),
     }
 

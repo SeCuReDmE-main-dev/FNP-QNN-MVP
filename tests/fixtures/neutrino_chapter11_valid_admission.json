@@ -1,0 +1,102 @@
+{
+  "LexPacket_neutrino": {
+    "schema_version": "synthia.lex_neutrino.v1",
+    "event_id": "chapter11-public-safe-neutrino-001",
+    "Adm_lex": true,
+    "dL_lex": 0.31927681,
+    "decision": {"status": "accepted", "reason_codes": []},
+    "refusal_packet": {"blocked": false, "reason_codes": []},
+    "chapter11_passage_profile": {
+      "profile_version": "chapter11.passage_public_safe.v1",
+      "chapter11_status": "ready_for_fnp_passage",
+      "Chapter11PassageContract": {
+        "schema_version": "chamber.chapter11_passage_contract.v1",
+        "status": "established",
+        "Synthia_required": true,
+        "FNP_before_Synthia": false,
+        "physical_claim_allowed": false
+      },
+      "Chapter11InjectionPacket": {
+        "schema_version": "chamber.chapter11_injection_packet.v1",
+        "status": "assembled",
+        "route": "container_to_synthia_to_fnp",
+        "ready_for_Synthia": true,
+        "ready_for_FNP": "false_before_Synthia"
+      },
+      "Path_A_event": {
+        "path_id": "path_A_neutrino",
+        "container_id": "chapter10_t2k_like_container_001",
+        "admission_route": "container_to_synthia_to_fnp",
+        "beam_kind": "neutrino",
+        "initial_flavor": "nu_mu",
+        "target_projection": "nu_e",
+        "path_status": "simulation_path",
+        "detection_claim": false,
+        "measurement_claim": false,
+        "reproduction_claim": false
+      },
+      "Path_B_event": {
+        "path_id": "path_B_antineutrino",
+        "container_id": "chapter10_t2k_like_container_001",
+        "admission_route": "container_to_synthia_to_fnp",
+        "beam_kind": "antineutrino",
+        "initial_flavor": "anti_nu_mu",
+        "target_projection": "anti_nu_e",
+        "path_status": "simulation_path",
+        "detection_claim": false,
+        "measurement_claim": false,
+        "reproduction_claim": false
+      },
+      "CommonPathControls": {
+        "status": "declared",
+        "container_policy": "same",
+        "admission_route_policy": "same",
+        "baseline_policy": "same",
+        "energy_policy": "same",
+        "detector_projection_policy": "same",
+        "background_model_status": "declared_nonzero_toy",
+        "simulation_boundary": "simulation_not_detection"
+      },
+      "ChamberSymmetry_11": {
+        "status": "valid",
+        "same_container": true,
+        "same_admission_route": true,
+        "same_baseline_policy": true,
+        "same_energy_policy": true,
+        "same_boundary": true,
+        "comparison_boundary": "PathComparison_11 != CP_measurement"
+      },
+      "SynthiaReading_11": {
+        "dL_lex": 0.31927681,
+        "classification_status": "admitted_under_lexical_guardrails",
+        "approved_for_fnp": true,
+        "ready_for_Synthia": true,
+        "ready_for_FNP": "true_after_Synthia",
+        "physical_claim_allowed": false,
+        "reason_codes": []
+      },
+      "forbidden_upgrades": [
+        "T2K_like_as_T2K_reproduction",
+        "PathComparison_11_as_CP_measurement",
+        "background_missing_as_zero",
+        "dL_lex_as_dF_11",
+        "FNP_before_Synthia",
+        "candidate_as_proof"
+      ],
+      "boundary": {
+        "no_fractal_computation": true,
+        "no_real_detection_claim": true
+      }
+    }
+  },
+  "chapter11_readout_request": {
+    "phase_delta": 0.9161747475030537,
+    "D_min_11": 1.0,
+    "D_max_11": 2.0,
+    "background_model_status": "declared_nonzero_toy",
+    "t2k_reproduction_claim": false,
+    "cp_measurement_claim": false,
+    "real_detection_claim": false,
+    "candidate_as_proof": false
+  }
+}

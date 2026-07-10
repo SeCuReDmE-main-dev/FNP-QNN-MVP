@@ -125,6 +125,17 @@ run, does not reproduce T2K, does not measure CP violation, does not treat a
 container as physical proof, and does not compute `D_f`, `D_f_hat`, `dF`,
 `i_fractal`, or `i_fractal_candidate`.
 
+If the packet includes an admitted `chapter11_passage_profile`, the separate
+passage command constructs the bounded conditional readout:
+
+```bash
+python -m fnp_qnn_cli --json neutrino chapter11-passage --input tests/fixtures/neutrino_chapter11_valid_admission.json
+```
+
+The calculation uses an explicit toy `phase_delta` and the admitted lexical
+load. It does not accept a caller-supplied fractal output, reproduce T2K,
+measure CP violation, detect a neutrino, or establish physical proof.
+
 The maintained boundary is:
 
 - educational simulation;
