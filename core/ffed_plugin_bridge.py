@@ -385,7 +385,8 @@ class FfeDPluginBridge:
         # Keep the explicit pluginpack root importable for the lifetime of the
         # process; no global installation is required.
         pluginpack_text = str(pluginpack)
-        if pluginpack_text not in sys.path:
+        inserted = pluginpack_text not in sys.path
+        if inserted:
             sys.path.insert(0, pluginpack_text)
 
         spec = importlib.util.spec_from_file_location(
@@ -398,10 +399,25 @@ class FfeDPluginBridge:
 
         module = importlib.util.module_from_spec(spec)
         sys.modules["ffed_runtime"] = module
-        spec.loader.exec_module(module)
+        try:
+            spec.loader.exec_module(module)
+        finally:
+            if inserted and pluginpack_text in sys.path:
+                sys.path.remove(pluginpack_text)
         if not hasattr(module, "run_plugin"):
             raise ImportError("ffed_runtime.run_plugin is missing")
-        return module.run_plugin
+
+        def isolated_run_plugin(plugin_id, config=None):
+            call_inserted = pluginpack_text not in sys.path
+            if call_inserted:
+                sys.path.insert(0, pluginpack_text)
+            try:
+                return module.run_plugin(plugin_id, config)
+            finally:
+                if call_inserted and pluginpack_text in sys.path:
+                    sys.path.remove(pluginpack_text)
+
+        return isolated_run_plugin
 
     def _runtime_importable(self) -> bool:
         try:
