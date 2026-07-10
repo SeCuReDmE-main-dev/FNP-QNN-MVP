@@ -1,0 +1,37 @@
+{
+  "slug": "fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san",
+  "title": "Chapter 12 Ten-Carrier Cross-Platform Benchmark",
+  "timestamp": "2026-07-10T06:17:08Z",
+  "objective": "Validate chapter 12 ten-carrier repeatability and cross-platform execution",
+  "primary_subject": "neutrino chapter12 validation pipeline",
+  "comparators": [
+    "Windows local .venv",
+    "E2B Linux codex sandbox"
+  ],
+  "task_intent": "Measure deterministic repeatability, seeded stochastic replay, sensitivity, guardrails, and isolated Linux portability",
+  "product_hypothesis": "The public-safe FNP-QNN chamber can couple ten explicit carriers reproducibly without claiming physical validation",
+  "benchmark_lens": "correctness|repeatability|sensitivity|portability|throughput",
+  "repo_summary": [
+    "Ten-carrier weighted tension is pure and explicit",
+    "Synthia admission precedes FNP computation",
+    "No physical validation claim"
+  ],
+  "research_questions": [
+    "Are deterministic fingerprints stable across platforms?",
+    "Do perturbations match analytic weights?",
+    "Do guardrails fail closed?",
+    "What throughput is observed in E2B?"
+  ],
+  "competitor_candidates": [],
+  "selected_benchmark_targets": [
+    "core/neutrino_chapter12_models.py",
+    "core/neutrino_chapter12_validation.py",
+    "scripts/run_chapter12_e2b_worker.py"
+  ],
+  "source_index": [],
+  "next_steps": [
+    "Ingest E2B fan-out results",
+    "Freeze template for chapters 13 and 14",
+    "Use evidence to open section 12.6"
+  ]
+}

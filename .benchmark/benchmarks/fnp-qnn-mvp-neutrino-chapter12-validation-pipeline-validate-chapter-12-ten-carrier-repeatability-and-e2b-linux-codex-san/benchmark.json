@@ -1,0 +1,66 @@
+{
+  "slug": "fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san",
+  "title": "Chapter 12 Ten-Carrier Cross-Platform Benchmark",
+  "codebase_root": "C:\\Users\\jeans\\Desktop\\Case study\\modele\\FNP-QNN-MVP\\FNP-QNN-MVP",
+  "created_at": "2026-07-10T06:17:08Z",
+  "updated_at": "2026-07-10T06:21:32Z",
+  "status": "active",
+  "task_intent": "Measure deterministic repeatability, seeded stochastic replay, sensitivity, guardrails, and isolated Linux portability",
+  "product_hypothesis": "The public-safe FNP-QNN chamber can couple ten explicit carriers reproducibly without claiming physical validation",
+  "benchmark_lens": "correctness|repeatability|sensitivity|portability|throughput",
+  "objective": "Validate chapter 12 ten-carrier repeatability and cross-platform execution",
+  "primary_subject": "neutrino chapter12 validation pipeline",
+  "comparators": [
+    "Windows local .venv",
+    "E2B Linux codex sandbox"
+  ],
+  "repo_summary": [
+    "Ten-carrier weighted tension is pure and explicit",
+    "Synthia admission precedes FNP computation",
+    "No physical validation claim"
+  ],
+  "research_questions": [
+    "Are deterministic fingerprints stable across platforms?",
+    "Do perturbations match analytic weights?",
+    "Do guardrails fail closed?",
+    "What throughput is observed in E2B?"
+  ],
+  "competitor_candidates": [],
+  "selected_benchmark_targets": [
+    "core/neutrino_chapter12_models.py",
+    "core/neutrino_chapter12_validation.py",
+    "scripts/run_chapter12_e2b_worker.py"
+  ],
+  "source_index": [],
+  "next_steps": [
+    "Use frozen validation template for chapter 13",
+    "Reuse proof gate for chapter 14",
+    "Draft section 12.6 from verified evidence"
+  ],
+  "validity_status": "valid_internal_cross_platform",
+  "execution_status": "complete_128_of_128_e2b_passed",
+  "competitor_execution": {},
+  "current_paths": {
+    "report": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\current\\report.md",
+    "benchmark_map": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\current\\benchmark-map.md",
+    "benchmark_validity": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\current\\benchmark-validity.md",
+    "search_index": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\current\\search-index.md",
+    "content_retrieval": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\current\\content-retrieval.md",
+    "harness_dir": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\current\\harness",
+    "results_dir": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\current\\results"
+  },
+  "result_artifact_paths": [],
+  "latest_history_path": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\history\\2026-07-10T06-21-32Z",
+  "history": [
+    {
+      "timestamp": "2026-07-10T06:17:08Z",
+      "history_path": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\history\\2026-07-10T06-17-08Z",
+      "task_path": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\history\\2026-07-10T06-17-08Z\\task.json"
+    },
+    {
+      "timestamp": "2026-07-10T06:21:32Z",
+      "history_path": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\history\\2026-07-10T06-21-32Z",
+      "task_path": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\history\\2026-07-10T06-21-32Z\\task.json"
+    }
+  ]
+}
