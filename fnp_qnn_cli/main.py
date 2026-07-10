@@ -379,6 +379,19 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="Path to admitted chapter-11/12 packets and an explicit validation request.",
     )
+    neutrino_chapter13 = neutrino_sub.add_parser(
+        "chapter13-distributed-worker",
+        help="Gate one signed worker bundle for the chapter-13 distributed campaign.",
+    )
+    neutrino_chapter13.add_argument(
+        "--input",
+        required=True,
+        help="Path to an admitted chapter-13 packet and worker request.",
+    )
+    neutrino_chapter13.add_argument(
+        "--pluginpack-path",
+        help="Explicit FfeD pluginpack path; defaults to FNP_QNN_FFED_PLUGINPACK_PATH.",
+    )
 
     legacy = subparsers.add_parser("legacy", help="Legacy fixture commands.")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
@@ -879,6 +892,17 @@ def run_args(args: argparse.Namespace) -> int:
         from core.neutrino_chapter12_validation import neutrino_chapter12_validation_from_file
 
         payload = neutrino_chapter12_validation_from_file(args.input)
+        return _emit(payload, as_json)
+
+    if args.section == "neutrino" and args.neutrino_command == "chapter13-distributed-worker":
+        from core.neutrino_chapter13_distributed_validation import (
+            neutrino_chapter13_distributed_worker_from_file,
+        )
+
+        payload = neutrino_chapter13_distributed_worker_from_file(
+            args.input,
+            pluginpack_path=args.pluginpack_path,
+        )
         return _emit(payload, as_json)
 
     if args.section == "legacy" and args.legacy_command == "demo":

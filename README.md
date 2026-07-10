@@ -230,6 +230,19 @@ metrics. Passing this gate establishes at most `P2_internal_repeatability` for
 the software chamber. It does not validate a physical ten-variable model,
 measure MSW behavior, or detect a neutrino.
 
+Chapter 13 distributes that admitted reference through a frozen worker
+manifest:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter13-distributed-worker --input worker.json --pluginpack-path .\pluginpack
+```
+
+The worker requires Synthia admission, then p114 consensus. Nominal workers
+may execute the signed four-task bundle; bounded-chaos workers receive a
+deterministic p046 fault schedule scoped to a disposable workspace. A p114
+clarification/rejection or unstable p046 trajectory stops before FNP. Datadog
+is a non-blocking telemetry side channel, never a decision authority.
+
 ## Current Status
 
 Validated locally:

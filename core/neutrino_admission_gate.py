@@ -134,6 +134,13 @@ REFUSAL_CATEGORIES = (
     "chapter12_hidden_randomness",
     "chapter12_invalid_repeat_protocol",
     "chapter12_invalid_proof_upgrade",
+    "invalid_chapter13_distributed_validation_profile",
+    "chapter13_not_ready_after_synthia",
+    "chapter13_invalid_run_matrix",
+    "chapter13_invalid_revision_pins",
+    "chapter13_invalid_p114_request",
+    "chapter13_unbounded_chaos",
+    "chapter13_missing_kill_plan",
 )
 VALID_INTERACTION_CHANNELS = {"weak_CC", "weak_NC"}
 VALID_CHAPTER5_CARRIER_FAMILIES = {
@@ -180,6 +187,7 @@ class FNPAdmissionDecision:
     admitted_chapter10_chamber: Mapping[str, object] | None = None
     admitted_chapter11_passage: Mapping[str, object] | None = None
     admitted_chapter12_validation: Mapping[str, object] | None = None
+    admitted_chapter13_distributed_validation: Mapping[str, object] | None = None
     allowed_payload: Mapping[str, object] | None = None
     excluded_payload_summary: Mapping[str, object] | None = None
 
@@ -214,6 +222,10 @@ class FNPAdmissionDecision:
             payload["admitted_chapter11_passage"] = dict(self.admitted_chapter11_passage)
         if self.admitted_chapter12_validation is not None:
             payload["admitted_chapter12_validation"] = dict(self.admitted_chapter12_validation)
+        if self.admitted_chapter13_distributed_validation is not None:
+            payload["admitted_chapter13_distributed_validation"] = dict(
+                self.admitted_chapter13_distributed_validation
+            )
         if self.allowed_payload is not None:
             payload["allowed_payload"] = dict(self.allowed_payload)
         if self.excluded_payload_summary is not None:
@@ -311,6 +323,13 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         if code not in reason_codes:
             reason_codes.append(code)
 
+    chapter13_reasons, admitted_chapter13_distributed_validation = _validate_chapter13_distributed_validation_profile(
+        packet
+    )
+    for code in chapter13_reasons:
+        if code not in reason_codes:
+            reason_codes.append(code)
+
     if reason_codes:
         return FNPAdmissionDecision(
             can_compute_fnp=False,
@@ -337,6 +356,7 @@ def validate_synthia_admission(payload: Mapping[str, Any]) -> FNPAdmissionDecisi
         admitted_chapter10_chamber=admitted_chapter10_chamber,
         admitted_chapter11_passage=admitted_chapter11_passage,
         admitted_chapter12_validation=admitted_chapter12_validation,
+        admitted_chapter13_distributed_validation=admitted_chapter13_distributed_validation,
         allowed_payload=allowed_payload,
         excluded_payload_summary=excluded_payload_summary,
     )
@@ -362,6 +382,7 @@ def neutrino_guardrail_check(payload: Mapping[str, Any]) -> dict[str, object]:
         "admitted_chapter10_chamber": decision.admitted_chapter10_chamber,
         "admitted_chapter11_passage": decision.admitted_chapter11_passage,
         "admitted_chapter12_validation": decision.admitted_chapter12_validation,
+        "admitted_chapter13_distributed_validation": decision.admitted_chapter13_distributed_validation,
         "allowed_payload": decision.allowed_payload,
         "excluded_payload_summary": decision.excluded_payload_summary,
         "source_layer": SOURCE_LAYER,
@@ -1108,6 +1129,132 @@ def _validate_chapter12_validation_profile(packet: Mapping[str, Any]) -> tuple[l
         "capability_boundary": dict(capability),
         "boundary": dict(boundary),
     }
+
+
+def _validate_chapter13_distributed_validation_profile(
+    packet: Mapping[str, Any],
+) -> tuple[list[str], Mapping[str, object] | None]:
+    profile = packet.get("chapter13_distributed_validation_profile")
+    if profile is None:
+        return [], None
+    if not isinstance(profile, Mapping):
+        return ["invalid_chapter13_distributed_validation_profile"], None
+
+    reasons: list[str] = []
+    if profile.get("profile_version") != "chapter13.distributed_validation_public_safe.v1":
+        reasons.append("invalid_chapter13_distributed_validation_profile")
+    if _contains_fnp_computation_fields(profile):
+        reasons.append("synthia_packet_contains_fnp_computation_fields")
+
+    contract = _nested_mapping(profile, "DistributedValidationContract_13")
+    runs = _nested_mapping(profile, "run_matrix")
+    revisions = _nested_mapping(profile, "source_revisions")
+    manifest = _nested_mapping(profile, "manifest_policy")
+    p114 = _nested_mapping(profile, "p114_consensus_request")
+    p046 = _nested_mapping(profile, "p046_chaos_policy")
+    kill_plan = _nested_mapping(profile, "kill_plan")
+    reading = _nested_mapping(profile, "SynthiaReading_13")
+    boundary = _nested_mapping(profile, "boundary")
+
+    if profile.get("chapter13_status") != "ready_for_p114_consensus":
+        reasons.append("chapter13_not_ready_after_synthia")
+    if (
+        contract.get("run_count") != 4
+        or contract.get("worker_count_per_run") != 67
+        or contract.get("tasks_per_worker") != 4
+        or contract.get("task_results_per_run") != 268
+        or contract.get("total_sandbox_lifecycles") != 268
+        or contract.get("total_task_results") != 1072
+    ):
+        reasons.append("chapter13_invalid_run_matrix")
+
+    expected_runs = {
+        "run_1_all_valid": (67, 0),
+        "run_2_quarter_false": (50, 17),
+        "run_3_three_quarter_false": (17, 50),
+    }
+    for name, expected in expected_runs.items():
+        run = _nested_mapping(runs, name)
+        if (run.get("valid_workers"), run.get("false_workers")) != expected:
+            reasons.append("chapter13_invalid_run_matrix")
+            break
+    random_run = _nested_mapping(runs, "run_4_seeded_random_mix")
+    if (
+        random_run.get("assignment_algorithm") != "sha256_counter_v1"
+        or random_run.get("seed_policy") != "generate_and_persist_before_vm_creation"
+        or not _numeric_equal(random_run.get("false_probability"), 0.5)
+        or random_run.get("manual_override") is not False
+    ):
+        reasons.append("chapter13_invalid_run_matrix")
+
+    required_revisions = ("synthia_commit", "fnp_qnn_commit", "lab_commit", "pluginpack_commit")
+    if not all(_is_full_sha(revisions.get(key)) for key in required_revisions):
+        reasons.append("chapter13_invalid_revision_pins")
+    if (
+        manifest.get("hash_algorithm") != "sha256"
+        or manifest.get("freeze_before_vm_creation") is not True
+        or manifest.get("manual_override") is not False
+        or manifest.get("task_assignment") != "four_tasks_per_worker"
+    ):
+        reasons.append("invalid_chapter13_distributed_validation_profile")
+
+    items = p114.get("items")
+    if p114.get("plugin_id") != "p114_ffed_neutrosophic_consensus" or not _valid_p114_items(items):
+        reasons.append("chapter13_invalid_p114_request")
+    if reading.get("approved_for_p114_consensus") is not True:
+        reasons.append("chapter13_not_ready_after_synthia")
+    if reading.get("ready_for_p114") != "true_after_Synthia" or reading.get("ready_for_FNP") != "false_before_p114":
+        reasons.append("chapter13_not_ready_after_synthia")
+
+    if (
+        p046.get("bounded") is not True
+        or p046.get("host_mutation_allowed") is not False
+        or p046.get("remote_mutation_allowed") is not False
+        or p046.get("clamp_hit_count_required") != 0
+        or p046.get("nonfinite_reset_count_required") != 0
+    ):
+        reasons.append("chapter13_unbounded_chaos")
+    if (
+        kill_plan.get("required") is not True
+        or kill_plan.get("kill_in_finally") is not True
+        or kill_plan.get("post_run_empty_list_required") is not True
+    ):
+        reasons.append("chapter13_missing_kill_plan")
+    if boundary.get("no_fractal_computation") is not True or boundary.get("no_real_detection") is not True:
+        reasons.append("invalid_chapter13_distributed_validation_profile")
+
+    if reasons:
+        return list(dict.fromkeys(reasons)), None
+    return [], {
+        "profile_version": profile.get("profile_version"),
+        "chapter13_status": profile.get("chapter13_status"),
+        "DistributedValidationContract_13": dict(contract),
+        "run_matrix": {str(key): dict(value) for key, value in runs.items() if isinstance(value, Mapping)},
+        "source_revisions": dict(revisions),
+        "manifest_policy": dict(manifest),
+        "p114_consensus_request": dict(p114),
+        "p046_chaos_policy": dict(p046),
+        "kill_plan": dict(kill_plan),
+        "SynthiaReading_13": dict(reading),
+        "boundary": dict(boundary),
+    }
+
+
+def _valid_p114_items(value: object) -> bool:
+    if not isinstance(value, list) or not 1 <= len(value) <= 100:
+        return False
+    for item in value:
+        if not isinstance(item, Mapping) or not str(item.get("label", "")).strip():
+            return False
+        scores = tuple(_optional_float(item.get(key)) for key in ("truth", "indeterminacy", "falsity"))
+        if any(score is None or not 0.0 <= score <= 1.0 for score in scores):
+            return False
+    return True
+
+
+def _is_full_sha(value: object) -> bool:
+    text = str(value or "").strip().lower()
+    return len(text) == 40 and all(character in "0123456789abcdef" for character in text)
 
 
 def _valid_chapter12_repeat_protocol(protocol: Mapping[str, Any]) -> bool:

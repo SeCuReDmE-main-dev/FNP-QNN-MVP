@@ -147,6 +147,13 @@ response, background status, random seeds, repetition counts, and tolerances.
 It reports internal repeatability and sensitivity evidence only. The public
 claim remains software capability, not experimental or physical validation.
 
+For chapter-13 lab work, use `neutrino chapter13-distributed-worker` with a
+manifest-frozen four-task worker packet. The gate order is fixed:
+`Synthia -> p114 -> FNP or bounded p046 schedule`. Students should test the
+nominal path, ambiguity suspension, rejection, saturation blocking, exact
+replay, and guaranteed sandbox cleanup. The 67-worker campaigns establish
+distributed software behavior only; they do not validate a physical model.
+
 The maintained boundary is:
 
 - educational simulation;
