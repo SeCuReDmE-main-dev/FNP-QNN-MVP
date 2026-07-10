@@ -37,7 +37,13 @@ def _packet() -> dict:
 def _write_runtime(path: Path, *, p114_action: str = "respond_with_confidence", stable_p046: bool = True) -> None:
     package = path / "ffed_runtime"
     package.mkdir(parents=True)
-    source = f'''def run_plugin(plugin_id, config):
+    security = path / "security"
+    security.mkdir(parents=True)
+    (security / "__init__.py").write_text("RUNTIME_MARKER = True\n", encoding="utf-8")
+    source = f'''from security import RUNTIME_MARKER
+
+def run_plugin(plugin_id, config):
+    assert RUNTIME_MARKER
     if plugin_id == "p114_ffed_neutrosophic_consensus":
         return {{
             "status": "success", "plugin_id": plugin_id,

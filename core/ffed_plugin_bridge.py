@@ -381,6 +381,13 @@ class FfeDPluginBridge:
         if not target_file.is_file():
             raise ImportError(f"ffed_runtime package not found in pluginpack: {target_file}")
 
+        # The pluginpack runtime imports sibling packages such as ``security``.
+        # Keep the explicit pluginpack root importable for the lifetime of the
+        # process; no global installation is required.
+        pluginpack_text = str(pluginpack)
+        if pluginpack_text not in sys.path:
+            sys.path.insert(0, pluginpack_text)
+
         spec = importlib.util.spec_from_file_location(
             "ffed_runtime",
             str(target_file),
