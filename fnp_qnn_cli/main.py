@@ -392,6 +392,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--pluginpack-path",
         help="Explicit FfeD pluginpack path; defaults to FNP_QNN_FFED_PLUGINPACK_PATH.",
     )
+    neutrino_chapter14 = neutrino_sub.add_parser(
+        "chapter14-threshold",
+        help="Run the bounded Chapter-14 threshold matrix engine.",
+    )
+    neutrino_chapter14.add_argument(
+        "--input",
+        required=True,
+        help="Path to an admitted Synthia Chapter-14 packet and matrix request.",
+    )
 
     legacy = subparsers.add_parser("legacy", help="Legacy fixture commands.")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
@@ -903,6 +912,12 @@ def run_args(args: argparse.Namespace) -> int:
             args.input,
             pluginpack_path=args.pluginpack_path,
         )
+        return _emit(payload, as_json)
+
+    if args.section == "neutrino" and args.neutrino_command == "chapter14-threshold":
+        from core.neutrino_chapter14_threshold import neutrino_chapter14_threshold_from_file
+
+        payload = neutrino_chapter14_threshold_from_file(args.input)
         return _emit(payload, as_json)
 
     if args.section == "legacy" and args.legacy_command == "demo":

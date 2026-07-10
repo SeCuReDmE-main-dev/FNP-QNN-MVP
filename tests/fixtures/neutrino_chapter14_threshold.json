@@ -1,0 +1,29 @@
+{
+  "LexPacket_neutrino": {
+    "schema_version": "synthia.lex_neutrino.v1",
+    "Adm_lex": true,
+    "chapter14_threshold_profile": {
+      "profile_version": "chapter14.threshold_public_safe.v1",
+      "chapter14_status": "ready_for_fnp_threshold_calculation",
+      "SynthiaReading_14": {"approved_for_fnp_threshold_calculation": true, "ready_for_FNP": "true_after_Synthia", "reason_codes": []},
+      "capability_boundary": {"maximum_proof_state": "P2_internal_repeatability", "physical_model_validated": false, "substrate_validated": false}
+    }
+  },
+  "chapter14_matrix_request": {
+    "carriers": [
+      {"name":"local_matching","tension":0.2,"weight":1}, {"name":"aperiodicity","tension":0.3,"weight":1},
+      {"name":"inflation_deflation","tension":0.4,"weight":1}, {"name":"fivefold_orientation","tension":0.5,"weight":1},
+      {"name":"tile_frequency","tension":0.6,"weight":1}, {"name":"adjacency","tension":0.7,"weight":1},
+      {"name":"substitution_depth","tension":0.4,"weight":1}, {"name":"phason_susceptibility","tension":0.3,"weight":1},
+      {"name":"defect_density","tension":0.1,"weight":1}, {"name":"scale_transfer","tension":0.2,"weight":1}
+    ],
+    "A_adj": [[0,1,0],[1,0,1],[0,1,0]],
+    "S_sub": [[0.5,0.5,0],[0,0.5,0.5],[0.5,0,0.5]],
+    "P_phason": [[0,1,0],[0,0,1],[1,0,0]],
+    "q_t": [1,0,0],
+    "phason_uncertainty": 0.1,
+    "physical_model_validated": false,
+    "real_detection_claim": false,
+    "substrate_validated": false
+  }
+}
