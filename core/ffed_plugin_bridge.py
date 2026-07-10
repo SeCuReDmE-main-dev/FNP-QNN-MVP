@@ -55,6 +55,7 @@ PLUGIN_WEIGHTS = {
     "p109_dual_triplex": 0.15,
 }
 P114_PLUGIN_ID = "p114_ffed_neutrosophic_consensus"
+P046_PLUGIN_ID = "p046_rossler_beaulieu_cubic_framework"
 
 
 def _clamp01(value: Any) -> float:
@@ -286,6 +287,65 @@ class FfeDPluginBridge:
             bridge_status={**base_status, "enabled": True, "runtime_importable": True, "effective_config": config},
         )
 
+    def run_p046_schedule(self, config: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
+        """Run p046 as a bounded deterministic fault-schedule source."""
+
+        base_status = self.status()
+        if not self.pluginpack_path.exists():
+            return p046_schedule_payload(
+                {
+                    "status": "disabled",
+                    "plugin_id": P046_PLUGIN_ID,
+                    "outputs": {},
+                    "metrics": {},
+                    "metadata": {"message": "pluginpack path not found"},
+                },
+                {**base_status, "enabled": False, "reason": "pluginpack path not found"},
+            )
+        try:
+            run_plugin = self._load_runtime()
+        except (ImportError, OSError, ValueError) as exc:
+            return p046_schedule_payload(
+                {
+                    "status": "disabled",
+                    "plugin_id": P046_PLUGIN_ID,
+                    "outputs": {},
+                    "metrics": {},
+                    "metadata": {"message": f"plugin runtime import failed: {exc}"},
+                },
+                {**base_status, "enabled": False, "reason": f"plugin runtime import failed: {exc}"},
+            )
+
+        effective = {
+            "mode": "trajectory",
+            "steps": 2400,
+            "discard": 200,
+            "sample_limit": 256,
+            "a": 0.2,
+            "b": 0.2,
+            "c": 5.7,
+            "k_cubic": 0.000001,
+            "dt": 0.01,
+        }
+        if config:
+            for key in effective:
+                if key in config:
+                    effective[key] = config[key]
+        try:
+            result = run_plugin(P046_PLUGIN_ID, effective)
+        except Exception as exc:
+            result = {
+                "status": "error",
+                "plugin_id": P046_PLUGIN_ID,
+                "outputs": {},
+                "metrics": {},
+                "metadata": {"message": str(exc)},
+            }
+        return p046_schedule_payload(
+            result,
+            {**base_status, "enabled": True, "runtime_importable": True, "effective_config": effective},
+        )
+
     def _build_plugin_configs(self, context: Mapping[str, Any]) -> Dict[str, Dict[str, Any]]:
         events = context.get("events") or context.get("observations") or []
         series = context.get("series") or numeric_series_from_events(events)
@@ -321,6 +381,14 @@ class FfeDPluginBridge:
         if not target_file.is_file():
             raise ImportError(f"ffed_runtime package not found in pluginpack: {target_file}")
 
+        # The pluginpack runtime imports sibling packages such as ``security``.
+        # Keep the explicit pluginpack root importable for the lifetime of the
+        # process; no global installation is required.
+        pluginpack_text = str(pluginpack)
+        inserted = pluginpack_text not in sys.path
+        if inserted:
+            sys.path.insert(0, pluginpack_text)
+
         spec = importlib.util.spec_from_file_location(
             "ffed_runtime",
             str(target_file),
@@ -331,10 +399,25 @@ class FfeDPluginBridge:
 
         module = importlib.util.module_from_spec(spec)
         sys.modules["ffed_runtime"] = module
-        spec.loader.exec_module(module)
+        try:
+            spec.loader.exec_module(module)
+        finally:
+            if inserted and pluginpack_text in sys.path:
+                sys.path.remove(pluginpack_text)
         if not hasattr(module, "run_plugin"):
             raise ImportError("ffed_runtime.run_plugin is missing")
-        return module.run_plugin
+
+        def isolated_run_plugin(plugin_id, config=None):
+            call_inserted = pluginpack_text not in sys.path
+            if call_inserted:
+                sys.path.insert(0, pluginpack_text)
+            try:
+                return module.run_plugin(plugin_id, config)
+            finally:
+                if call_inserted and pluginpack_text in sys.path:
+                    sys.path.remove(pluginpack_text)
+
+        return isolated_run_plugin
 
     def _runtime_importable(self) -> bool:
         try:
@@ -455,6 +538,49 @@ def p114_gate_payload(plugin_result: Mapping[str, Any], bridge_status: Optional[
         "raw_token_stored": False,
         "hierarchy": SOURCE_HIERARCHY,
         "research_boundary": RESEARCH_BOUNDARY,
+    }
+
+
+def p046_schedule_payload(
+    plugin_result: Mapping[str, Any],
+    bridge_status: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
+    outputs = dict(plugin_result.get("outputs") or {})
+    metrics = dict(plugin_result.get("metrics") or {})
+    trajectory = outputs.get("trajectory")
+    clamp_hits = int(_safe_float(metrics.get("clamp_hit_count"), -1.0))
+    nonfinite_resets = int(_safe_float(metrics.get("nonfinite_reset_count"), -1.0))
+    max_abs = _safe_float(metrics.get("trajectory_max_abs"), float("inf"))
+    reasons: List[str] = []
+    if plugin_result.get("status") != "success":
+        reasons.append("p046_plugin_unavailable")
+    if not isinstance(trajectory, list) or not trajectory:
+        reasons.append("p046_trajectory_missing")
+    if clamp_hits != 0:
+        reasons.append("p046_clamp_detected")
+    if nonfinite_resets != 0:
+        reasons.append("p046_nonfinite_reset_detected")
+    if not 0.0 <= max_abs < 100.0:
+        reasons.append("p046_trajectory_out_of_bounds")
+    if metrics.get("simulation_stable") is not True:
+        reasons.append("p046_simulation_not_stable")
+    accepted = not reasons
+    return {
+        "success": accepted,
+        "plugin_id": P046_PLUGIN_ID,
+        "status": "accepted" if accepted else "blocked",
+        "reason_codes": reasons,
+        "trajectory": trajectory if isinstance(trajectory, list) else [],
+        "metrics": {
+            "clamp_hit_count": clamp_hits,
+            "nonfinite_reset_count": nonfinite_resets,
+            "trajectory_max_abs": max_abs,
+            "simulation_stable": metrics.get("simulation_stable") is True,
+            "chaos_risk": _clamp01(metrics.get("chaos_risk")),
+            "divergence_index": _clamp01(metrics.get("divergence_index")),
+        },
+        "bridge_status": dict(bridge_status or {}),
+        "research_boundary": "bounded deterministic fault schedule; not physical evidence",
     }
 
 
@@ -684,10 +810,12 @@ __all__ = [
     "MVP5_PLUGIN_IDS",
     "NEXT5_PLUGIN_IDS",
     "P114_PLUGIN_ID",
+    "P046_PLUGIN_ID",
     "PLUGIN_WEIGHTS",
     "build_plugin_payload_from_results",
     "consensus_items_from_events",
     "cpai_mesh_profile",
     "numeric_series_from_events",
     "p114_gate_payload",
+    "p046_schedule_payload",
 ]

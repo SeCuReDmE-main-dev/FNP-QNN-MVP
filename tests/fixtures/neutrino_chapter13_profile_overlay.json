@@ -1,0 +1,85 @@
+{
+  "chapter13_distributed_validation_profile": {
+    "profile_version": "chapter13.distributed_validation_public_safe.v1",
+    "chapter13_status": "ready_for_p114_consensus",
+    "DistributedValidationContract_13": {
+      "schema_version": "chamber.chapter13_distributed_validation.v1",
+      "status": "declared",
+      "campaign_id": "chapter13-test2-67x4",
+      "run_count": 4,
+      "worker_count_per_run": 67,
+      "tasks_per_worker": 4,
+      "task_results_per_run": 268,
+      "total_sandbox_lifecycles": 268,
+      "total_task_results": 1072,
+      "proof_state_ceiling": "P2_internal_repeatability",
+      "physical_model_validated": false
+    },
+    "run_matrix": {
+      "run_1_all_valid": {"valid_workers": 67, "false_workers": 0},
+      "run_2_quarter_false": {"valid_workers": 50, "false_workers": 17},
+      "run_3_three_quarter_false": {"valid_workers": 17, "false_workers": 50},
+      "run_4_seeded_random_mix": {
+        "assignment_algorithm": "sha256_counter_v1",
+        "seed_policy": "generate_and_persist_before_vm_creation",
+        "false_probability": 0.5,
+        "manual_override": false
+      }
+    },
+    "source_revisions": {
+      "synthia_commit": "f22e7450a28e8e8c1f3ba0a20edd0348688fd922",
+      "fnp_qnn_commit": "cbf91e988f253339110fbfc6fc213d5b89a1899a",
+      "lab_commit": "4736c2872a5641ce611d395c4626b13664909b19",
+      "pluginpack_commit": "9f41fa542a8e1d354b745939f7894107bd3368cb"
+    },
+    "manifest_policy": {
+      "hash_algorithm": "sha256",
+      "freeze_before_vm_creation": true,
+      "manual_override": false,
+      "task_assignment": "four_tasks_per_worker"
+    },
+    "p114_consensus_request": {
+      "plugin_id": "p114_ffed_neutrosophic_consensus",
+      "items": [
+        {"label": "contract_complete", "truth": 0.9, "indeterminacy": 0.05, "falsity": 0.05},
+        {"label": "claims_bounded", "truth": 0.9, "indeterminacy": 0.05, "falsity": 0.05},
+        {"label": "kill_plan_declared", "truth": 0.85, "indeterminacy": 0.1, "falsity": 0.05}
+      ],
+      "threshold_policy": "plugin_declared_bounded_thresholds",
+      "may_override_synthia_rejection": false
+    },
+    "p046_chaos_policy": {
+      "bounded": true,
+      "memory_mb_max": 512,
+      "disk_mb_max": 256,
+      "task_timeout_seconds_max": 180,
+      "retry_count_max": 1,
+      "clamp_hit_count_required": 0,
+      "nonfinite_reset_count_required": 0,
+      "host_mutation_allowed": false,
+      "remote_mutation_allowed": false
+    },
+    "kill_plan": {
+      "required": true,
+      "ttl_seconds": 1800,
+      "kill_in_finally": true,
+      "post_run_empty_list_required": true
+    },
+    "SynthiaReading_13": {
+      "ready_for_Synthia": true,
+      "approved_for_p114_consensus": true,
+      "ready_for_p114": "true_after_Synthia",
+      "ready_for_FNP": "false_before_p114",
+      "reason_codes": [],
+      "next_required_gate": "p114_consensus"
+    },
+    "chapter12_dependency": {"status": "ready_for_fnp_validation", "required": true},
+    "boundary": {
+      "synthia_role": "distributed validation contract and lexical admission only",
+      "p114_role": "secondary consensus after Synthia",
+      "p046_role": "bounded deterministic fault schedule only",
+      "no_fractal_computation": true,
+      "no_real_detection": true
+    }
+  }
+}
