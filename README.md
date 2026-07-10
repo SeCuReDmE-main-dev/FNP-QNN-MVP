@@ -216,6 +216,20 @@ The command derives its carrier from declared `phase_delta` and Synthia's
 software evidence only. `PathComparison_11` is a chamber comparison, not a CP
 measurement, and `i_fractal_candidate_11` is not proof.
 
+Chapter 12 adds a separate intensive internal-validation command:
+
+```powershell
+.\.venv\Scripts\python.exe -m fnp_qnn_cli --json neutrino chapter12-validate --input tests\fixtures\neutrino_chapter12_valid_admission.json
+```
+
+The input must contain exactly ten named carriers with bounded tensions,
+positive weights, roles, and source fields. The command exposes every weighted
+contribution, a toy matter-context calculation, a declared detector-response
+projection, a canonical run fingerprint, and deterministic/stochastic replay
+metrics. Passing this gate establishes at most `P2_internal_repeatability` for
+the software chamber. It does not validate a physical ten-variable model,
+measure MSW behavior, or detect a neutrino.
+
 ## Current Status
 
 Validated locally:

@@ -370,6 +370,15 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="Path to an admitted Synthia packet with chapter11_readout_request.",
     )
+    neutrino_chapter12 = neutrino_sub.add_parser(
+        "chapter12-validate",
+        help="Run the internal chapter-12 ten-carrier validation.",
+    )
+    neutrino_chapter12.add_argument(
+        "--input",
+        required=True,
+        help="Path to admitted chapter-11/12 packets and an explicit validation request.",
+    )
 
     legacy = subparsers.add_parser("legacy", help="Legacy fixture commands.")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
@@ -864,6 +873,12 @@ def run_args(args: argparse.Namespace) -> int:
         from core.neutrino_chapter11_passage_readout import neutrino_chapter11_passage_readout_from_file
 
         payload = neutrino_chapter11_passage_readout_from_file(args.input)
+        return _emit(payload, as_json)
+
+    if args.section == "neutrino" and args.neutrino_command == "chapter12-validate":
+        from core.neutrino_chapter12_validation import neutrino_chapter12_validation_from_file
+
+        payload = neutrino_chapter12_validation_from_file(args.input)
         return _emit(payload, as_json)
 
     if args.section == "legacy" and args.legacy_command == "demo":

@@ -1,0 +1,25 @@
+{
+  "codebase_root": "C:\\Users\\jeans\\Desktop\\Case study\\modele\\FNP-QNN-MVP\\FNP-QNN-MVP",
+  "updated_at": "2026-07-10T06:21:32Z",
+  "benchmarks": [
+    {
+      "slug": "fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san",
+      "title": "Chapter 12 Ten-Carrier Cross-Platform Benchmark",
+      "created_at": "2026-07-10T06:17:08Z",
+      "updated_at": "2026-07-10T06:21:32Z",
+      "status": "active",
+      "objective": "Validate chapter 12 ten-carrier repeatability and cross-platform execution",
+      "product_hypothesis": "The public-safe FNP-QNN chamber can couple ten explicit carriers reproducibly without claiming physical validation",
+      "primary_subject": "neutrino chapter12 validation pipeline",
+      "comparators": [
+        "Windows local .venv",
+        "E2B Linux codex sandbox"
+      ],
+      "current_report_path": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\current\\report.md",
+      "current_memory_path": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\memory.md",
+      "validity_status": "valid_internal_cross_platform",
+      "execution_status": "complete_128_of_128_e2b_passed",
+      "latest_history_path": ".benchmark\\benchmarks\\fnp-qnn-mvp-neutrino-chapter12-validation-pipeline-validate-chapter-12-ten-carrier-repeatability-and-e2b-linux-codex-san\\history\\2026-07-10T06-21-32Z"
+    }
+  ]
+}

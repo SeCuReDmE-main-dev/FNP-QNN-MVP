@@ -1,0 +1,147 @@
+{
+  "LexPacket_neutrino": {
+    "schema_version": "synthia.lex_neutrino.v1",
+    "event_id": "chapter12-public-safe-neutrino-001",
+    "Adm_lex": true,
+    "dL_lex": 0.31927681,
+    "decision": {"status": "accepted", "reason_codes": []},
+    "refusal_packet": {"blocked": false, "reason_codes": []},
+    "chapter11_passage_profile": {
+      "profile_version": "chapter11.passage_public_safe.v1",
+      "chapter11_status": "ready_for_fnp_passage",
+      "Chapter11PassageContract": {"status": "established", "physical_claim_allowed": false},
+      "Chapter11InjectionPacket": {"status": "assembled", "route": "container_to_synthia_to_fnp"},
+      "Path_A_event": {
+        "path_id": "path_A_neutrino",
+        "container_id": "chapter10_t2k_like_container_001",
+        "admission_route": "container_to_synthia_to_fnp",
+        "path_status": "simulation_path"
+      },
+      "Path_B_event": {
+        "path_id": "path_B_antineutrino",
+        "container_id": "chapter10_t2k_like_container_001",
+        "admission_route": "container_to_synthia_to_fnp",
+        "path_status": "simulation_path"
+      },
+      "CommonPathControls": {
+        "baseline_policy": "same",
+        "energy_policy": "same",
+        "background_model_status": "declared_nonzero_toy",
+        "simulation_boundary": "simulation_not_detection"
+      },
+      "ChamberSymmetry_11": {
+        "same_container": true,
+        "same_admission_route": true,
+        "same_boundary": true
+      },
+      "SynthiaReading_11": {
+        "approved_for_fnp": true,
+        "ready_for_FNP": "true_after_Synthia",
+        "physical_claim_allowed": false
+      },
+      "forbidden_upgrades": ["candidate_as_proof"],
+      "boundary": {"no_fractal_computation": true}
+    },
+    "chapter12_validation_profile": {
+      "profile_version": "chapter12.validation_public_safe.v1",
+      "chapter12_status": "ready_for_fnp_validation",
+      "ValidationContract_12": {
+        "status": "declared",
+        "reference_run_id": "chapter11_first_passage_001",
+        "proof_state_requested": "P2_internal_repeatability",
+        "physical_model_validated": false
+      },
+      "carrier_policy": {
+        "required_carriers": [
+          "I_source", "I_flavor", "I_mass", "I_mix", "I_phase",
+          "I_medium", "I_interaction", "I_secondary", "I_detector", "I_uncertainty"
+        ],
+        "provided_count": 10,
+        "exact_ten_carrier_set": true
+      },
+      "medium_policy": {"explicit_matter_potential_required": true},
+      "detector_policy": {
+        "response_matrix_required": true,
+        "background_policy": "explicit_or_none_by_model"
+      },
+      "repeat_protocol": {
+        "deterministic_runs": 100,
+        "stochastic_runs": 100,
+        "maximum_runs": 1000,
+        "seed_policy": "declared_and_recorded",
+        "hidden_randomness": false,
+        "delta_max_tolerance": 1e-12,
+        "rmse_tolerance": 1e-12
+      },
+      "invariants": ["dL_lex != dF", "simulation != detection", "candidate != proof"],
+      "SynthiaReading_12": {
+        "approved_for_fnp_validation": true,
+        "ready_for_FNP": "true_after_Synthia"
+      },
+      "capability_boundary": {
+        "maximum_proof_state": "P2_internal_repeatability",
+        "physical_model_validated": false
+      },
+      "boundary": {"no_fractal_computation": true}
+    }
+  },
+  "chapter11_readout_request": {
+    "phase_delta": 0.9161747475030537,
+    "D_min_11": 1.0,
+    "D_max_11": 2.0,
+    "background_model_status": "declared_nonzero_toy",
+    "t2k_reproduction_claim": false,
+    "cp_measurement_claim": false,
+    "real_detection_claim": false,
+    "candidate_as_proof": false
+  },
+  "chapter12_validation_request": {
+    "D_min": 1.0,
+    "D_max": 2.0,
+    "code_revision": "fixture-chapter12-v1",
+    "dependency_lock_hash": "fixture-lock-v1",
+    "execution_mode": "local_deterministic_validation",
+    "physical_model_validated": false,
+    "repetition_is_experimental_evidence": false,
+    "real_detection_claim": false,
+    "candidate_as_proof": false,
+    "trace_is_neutrino": false,
+    "secondary_as_primary_interaction": false,
+    "msw_measurement_claim": false,
+    "hidden_randomness": false,
+    "carriers": [
+      {"name": "I_source", "tension": 0.20, "weight": 1.0, "role": "provenance", "source_fields": ["source_type"]},
+      {"name": "I_flavor", "tension": 0.30, "weight": 1.0, "role": "weak_flavor", "source_fields": ["flavor_basis"]},
+      {"name": "I_mass", "tension": 0.40, "weight": 1.0, "role": "mass_basis", "source_fields": ["mass_basis"]},
+      {"name": "I_mix", "tension": 0.50, "weight": 1.0, "role": "basis_relation", "source_fields": ["mixing_model"]},
+      {"name": "I_phase", "tension": 0.80, "weight": 1.0, "role": "propagation", "source_fields": ["phase_delta"]},
+      {"name": "I_medium", "tension": 0.10, "weight": 1.0, "role": "propagation_context", "source_fields": ["medium_type"]},
+      {"name": "I_interaction", "tension": 0.25, "weight": 1.0, "role": "weak_channel", "source_fields": ["interaction_channel"]},
+      {"name": "I_secondary", "tension": 0.35, "weight": 1.0, "role": "secondary_response", "source_fields": ["secondary_products"]},
+      {"name": "I_detector", "tension": 0.45, "weight": 1.0, "role": "projection", "source_fields": ["detector_signature"]},
+      {"name": "I_uncertainty", "tension": 0.55, "weight": 1.0, "role": "residual_uncertainty", "source_fields": ["uncertainty"]}
+    ],
+    "medium_request": {
+      "level": "vacuum",
+      "particle_kind": "neutrino",
+      "theta_rad": 0.6
+    },
+    "detector_request": {
+      "x_true": [1.0, 0.0],
+      "response_matrix": [[0.8, 0.1], [0.2, 0.7]],
+      "background_status": "explicit",
+      "background": [0.02, 0.01],
+      "noise": {"mode": "deterministic_zero"},
+      "labels": ["muon_like", "electron_like"],
+      "thresholds": [0.0, 0.0]
+    },
+    "repetition_request": {
+      "deterministic_runs": 100,
+      "stochastic_runs": 100,
+      "base_seed": 734,
+      "stochastic_noise_std": [0.01, 0.01],
+      "delta_max_tolerance": 1e-12,
+      "rmse_tolerance": 1e-12
+    }
+  }
+}
