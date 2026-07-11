@@ -27,7 +27,7 @@ reviewable implementation iteration.
 ### 1. Education journey and contracts
 
 - [x] Add student and teacher entry points to the public landing (`1.1`).
-- [ ] Define a versioned lab manifest with objective, inputs, expected evidence, and boundary text (`1.2`).
+- [x] Define a versioned lab manifest with objective, inputs, expected evidence, and boundary text (`1.2`).
 - [ ] Add a student lab selector that uses only approved fixture-backed activities (`1.3`).
 - [ ] Add a teacher review view for seed, trace, claims, and export status (`1.4`).
 - [ ] Add progress states and recovery copy for incomplete or rejected runs (`1.5`).
