@@ -1,0 +1,14 @@
+{
+  "lab_id": "memory-to-evidence",
+  "seed": 7,
+  "state": "completed",
+  "completed_steps": 5,
+  "total_steps": 5,
+  "trace_labels": [
+    "input summary",
+    "feature vector",
+    "run seed",
+    "review boundary"
+  ],
+  "export_status": "ready"
+}
