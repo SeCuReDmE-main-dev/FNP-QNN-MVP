@@ -34,7 +34,7 @@ reviewable implementation iteration.
 
 ### 2. Reproducibility and evidence
 
-- [ ] Make the run manifest the shared contract across API, Panel, CLI, and exports (`2.1`).
+- [x] Make the run manifest the shared contract across API, Panel, CLI, and exports (`2.1`).
 - [ ] Add replay tests for every public education fixture (`2.2`).
 - [ ] Add evidence schema versioning and migration notes (`2.3`).
 - [ ] Export a redacted JSON plus a concise Markdown review record (`2.4`).
