@@ -30,7 +30,7 @@ reviewable implementation iteration.
 - [x] Define a versioned lab manifest with objective, inputs, expected evidence, and boundary text (`1.2`).
 - [x] Add a student lab selector that uses only approved fixture-backed activities (`1.3`).
 - [x] Add a teacher review view for seed, trace, claims, and export status (`1.4`).
-- [ ] Add progress states and recovery copy for incomplete or rejected runs (`1.5`).
+- [x] Add progress states and recovery copy for incomplete or rejected runs (`1.5`).
 
 ### 2. Reproducibility and evidence
 
