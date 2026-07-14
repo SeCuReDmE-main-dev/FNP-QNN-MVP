@@ -1093,12 +1093,32 @@ uvicorn api.main:app --reload --port 8000
 HoloViz Panel dashboard:
 
 ```bash
-panel serve panel_app.py --show --port 5006
+panel serve panel_app.py --show --port 5006 --static-dirs web=web
 ```
 
 The Panel dashboard is the primary local operator panel. It runs the same
 runtime, encoding, QNN smoke, benchmark, and legacy fixture paths as the API
 without adding a Node/React build chain.
+
+### Synthia-gated Chamber Lab
+
+The `Chamber Lab` Panel tab renders one local Three.js chamber only after a
+valid Synthia packet and the exact ten configured carriers are supplied. The
+ten carriers configure semantic layers; they are not ten visual objects.
+
+- `GET /fnp-qnn/chamber-lab/status` reports the admission and fallback
+  boundary.
+- `GET /fnp-qnn/chamber-lab/presets` exposes the two core presets and the five
+  MVP5 visual overlays.
+- `POST /fnp-qnn/chamber-lab/scene` accepts `admission_packet`, `carriers`,
+  `preset_id`, and bounded `style` controls. A rejected/missing Synthia packet
+  returns a refusal and never a scene.
+
+The local renderer asset is vendored under `web/vendor/` with the upstream MIT
+license. Start Panel with `--static-dirs web=web` so it can load this local
+asset. QuaNThoR formalizes requests at `POST /chamber/formalize`, but only
+Synthia may admit a chamber. The hierarchy remains
+`I -> I_system^S -> D_f -> dF -> i_fractal`.
 
 ## Docker stack
 

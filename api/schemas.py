@@ -939,3 +939,12 @@ class CommandResponse(BaseModel):
 class ErrorResponse(BaseModel):
     detail: str
     code: Literal["validation_error", "not_found", "runtime_error"] = "runtime_error"
+
+
+class ChamberSceneRequest(BaseModel):
+    """Display-only chamber request; Synthia remains the admission authority."""
+
+    admission_packet: Dict[str, Any] = Field(default_factory=dict)
+    carriers: List[Dict[str, Any]] = Field(default_factory=list, min_length=10, max_length=10)
+    preset_id: str = Field(default="neutrino_chamber", min_length=1, max_length=96)
+    style: Dict[str, Any] = Field(default_factory=dict)

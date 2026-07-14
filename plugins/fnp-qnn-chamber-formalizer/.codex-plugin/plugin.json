@@ -1,0 +1,18 @@
+{
+  "name": "fnp-qnn-chamber-formalizer",
+  "version": "0.1.0",
+  "description": "Synthia-gated FNP-QNN chamber formalization and local visual handoff.",
+  "author": {
+    "name": "FNP-QNN local maintainer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "FNP-QNN Chamber Formalizer",
+    "shortDescription": "Formalize ten carrier variables for a Synthia-gated chamber.",
+    "longDescription": "Creates a reviewable ten-carrier proposal for the native QuaNThoR formalizer and FNP-QNN local Three.js chamber. It never imitates or bypasses Synthia admission.",
+    "developerName": "FNP-QNN local maintainer",
+    "category": "Education",
+    "capabilities": ["Interactive"],
+    "defaultPrompt": "Formalize this chamber idea into the required ten carriers, then send it to Synthia for admission."
+  }
+}

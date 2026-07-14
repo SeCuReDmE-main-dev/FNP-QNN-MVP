@@ -19,6 +19,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(1, PROJECT_ROOT)
 
 from api.schemas import (
+    ChamberSceneRequest,
     CloudRAGAdmissionRequest,
     CommandRequest,
     CommandResponse,
@@ -40,6 +41,7 @@ from api.schemas import (
     TimePhysicsExperimentRequest,
     TimePhysicsExperimentRunAllRequest,
 )
+from core.chamber_lab import ChamberLabError, build_chamber_scene, chamber_lab_status, list_chamber_presets
 from core import (
     CerebrumAdapter,
     CerebrumRuntimeBridge,
@@ -788,6 +790,35 @@ async def qnn_candidates() -> Dict[str, Any]:
             for candidate in qnn_nucleus.candidate_matrix()
         ],
     }
+
+
+@app.get("/fnp-qnn/chamber-lab/status")
+async def chamber_lab_status_endpoint() -> Dict[str, Any]:
+    """Report the local renderer and Synthia-gated admission contract."""
+
+    return chamber_lab_status()
+
+
+@app.get("/fnp-qnn/chamber-lab/presets")
+async def chamber_lab_presets_endpoint() -> Dict[str, Any]:
+    """List selectable display presets without issuing a chamber."""
+
+    return {"status": "ok", "presets": list_chamber_presets(), **chamber_lab_status()}
+
+
+@app.post("/fnp-qnn/chamber-lab/scene")
+async def chamber_lab_scene_endpoint(payload: ChamberSceneRequest) -> Dict[str, Any]:
+    """Create one visual chamber only after Synthia admits its ten carriers."""
+
+    try:
+        return build_chamber_scene(
+            admission_packet=payload.admission_packet,
+            carriers=payload.carriers,
+            preset_id=payload.preset_id,
+            style=payload.style,
+        )
+    except ChamberLabError as exc:
+        raise HTTPException(status_code=422, detail=exc.code) from exc
 
 
 @app.get("/fnp-qnn/novak-anderson/status")

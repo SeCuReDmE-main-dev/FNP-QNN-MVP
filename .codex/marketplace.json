@@ -16,6 +16,18 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Education"
+    },
+    {
+      "name": "fnp-qnn-chamber-formalizer",
+      "source": {
+        "source": "local",
+        "path": "./plugins/fnp-qnn-chamber-formalizer"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Education"
     }
   ]
 }

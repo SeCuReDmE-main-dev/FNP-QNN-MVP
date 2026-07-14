@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterable, List
 
 import pandas as pd
 import panel as pn
+from ui.chamber_lab import build_chamber_lab_panel
 from ui.network_canvas import build_network_designer_canvas
 
 from api.main import (
@@ -567,6 +568,7 @@ def _evidence_tabs(
     raw_json_pane: pn.pane.JSON,
     network_output: pn.Card,
     network_canvas_panel: pn.Column,
+    chamber_lab_panel: pn.Card,
 ) -> pn.Tabs:
     return pn.Tabs(
         ("Events", events_table),
@@ -576,6 +578,7 @@ def _evidence_tabs(
         ("Raw JSON", raw_json_pane),
         ("Network Designer", network_output),
         ("Network Designer Canvas", network_canvas_panel),
+        ("Chamber Lab", chamber_lab_panel),
         dynamic=True,
     )
 
@@ -895,6 +898,7 @@ def create_app() -> pn.template.FastListTemplate:
         sizing_mode="stretch_width",
     )
     network_canvas_panel = build_network_designer_canvas()
+    chamber_lab_panel = build_chamber_lab_panel()
 
     template = pn.template.FastListTemplate(
         title="FNP-QNN Control Room",
@@ -920,6 +924,7 @@ def create_app() -> pn.template.FastListTemplate:
                 raw_json_pane,
                 network_output,
                 network_canvas_panel,
+                chamber_lab_panel,
             ),
             _collapsed_brand_assets(),
         ],
