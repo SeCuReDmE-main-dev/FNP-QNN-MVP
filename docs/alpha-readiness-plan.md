@@ -37,7 +37,7 @@ reviewable implementation iteration.
 - [x] Make the run manifest the shared contract across API, Panel, CLI, and exports (`2.1`).
 - [x] Add replay tests for every public education fixture (`2.2`).
 - [x] Add evidence schema versioning and migration notes (`2.3`).
-- [ ] Export a redacted JSON plus a concise Markdown review record (`2.4`).
+- [x] Export a redacted JSON plus a concise Markdown review record (`2.4`).
 - [ ] Add deterministic comparison output for two runs with the same seed (`2.5`).
 
 ### 3. Security and governance

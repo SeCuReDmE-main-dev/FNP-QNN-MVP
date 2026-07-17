@@ -76,12 +76,54 @@ class FfeDPluginBridgeTests(unittest.TestCase):
                 "    return run(plugin_id, config)\n",
                 encoding="utf-8",
             )
+            security = Path(tmpdir) / "security"
+            manifests = security / "manifests"
+            manifests.mkdir(parents=True)
+            (security / "integrity.py").write_text(
+                "def verify_plugin_integrity(plugin_id):\n"
+                "    return {'plugin_id': plugin_id, 'valid': True, 'errors': []}\n",
+                encoding="utf-8",
+            )
             before = list(sys.path)
+            before_runtime_modules = {
+                name: module
+                for name, module in sys.modules.items()
+                if name == "ffed_runtime" or name.startswith("ffed_runtime.")
+            }
 
             run_plugin = FfeDPluginBridge(pluginpack_path=Path(tmpdir))._load_runtime()
 
             self.assertEqual(sys.path, before)
             self.assertEqual(run_plugin("p011_fractales_atomiques", {})["status"], "success")
+            self.assertEqual(sys.path, before)
+            after_runtime_modules = {
+                name: module
+                for name, module in sys.modules.items()
+                if name == "ffed_runtime" or name.startswith("ffed_runtime.")
+            }
+            self.assertEqual(after_runtime_modules, before_runtime_modules)
+
+    def test_runtime_rejects_plugin_when_integrity_fails(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            package = Path(tmpdir) / "ffed_runtime"
+            package.mkdir()
+            (package / "__init__.py").write_text(
+                "def run_plugin(plugin_id, config):\n"
+                "    raise AssertionError('altered plugin must not execute')\n",
+                encoding="utf-8",
+            )
+            security = Path(tmpdir) / "security"
+            security.mkdir()
+            (security / "integrity.py").write_text(
+                "def verify_plugin_integrity(plugin_id):\n"
+                "    return {'plugin_id': plugin_id, 'valid': False, 'errors': ['sha256 mismatch']}\n",
+                encoding="utf-8",
+            )
+
+            run_plugin = FfeDPluginBridge(pluginpack_path=Path(tmpdir))._load_runtime()
+
+            with self.assertRaisesRegex(ValueError, "integrity rejected"):
+                run_plugin("p011_fractales_atomiques", {})
 
     def test_status_reports_datadog_cpai_contract_without_secrets(self):
         status = FfeDPluginBridge().status()

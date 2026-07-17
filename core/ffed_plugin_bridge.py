@@ -9,9 +9,11 @@ into bounded D_f/D_f_hat/dF/i_fractal_candidate signals.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 import os
 from pathlib import Path
 import sys
+import threading
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
 from .cpai_mesh import (
@@ -33,27 +35,27 @@ from .neutrosophic_quantum_primitives import (
 
 
 DEFAULT_PLUGINPACK_PATH = Path(os.getenv("FNP_QNN_FFED_PLUGINPACK_PATH", "./pluginpack")).resolve()
-MVP5_PLUGIN_IDS = (
-    "p011_fractales_atomiques",
-    "p046_rossler_beaulieu_cubic_framework",
-    "p097_fbm_tuner",
-    "p109_dual_triplex",
-    "p114_ffed_neutrosophic_consensus",
-)
-NEXT5_PLUGIN_IDS = (
-    "p019_feigenbaum_attractor",
-    "p021_henon_attractor",
-    "p064_fractal_percolation",
-    "p112_magnet_force",
-    "p100_self_avoiding_walk",
-)
-PLUGIN_WEIGHTS = {
-    "p114_ffed_neutrosophic_consensus": 0.25,
-    "p046_rossler_beaulieu_cubic_framework": 0.25,
-    "p097_fbm_tuner": 0.20,
-    "p011_fractales_atomiques": 0.15,
-    "p109_dual_triplex": 0.15,
-}
+PLUGIN_POLICY_PATH = Path(__file__).with_name("contracts") / "ffed-plugin-policy.v1.json"
+
+
+def _load_plugin_policy() -> Dict[str, Any]:
+    policy = json.loads(PLUGIN_POLICY_PATH.read_text(encoding="utf-8"))
+    if policy.get("schema") != "fnp-qnn.ffed-plugin-policy.v1":
+        raise ValueError("Unsupported FFeD plugin policy schema")
+    mvp5 = tuple(policy.get("mvp5_plugin_ids") or ())
+    weights = dict(policy.get("weights") or {})
+    if len(mvp5) != 5 or set(mvp5) != set(weights):
+        raise ValueError("FFeD MVP5 policy must define exactly five weighted plugins")
+    if abs(sum(float(value) for value in weights.values()) - 1.0) > 1e-9:
+        raise ValueError("FFeD MVP5 plugin weights must sum to 1.0")
+    return policy
+
+
+PLUGIN_POLICY = _load_plugin_policy()
+PLUGIN_POLICY_SCHEMA = str(PLUGIN_POLICY["schema"])
+MVP5_PLUGIN_IDS = tuple(PLUGIN_POLICY["mvp5_plugin_ids"])
+NEXT5_PLUGIN_IDS = tuple(PLUGIN_POLICY["next5_plugin_ids"])
+PLUGIN_WEIGHTS = {key: float(value) for key, value in PLUGIN_POLICY["weights"].items()}
 P114_PLUGIN_ID = "p114_ffed_neutrosophic_consensus"
 P046_PLUGIN_ID = "p046_rossler_beaulieu_cubic_framework"
 
@@ -154,6 +156,7 @@ class FfeDPluginBridge:
     def __init__(self, pluginpack_path: Optional[str | Path] = None):
         self.pluginpack_path = Path(pluginpack_path) if pluginpack_path is not None else DEFAULT_PLUGINPACK_PATH
         self.repo_root = Path(__file__).resolve().parents[1]
+        self._runtime_lock = threading.RLock()
 
     def status(self) -> Dict[str, Any]:
         return {
@@ -164,6 +167,8 @@ class FfeDPluginBridge:
             "runtime_importable": self._runtime_importable(),
             "mvp5_plugins": list(MVP5_PLUGIN_IDS),
             "next5_plugins": list(NEXT5_PLUGIN_IDS),
+            "plugin_policy_schema": PLUGIN_POLICY_SCHEMA,
+            "integrity_required_before_invocation": True,
             "mcp_surface": {
                 "ffed_mcp_config_present": (self.pluginpack_path / ".mcp.json").exists(),
                 "ffed_mcp_callable_in_current_session": None,
@@ -397,27 +402,89 @@ class FfeDPluginBridge:
         if spec is None or spec.loader is None:
             raise ImportError(f"Cannot load ffed_runtime from {target_file}")
 
+        module_prefixes = ("ffed_runtime", "ffed_plugins")
+        previous_modules = {
+            name: loaded
+            for name, loaded in sys.modules.items()
+            if name == "ffed_runtime" or name.startswith("ffed_runtime.") or name == "ffed_plugins" or name.startswith("ffed_plugins.")
+        }
+        for name in previous_modules:
+            sys.modules.pop(name, None)
         module = importlib.util.module_from_spec(spec)
         sys.modules["ffed_runtime"] = module
         try:
             spec.loader.exec_module(module)
+        except Exception:
+            for name in list(sys.modules):
+                if any(name == prefix or name.startswith(f"{prefix}.") for prefix in module_prefixes):
+                    sys.modules.pop(name, None)
+            sys.modules.update(previous_modules)
+            raise
         finally:
             if inserted and pluginpack_text in sys.path:
                 sys.path.remove(pluginpack_text)
+        isolated_modules = {
+            name: loaded
+            for name, loaded in sys.modules.items()
+            if any(name == prefix or name.startswith(f"{prefix}.") for prefix in module_prefixes)
+        }
+        for name in isolated_modules:
+            sys.modules.pop(name, None)
+        sys.modules.update(previous_modules)
         if not hasattr(module, "run_plugin"):
             raise ImportError("ffed_runtime.run_plugin is missing")
 
+        verify_plugin_integrity = self._load_integrity_verifier(pluginpack)
+
         def isolated_run_plugin(plugin_id, config=None):
-            call_inserted = pluginpack_text not in sys.path
-            if call_inserted:
-                sys.path.insert(0, pluginpack_text)
-            try:
-                return module.run_plugin(plugin_id, config)
-            finally:
-                if call_inserted and pluginpack_text in sys.path:
-                    sys.path.remove(pluginpack_text)
+            if plugin_id not in set(MVP5_PLUGIN_IDS) | set(NEXT5_PLUGIN_IDS):
+                raise ValueError(f"Plugin is not allowlisted by {PLUGIN_POLICY_SCHEMA}: {plugin_id}")
+            integrity = verify_plugin_integrity(plugin_id)
+            if not integrity.get("valid"):
+                errors = "; ".join(str(item) for item in integrity.get("errors") or ["integrity verification failed"])
+                raise ValueError(f"Plugin integrity rejected for {plugin_id}: {errors}")
+            with self._runtime_lock:
+                call_previous = {
+                    name: loaded
+                    for name, loaded in sys.modules.items()
+                    if any(name == prefix or name.startswith(f"{prefix}.") for prefix in module_prefixes)
+                }
+                sys.modules.update(isolated_modules)
+                call_inserted = pluginpack_text not in sys.path
+                if call_inserted:
+                    sys.path.insert(0, pluginpack_text)
+                try:
+                    return module.run_plugin(plugin_id, config)
+                finally:
+                    for name in list(sys.modules):
+                        if any(name == prefix or name.startswith(f"{prefix}.") for prefix in module_prefixes):
+                            loaded = sys.modules.get(name)
+                            loaded_file = str(getattr(loaded, "__file__", ""))
+                            if loaded_file.startswith(pluginpack_text) or name in isolated_modules:
+                                isolated_modules[name] = loaded
+                                sys.modules.pop(name, None)
+                    sys.modules.update(call_previous)
+                    if call_inserted and pluginpack_text in sys.path:
+                        sys.path.remove(pluginpack_text)
 
         return isolated_run_plugin
+
+    def _load_integrity_verifier(self, pluginpack: Path):
+        import importlib.util
+
+        integrity_file = pluginpack / "security" / "integrity.py"
+        if not integrity_file.is_file():
+            raise ImportError(f"Plugin integrity verifier not found: {integrity_file}")
+        module_name = f"_fnp_qnn_ffed_integrity_{abs(hash(str(pluginpack)))}"
+        spec = importlib.util.spec_from_file_location(module_name, str(integrity_file))
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load plugin integrity verifier from {integrity_file}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        verifier = getattr(module, "verify_plugin_integrity", None)
+        if not callable(verifier):
+            raise ImportError("security.integrity.verify_plugin_integrity is missing")
+        return verifier
 
     def _runtime_importable(self) -> bool:
         try:
@@ -442,6 +509,7 @@ class FfeDPluginBridge:
                 "activated": False,
                 "reason": reason,
                 "allowlist": list(MVP5_PLUGIN_IDS),
+                "plugin_policy_schema": PLUGIN_POLICY_SCHEMA,
                 "observed_plugins": [],
                 "cpai_mesh_base": cpai_mesh_profile(),
             },
@@ -500,6 +568,7 @@ def build_plugin_payload_from_results(
             "router": "ffed-plugin-bridge",
             "activated": bool(active_signals),
             "allowlist": list(MVP5_PLUGIN_IDS),
+            "plugin_policy_schema": PLUGIN_POLICY_SCHEMA,
             "observed_plugins": [signal.plugin_id for signal in active_signals],
             "expected_plugins": list(MVP5_PLUGIN_IDS),
             "all_expected_plugins_seen": [signal.plugin_id for signal in active_signals] == list(MVP5_PLUGIN_IDS),
