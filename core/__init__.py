@@ -82,6 +82,29 @@ from .hydra_em_gpcn_math import (
     microtubule_proxy_phi_profile,
     quasicrystal_gpcn_projection_profile,
 )
+from .crystal_growth_fractal_profile import (
+    branch_drift_profile,
+    crystal_growth_window_profile,
+    fractal_dimension_proxy,
+    fractal_growth_rate_profile,
+    growth_rate_profile,
+)
+from .dmqc_crystal_mining import (
+    DMQC_DEFINITION,
+    convex_hull_proxy,
+    dmqc_feature_bridge,
+    dmqc_status,
+    load_dmqc_library,
+    pca_correlation_profile,
+    pls_energy_profile,
+    run_dmqc_prediction,
+)
+from .crystal_chamber import (
+    CRYSTAL_CHAIN,
+    FRACTAL_CHAIN,
+    crystal_chamber_admission_profile,
+    crystal_chamber_status,
+)
 from .axiomatic_chamber import (
     AxiomaticChamberContext,
     ChamberBounds,
@@ -253,6 +276,23 @@ __all__ = [
     "hydra_em_gpcn_orch_profile",
     "microtubule_proxy_phi_profile",
     "quasicrystal_gpcn_projection_profile",
+    "branch_drift_profile",
+    "crystal_growth_window_profile",
+    "fractal_dimension_proxy",
+    "fractal_growth_rate_profile",
+    "growth_rate_profile",
+    "DMQC_DEFINITION",
+    "convex_hull_proxy",
+    "dmqc_feature_bridge",
+    "dmqc_status",
+    "load_dmqc_library",
+    "pca_correlation_profile",
+    "pls_energy_profile",
+    "run_dmqc_prediction",
+    "CRYSTAL_CHAIN",
+    "FRACTAL_CHAIN",
+    "crystal_chamber_admission_profile",
+    "crystal_chamber_status",
     "AxiomaticChamberContext",
     "ChamberBounds",
     "SourceRole",

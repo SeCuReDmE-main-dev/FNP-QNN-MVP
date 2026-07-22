@@ -1,0 +1,29 @@
+{
+  "schema": "fnp-qnn.ffed-plugin-policy.v1",
+  "mvp5_plugin_ids": [
+    "p011_fractales_atomiques",
+    "p046_rossler_beaulieu_cubic_framework",
+    "p097_fbm_tuner",
+    "p109_dual_triplex",
+    "p114_ffed_neutrosophic_consensus"
+  ],
+  "next5_plugin_ids": [
+    "p019_feigenbaum_attractor",
+    "p021_henon_attractor",
+    "p064_fractal_percolation",
+    "p112_magnet_force",
+    "p100_self_avoiding_walk"
+  ],
+  "weights": {
+    "p114_ffed_neutrosophic_consensus": 0.25,
+    "p046_rossler_beaulieu_cubic_framework": 0.25,
+    "p097_fbm_tuner": 0.2,
+    "p011_fractales_atomiques": 0.15,
+    "p109_dual_triplex": 0.15
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "required_before_invocation": true,
+    "failure_mode": "closed"
+  }
+}

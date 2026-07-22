@@ -89,6 +89,63 @@ This repository is an alpha-local, non-clinical research simulator for:
 
 It is not a clinical, diagnostic, therapeutic, safety, emergency, or production-public system. Public claims must stay tied to local tests, demo output, or explicit reports in this repository.
 
+## DMQC Crystal Chamber Prototype
+
+The simulator now includes an opt-in DMQC crystal-growth research lane. In this
+repository, `DMQC` means `Data Mining of Quantum Calculations`. It is a working
+term for organizing material descriptors and testing software hypotheses; it is
+not presented as an official standard, a DFT engine, a validated
+materials-discovery method, a quantum hardware result, or physical proof.
+
+The implementation preserves two separate reasoning chains:
+
+- Crystal chain: `I -> I_system^S -> D_crystal -> dC -> i_crystal`
+- Optional fractal chain: `I -> I_system^S -> D_f -> dF -> i_fractal`
+
+This separation is intentional. Crystal growth can show fractal-like behavior,
+but the simulator does not automatically collapse every crystal-growth state
+into `i_fractal`. The crystal chamber keeps `i_crystal` as the primary
+container and admits the fractal line only when an explicit fractal-dimension
+signal is supplied and bounded.
+
+The current prototype adds:
+
+- `core/dmqc_crystal_mining.py` for bounded DMQC feature extraction from an
+  educational binary-alloy fixture;
+- `core/crystal_growth_fractal_profile.py` for growth-rate, branch-drift,
+  roughness, defect, phase-stability, and optional fractal-dimension profiles;
+- `core/crystal_chamber.py` for admitted, suspended, and rejected chamber
+  states, including a `near-chaotic suspended crystal growth state`;
+- opt-in QNN smoke-run payloads:
+  `dmqc_crystal_profile`, `crystal_growth_profile`, and
+  `crystal_chamber_profile`;
+- API endpoints:
+  `GET /dmqc/status`, `POST /dmqc/run`, and
+  `POST /dmqc/crystal-chamber/run`;
+- tests covering the DMQC fixture, chamber hierarchy, API endpoints, and QNN
+  opt-in bridge.
+
+Use the DMQC endpoints only as research-software instrumentation. The fixture
+at `tests/fixtures/dmqc/binary_alloy_energy_library.v1.json` is educational and
+synthetic. It does not validate a material, a formation-energy model, a crystal
+structure, or an experimental growth result.
+
+Run the focused checks with:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_dmqc_crystal_mining tests.test_crystal_chamber tests.test_api_qnn_smoke
+```
+
+The full local readiness gate used after this operation was:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py"
+.\.venv\Scripts\python.exe scripts\validate_alpha_readiness.py
+```
+
+Latest verified result for this operation: 452 unit tests passed, 2 skipped,
+and `validate_alpha_readiness.py` passed.
+
 ## Neutrino Admission Gate
 
 FNP-QNN includes a public-safe neutrino admission gate for educational

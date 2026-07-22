@@ -3,426 +3,368 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FNP-QNN — Local Research Simulator</title>
+  <title>FNP-QNN Quantum Simulator - Local Research Surface</title>
   <meta
     name="description"
-    content="FNP-QNN is an alpha-local, non-clinical educational research simulator for reproducible memory-to-network pipelines, deterministic feature encoding, QNN candidate lanes, and evidence-first review."
+    content="FNP-QNN is a public pre-alpha, alpha-local, non-clinical educational research simulator for Synthia-admitted memory-to-network simulation evidence."
   />
-  <meta name="theme-color" content="#071025" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0a141f" />
+  <meta name="color-scheme" content="dark light" />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./fnp-qnn-landing.css" />
 </head>
 <body>
-  <a class="skip-link" href="#main-content">Skip to the main content</a>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <div class="site-shell">
-    <header class="topbar" aria-label="FNP-QNN public navigation">
-      <a class="brand-lockup" href="#top" aria-label="FNP-QNN home">
-        <svg class="brand-mark" viewBox="0 0 96 96" role="img" aria-label="FNP-QNN orbital nucleus emblem">
-          <circle cx="48" cy="48" r="36" class="mark-orbit mark-orbit-a" />
-          <ellipse cx="48" cy="48" rx="38" ry="17" class="mark-orbit mark-orbit-b" />
-          <ellipse cx="48" cy="48" rx="17" ry="38" class="mark-orbit mark-orbit-c" />
-          <path d="M24 48c9-11 18-11 27 0s18 11 27 0" class="mark-wave" />
-          <circle cx="48" cy="48" r="7" class="mark-core" />
-          <circle cx="15" cy="48" r="4" class="mark-node cyan" />
-          <circle cx="68" cy="18" r="4" class="mark-node gold" />
-          <circle cx="72" cy="70" r="4" class="mark-node green" />
-        </svg>
-        <span>
-          <strong>FNP-QNN</strong>
-          <small>Local Research Simulator</small>
-        </span>
-      </a>
+  <header class="site-header" aria-label="FNP-QNN navigation">
+    <a class="brand" href="https://securedme.ca/" aria-label="Return to SecuredMe home">
+      <img src="./assets/banner-small.png" alt="FNP-QNN Quantum Simulator" />
+    </a>
 
-      <nav class="topnav" aria-label="Page sections">
-        <a href="#pipeline">Pipeline</a>
-        <a href="#surfaces">Surfaces</a>
-        <a href="#invariants">Invariants</a>
-        <a href="#boundary">Boundary</a>
-      </nav>
+    <nav class="nav-links" aria-label="Page sections">
+      <a href="#education">Education</a>
+      <a href="#start">Start</a>
+      <a href="#surfaces">Surfaces</a>
+      <a href="#network-designer">Network Designer</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#boundary">Boundary</a>
+    </nav>
 
-      <span class="status-pill">alpha-local · non-clinical</span>
-    </header>
+    <a class="source-button" href="https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP">Source</a>
+  </header>
 
-    <main id="main-content">
-      <section class="hero" id="top" aria-labelledby="hero-title">
-        <div class="hero-grid" aria-hidden="true"></div>
-        <div class="hero-copy">
-          <p class="eyebrow">Public educational research identity</p>
-          <h1 id="hero-title">FNP-QNN</h1>
-          <p class="hero-subtitle">Fractal · Neutrosophic · Parallel · Quantum-Neural Research</p>
-          <p class="hero-lead">
-            A reproducible local control room for experimental
-            <strong>memory → encoding → network → evidence</strong> pipelines.
-          </p>
-
-          <div class="boundary-banner" role="note">
-            <span class="boundary-icon" aria-hidden="true">◇</span>
-            <p>
-              Alpha-local research simulator. Results are local simulation evidence only—not clinical,
-              diagnostic, therapeutic, emergency, safety-critical, or production-public output.
-            </p>
-          </div>
-
-          <div class="contact-grid" aria-label="FNP-QNN public contact information">
-            <a class="contact-card" href="https://fnpqnn.securedme.ca/">
-              <span class="contact-symbol" aria-hidden="true">◎</span>
-              <span>
-                <small>Webspace</small>
-                <strong>fnpqnn.securedme.ca</strong>
-              </span>
-            </a>
-            <a class="contact-card" href="mailto:fnpqnn@securedme.ca">
-              <span class="contact-symbol" aria-hidden="true">✉</span>
-              <span>
-                <small>Email</small>
-                <strong>fnpqnn@securedme.ca</strong>
-              </span>
-            </a>
-            <a class="contact-card" href="https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP">
-              <span class="contact-symbol code-symbol" aria-hidden="true">&lt;/&gt;</span>
-              <span>
-                <small>Public repository</small>
-                <strong>FNP-QNN-MVP</strong>
-              </span>
-            </a>
-          </div>
-
-          <ul class="principle-row" aria-label="FNP-QNN principles">
-            <li>Deterministic</li>
-            <li>Inspectable</li>
-            <li>Reproducible</li>
-            <li>Evidence-first</li>
-            <li>Optional quantum lanes</li>
-          </ul>
-        </div>
-
-        <div class="hero-visual" aria-label="Abstract FNP-QNN research nucleus visualization">
-          <div class="visual-halo halo-a"></div>
-          <div class="visual-halo halo-b"></div>
-          <div class="visual-halo halo-c"></div>
-
-          <svg class="research-nucleus" viewBox="0 0 620 620" role="img" aria-labelledby="nucleus-title nucleus-desc">
-            <title id="nucleus-title">FNP-QNN research nucleus</title>
-            <desc id="nucleus-desc">An abstract deterministic network showing fractal orbits, truth, indeterminacy, falsity, memory, encoding, and evidence nodes.</desc>
-            <defs>
-              <linearGradient id="orbitGradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#55d9ff" />
-                <stop offset="0.48" stop-color="#1e3aba" />
-                <stop offset="1" stop-color="#fdaa37" />
-              </linearGradient>
-              <linearGradient id="coreGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#f2f6fa" />
-                <stop offset="0.45" stop-color="#55d9ff" />
-                <stop offset="1" stop-color="#36837e" />
-              </linearGradient>
-              <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="7" result="blur" />
-                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-              </filter>
-            </defs>
-
-            <g class="orbit-system">
-              <circle cx="310" cy="310" r="234" class="orbit orbit-outer" />
-              <ellipse cx="310" cy="310" rx="248" ry="112" class="orbit orbit-one" />
-              <ellipse cx="310" cy="310" rx="112" ry="248" class="orbit orbit-two" />
-              <ellipse cx="310" cy="310" rx="215" ry="152" transform="rotate(42 310 310)" class="orbit orbit-three" />
-              <ellipse cx="310" cy="310" rx="215" ry="152" transform="rotate(-42 310 310)" class="orbit orbit-four" />
-            </g>
-
-            <g class="fractal-lines">
-              <path d="M108 328C154 230 206 213 257 280S362 396 506 285" />
-              <path d="M113 370C182 319 206 327 259 377S382 446 493 353" />
-              <path d="M144 212C210 176 257 201 291 247S379 328 470 227" />
-            </g>
-
-            <g class="network-links">
-              <path d="M146 150L234 222L310 310L401 214L492 153" />
-              <path d="M126 465L228 401L310 310L406 405L510 467" />
-              <path d="M89 310H531" />
-            </g>
-
-            <g class="core-stack" filter="url(#softGlow)">
-              <circle cx="310" cy="310" r="72" class="core-ring" />
-              <circle cx="310" cy="310" r="48" class="core-body" />
-              <text x="310" y="325" text-anchor="middle" class="phi-symbol">φ</text>
-            </g>
-
-            <g class="state-triad">
-              <circle cx="310" cy="118" r="30" class="state-node state-t" />
-              <text x="310" y="126" text-anchor="middle">T</text>
-              <circle cx="144" cy="410" r="30" class="state-node state-i" />
-              <text x="144" y="418" text-anchor="middle">I</text>
-              <circle cx="476" cy="410" r="30" class="state-node state-f" />
-              <text x="476" y="418" text-anchor="middle">F</text>
-            </g>
-
-            <g class="flow-nodes">
-              <circle cx="107" cy="310" r="12" class="flow-node memory" />
-              <circle cx="218" cy="310" r="12" class="flow-node encode" />
-              <circle cx="402" cy="310" r="12" class="flow-node network" />
-              <circle cx="513" cy="310" r="12" class="flow-node evidence" />
-              <text x="107" y="344" text-anchor="middle">memory</text>
-              <text x="218" y="344" text-anchor="middle">encode</text>
-              <text x="402" y="344" text-anchor="middle">network</text>
-              <text x="513" y="344" text-anchor="middle">evidence</text>
-            </g>
-
-            <g class="micro-nodes">
-              <circle cx="146" cy="150" r="8" />
-              <circle cx="234" cy="222" r="6" />
-              <circle cx="401" cy="214" r="7" />
-              <circle cx="492" cy="153" r="8" />
-              <circle cx="126" cy="465" r="8" />
-              <circle cx="228" cy="401" r="6" />
-              <circle cx="406" cy="405" r="7" />
-              <circle cx="510" cy="467" r="8" />
-            </g>
-          </svg>
-
-          <div class="visual-caption">
-            <span>bounded state</span>
-            <span>typed graph</span>
-            <span>deterministic trace</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="section pipeline-section" id="pipeline" aria-labelledby="pipeline-title">
-        <div class="section-heading">
-          <p class="eyebrow">Public MVP pipeline</p>
-          <h2 id="pipeline-title">From structured memory events to reviewable evidence.</h2>
-          <p>
-            The current public simulator focuses on a bounded, local workflow. Each stage is inspectable and each
-            optional lane remains clearly identified instead of being silently treated as validated execution.
-          </p>
-        </div>
-
-        <ol class="pipeline" aria-label="FNP-QNN processing pipeline">
-          <li>
-            <span class="pipeline-index">01</span>
-            <div class="pipeline-icon memory-icon" aria-hidden="true"></div>
-            <h3>Memory events</h3>
-            <p>Cerebrum-shaped interval observations are normalized into structured, size-limited payloads.</p>
-          </li>
-          <li>
-            <span class="pipeline-index">02</span>
-            <div class="pipeline-icon pair-icon" aria-hidden="true"></div>
-            <h3>Crossmodal pairs</h3>
-            <p>Deterministic pairing exposes relationships across audio, video, text, and stimuli channels.</p>
-          </li>
-          <li>
-            <span class="pipeline-index">03</span>
-            <div class="pipeline-icon vector-icon" aria-hidden="true"></div>
-            <h3>Feature encoding</h3>
-            <p>Events become explicit vectors, transition matrices, provenance, and bounded state metadata.</p>
-          </li>
-          <li>
-            <span class="pipeline-index">04</span>
-            <div class="pipeline-icon qnn-icon" aria-hidden="true"></div>
-            <h3>Candidate lanes</h3>
-            <p>The deterministic Torch surrogate is the default; Qiskit and other quantum lanes remain optional and gated.</p>
-          </li>
-          <li>
-            <span class="pipeline-index">05</span>
-            <div class="pipeline-icon evidence-icon" aria-hidden="true"></div>
-            <h3>Evidence output</h3>
-            <p>Run summaries, traces, graphs, validation results, and JSON evidence remain available for human review.</p>
-          </li>
-        </ol>
-      </section>
-
-      <section class="section surfaces-section" id="surfaces" aria-labelledby="surfaces-title">
-        <div class="section-heading compact-heading">
-          <p class="eyebrow">Validated and visible surfaces</p>
-          <h2 id="surfaces-title">A research cockpit—not a black box.</h2>
-        </div>
-
-        <div class="surface-grid">
-          <article class="surface-card accent-cyan">
-            <span class="surface-kicker">Local API</span>
-            <h3>FastAPI research surface</h3>
-            <p>Typed request contracts expose health, encoding, runtime, QNN smoke, NeuroBit, and bounded study profiles.</p>
-            <span class="surface-status">validated default surface</span>
-          </article>
-          <article class="surface-card accent-blue">
-            <span class="surface-kicker">Control room</span>
-            <h3>HoloViz Panel dashboard</h3>
-            <p>Operators can inspect payloads, event timelines, feature vectors, pair evidence, candidate lanes, and raw JSON.</p>
-            <span class="surface-status">local visual workflow</span>
-          </article>
-          <article class="surface-card accent-gold">
-            <span class="surface-kicker">Operator interface</span>
-            <h3>CLI and terminal UI</h3>
-            <p>Prompt-driven commands expose status, runtime, QNN smoke, NeuroBit gates, diagnostics, and allowlisted adapters.</p>
-            <span class="surface-status">deterministic operator path</span>
-          </article>
-          <article class="surface-card accent-green">
-            <span class="surface-kicker">Graph contract</span>
-            <h3>Network Designer backend</h3>
-            <p>Typed nodes, ports, edges, validation, presets, serialization, and execution support multiple network families.</p>
-            <span class="surface-status">backend contract implemented</span>
-          </article>
-          <article class="surface-card accent-cyan">
-            <span class="surface-kicker">Neutrosophic trace</span>
-            <h3>NeuroBit gate profile</h3>
-            <p>Bounded T/I/F profiles produce deterministic H/W/X/Y/Z gate plans and backend-neutral operation descriptors.</p>
-            <span class="surface-status">educational simulation primitive</span>
-          </article>
-          <article class="surface-card accent-gold">
-            <span class="surface-kicker">Reproducibility</span>
-            <h3>Evidence and readiness gates</h3>
-            <p>Unit/API tests, compile checks, deterministic demos, and the alpha-readiness validator constrain public claims.</p>
-            <span class="surface-status">evidence before promotion</span>
-          </article>
-        </div>
-      </section>
-
-      <section class="section invariant-section" id="invariants" aria-labelledby="invariant-title">
-        <div class="invariant-copy">
-          <p class="eyebrow">Fractal carrier discipline</p>
-          <h2 id="invariant-title">Indeterminacy remains primary.</h2>
-          <p>
-            The bounded fractal carrier can enrich a local simulator state, but it does not erase or replace the
-            underlying indeterminacy signal. Admission remains explicit and reviewable.
-          </p>
-          <div class="invariant-chain" aria-label="FNP-QNN public invariant">
-            <span>I</span><b>→</b><span>I<sub>system</sub><sup>S</sup></span><b>→</b><span>D<sub>f</sub></span><b>→</b><span>dF</span><b>→</b><span>i<sub>fractal</sub></span>
-          </div>
-        </div>
-
-        <div class="triad-panel" aria-label="Truth indeterminacy falsity triad">
-          <div class="triad-orbit"></div>
-          <article class="triad-node truth-node">
-            <strong>T</strong>
-            <span>Truth support</span>
-          </article>
-          <article class="triad-node indeterminacy-node">
-            <strong>I</strong>
-            <span>Indeterminacy</span>
-          </article>
-          <article class="triad-node falsity-node">
-            <strong>F</strong>
-            <span>Falsity support</span>
-          </article>
-          <div class="triad-center">
-            <strong>bounded</strong>
-            <span>local state</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="section lane-section" aria-labelledby="lanes-title">
-        <div class="section-heading">
-          <p class="eyebrow">Optional and gated research lanes</p>
-          <h2 id="lanes-title">Visible possibilities without hidden overclaims.</h2>
-          <p>
-            Optional backends and advanced study layers are represented as explicit candidates. Their absence must not
-            break the base simulator, and their presence does not automatically establish scientific or production validation.
-          </p>
-        </div>
-
-        <div class="lane-grid">
-          <article>
-            <span class="lane-label">Quantum candidate</span>
-            <h3>Qiskit</h3>
-            <p>Optional circuit previews and QNN experiments, clearly separated from the deterministic fallback.</p>
-          </article>
-          <article>
-            <span class="lane-label">Audit lane</span>
-            <h3>E2B + Datadog</h3>
-            <p>Optional sandbox reruns and observability metadata for evidence review—not production security guarantees.</p>
-          </article>
-          <article>
-            <span class="lane-label">Runtime profiles</span>
-            <h3>vLLM · etcd · Redis</h3>
-            <p>Optional Docker profiles for local experiments around model serving, state, and plugin routing.</p>
-          </article>
-          <article>
-            <span class="lane-label">Study chambers</span>
-            <h3>Bounded hypotheses</h3>
-            <p>Opt-in Penrose/Hameroff, Hydra-EM-GPCN, topology, and gravity null-test metadata remain educational study surfaces.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section lineage-section" aria-labelledby="lineage-title">
-        <div class="section-heading compact-heading">
-          <p class="eyebrow">Public-safe research lineage</p>
-          <h2 id="lineage-title">Broad research, deterministic core, bounded MVP.</h2>
-        </div>
-
-        <div class="lineage-track">
-          <article>
-            <span>01</span>
-            <h3>Exploratory FNP-QNN source</h3>
-            <p>Broad conceptual work across fractal, neutrosophic, Fibonacci, quantum-neural, tensor, and swarm directions.</p>
-          </article>
-          <div class="lineage-arrow" aria-hidden="true">→</div>
-          <article>
-            <span>02</span>
-            <h3>FFeD deterministic core lineage</h3>
-            <p>Bloc-based implementation, fail-closed validation, immutable state discipline, and explicit audit surfaces.</p>
-          </article>
-          <div class="lineage-arrow" aria-hidden="true">→</div>
-          <article class="lineage-current">
-            <span>03</span>
-            <h3>Public FNP-QNN MVP</h3>
-            <p>The smallest public-safe, testable simulator surface for education, reproducibility, and institutional review.</p>
-          </article>
-        </div>
-
-        <p class="lineage-note">
-          The public website represents the MVP boundary. Private corpora, secrets, unpublished material, operator tokens,
-          and private CeLeBrUm evidence are intentionally excluded.
+  <main id="main-content">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="status-line">Tier 4 - quantum simulator reconstruction - public pre-alpha</p>
+        <h1 id="hero-title">FNP-QNN Quantum Simulator</h1>
+        <p class="hero-lede">Local research simulator for memory-to-network learning.</p>
+        <p class="hero-body">
+          Explore Synthia-admitted lexical packets, Cerebrum-style runtime events,
+          deterministic feature vectors, candidate QNN lanes, and evidence-first
+          review in a local educational research surface.
         </p>
-      </section>
 
-      <section class="section boundary-section" id="boundary" aria-labelledby="boundary-title">
-        <div class="boundary-copy">
-          <p class="eyebrow">Research boundary</p>
-          <h2 id="boundary-title">Local simulation evidence, not authority.</h2>
+        <div class="badge-row" aria-label="Public status">
+          <span>alpha-local</span>
+          <span>non-clinical</span>
+          <span>local evidence only</span>
+          <span>SEL-2.0</span>
+        </div>
+
+        <div class="cta-row">
+          <a class="button primary" href="#start">Open simulator path</a>
+          <a class="button secondary" href="https://securedme.ca/product/education/">Education hub</a>
+          <a class="button ghost" href="https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP">Read source</a>
+        </div>
+      </div>
+
+      <div class="hero-panel" aria-label="FNP-QNN landing preview">
+        <img src="./assets/landing-dark.png" alt="FNP-QNN dark research simulator landing reference" />
+        <div class="panel-chips" aria-label="Simulator flow">
+          <span>Synthia gate</span>
+          <span>Cerebrum runtime</span>
+          <span>Torch surrogate</span>
+          <span>Evidence export</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="notice-strip" aria-label="Boundary notice">
+      <strong>Public boundary:</strong>
+      <span>
+        Alpha-local research simulator. Not clinical, diagnostic, therapeutic,
+        emergency, safety-critical, or production-public software. Results are
+        local simulation evidence only.
+      </span>
+    </section>
+
+    <section class="section education-section" id="education" aria-labelledby="education-title">
+      <div class="section-heading">
+        <p class="kicker">SecuredMe Education Commons</p>
+        <h2 id="education-title">FNP-QNN sits in the Education hub as a bounded simulator.</h2>
+      </div>
+      <div class="education-grid">
+        <article>
+          <h3>Suite role</h3>
           <p>
-            FNP-QNN does not claim clinical validation, diagnosis, treatment guidance, emergency use, safety validation,
-            production security, quantum advantage, consciousness proof, biological microtubule validation, or physical
-            quantum-gravity proof. Human interpretation and source-level review remain required.
+            FNP-QNN receives Synthia-admitted trace packets and turns them into
+            local network experiments, dashboard evidence, and exportable
+            reports for human review.
           </p>
-        </div>
-        <div class="boundary-list" aria-label="Explicit non-claims">
-          <span>not clinical</span>
-          <span>not diagnostic</span>
-          <span>not therapeutic</span>
-          <span>not safety-critical</span>
-          <span>not production-public</span>
-          <span>not an encryption guarantee</span>
-        </div>
-      </section>
+        </article>
+        <article>
+          <h3>Return path</h3>
+          <p>
+            Learners and reviewers can return to the Education hub to compare
+            FNP-QNN with Synthia, AlgoQuest, Scholarium, and the other learning
+            surfaces in the suite.
+          </p>
+          <a class="inline-link" href="https://securedme.ca/product/education/">Open Education hub</a>
+        </article>
+      </div>
+    </section>
 
-      <section class="cta-section" aria-labelledby="cta-title">
-        <div>
-          <p class="eyebrow">Open research surface</p>
-          <h2 id="cta-title">Inspect the simulator. Follow the evidence.</h2>
-          <p>Public code, tests, fixtures, reports, and deployment-safe documentation live in the MVP repository.</p>
-        </div>
-        <div class="cta-actions">
-          <a class="button primary-button" href="https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP">Open the repository</a>
-          <a class="button secondary-button" href="mailto:fnpqnn@securedme.ca">Contact FNP-QNN</a>
-        </div>
-      </section>
-    </main>
+    <section class="section" id="start" aria-labelledby="start-title">
+      <div class="section-heading">
+        <p class="kicker">Start in 15 minutes</p>
+        <h2 id="start-title">A local path from admission to evidence.</h2>
+      </div>
 
-    <footer class="site-footer">
+      <div class="step-grid">
+        <article class="step-card">
+          <span class="step-index">01</span>
+          <h3>Initialize local environment</h3>
+          <p>Use the local Python runtime or Docker Compose lane. Keep credentials outside the public package.</p>
+          <code>.\.venv\Scripts\python.exe</code>
+        </article>
+        <article class="step-card">
+          <span class="step-index">02</span>
+          <h3>Verify Synthia admission</h3>
+          <p>FNP-QNN computes only after a public-safe lexical packet is admitted and traced.</p>
+          <code>fnp-qnn neutrino guardrail-check</code>
+        </article>
+        <article class="step-card">
+          <span class="step-index">03</span>
+          <h3>Run bounded simulation</h3>
+          <p>Run Cerebrum runtime or QNN smoke with visible epochs, state basis, and T/I/F controls.</p>
+          <code>fnp-qnn qnn smoke --epochs 4</code>
+        </article>
+        <article class="step-card">
+          <span class="step-index">04</span>
+          <h3>Export evidence</h3>
+          <p>Inspect events, pairs, QNN benchmark, Network Designer output, warnings, and raw JSON.</p>
+          <code>SHA-256 + human review</code>
+        </article>
+      </div>
+    </section>
+
+    <section class="section flow-section" aria-labelledby="flow-title">
+      <div class="section-heading">
+        <p class="kicker">Product flow</p>
+        <h2 id="flow-title">The simulator stays traceable from term to result.</h2>
+      </div>
+      <ol class="flow">
+        <li><strong>Synthia admission</strong><span>Lexical guard and trace state</span></li>
+        <li><strong>Cerebrum observations</strong><span>Memory events, modalities, provenance</span></li>
+        <li><strong>Feature encoding</strong><span>Deterministic vectors and transition metadata</span></li>
+        <li><strong>Runtime bridge</strong><span>Events, crossmodal pairs, warnings, state</span></li>
+        <li><strong>QNN candidate</strong><span>Torch fallback and benchmark lanes</span></li>
+        <li><strong>Evidence export</strong><span>Reviewable tables and raw JSON</span></li>
+      </ol>
+    </section>
+
+    <section class="section" id="surfaces" aria-labelledby="surfaces-title">
+      <div class="section-heading">
+        <p class="kicker">Three application surfaces</p>
+        <h2 id="surfaces-title">Core engine, CLI/TUI, and HoloViz Panel are represented separately.</h2>
+      </div>
+
+      <div class="surface-grid">
+        <article class="surface-card">
+          <div class="surface-icon">API</div>
+          <h3>Core Engine</h3>
+          <p>Typed FastAPI and Pydantic-bounded inputs expose the simulator without shell execution.</p>
+          <ul>
+            <li><code>api/main.py</code></li>
+            <li><code>api/schemas.py</code></li>
+            <li><code>core/cerebrum_runtime_bridge.py</code></li>
+            <li><code>core/qnn_nucleus.py</code></li>
+          </ul>
+        </article>
+
+        <article class="surface-card terminal-card">
+          <div class="surface-icon">CLI</div>
+          <h3>CLI / TUI Local</h3>
+          <p>Prompt-driven local commands show status, runtime smoke, QNN smoke, NeuroBit, validation, and diagnostics.</p>
+          <pre><code>fnp-qnn status
+fnp-qnn runtime run
+fnp-qnn qnn smoke
+fnp-qnn neurobit gates
+fnp-qnn doctor
+fnp-qnn-tui</code></pre>
+        </article>
+
+        <article class="surface-card panel-card">
+          <div class="surface-icon">UI</div>
+          <h3>FNP-QNN Research Control Room</h3>
+          <p>HoloViz Panel keeps the operator flow visible without pretending production deployment.</p>
+          <div class="tile-list">
+            <span>Run simulation</span>
+            <span>Encode only</span>
+            <span>Legacy demo</span>
+            <span>NeuroBit gates</span>
+            <span>Network Designer</span>
+            <span>Export evidence</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section split-section" id="network-designer" aria-labelledby="network-title">
       <div>
-        <strong>FNP-QNN Local Research Simulator</strong>
-        <span>Part of the SeCuReDmE research ecosystem.</span>
+        <p class="kicker">Network Designer</p>
+        <h2 id="network-title">A real backend-contract module, not decoration.</h2>
+        <p>
+          Network Designer visualizes typed families, presets, ports, backend status,
+          warnings, and local execution results. Qiskit is optional and gated; the
+          deterministic fallback remains the default representable path.
+        </p>
+        <div class="backend-row">
+          <span>torch_surrogate: ready</span>
+          <span>spiderweb: local propagation</span>
+          <span>qiskit: optional / gated</span>
+        </div>
       </div>
-      <div class="footer-meta">
-        <a href="https://orcid.org/0009-0007-2904-0443">ORCID 0009-0007-2904-0443</a>
-        <span>Sponsored by E2B for Startups</span>
-        <span>Supported by Datadog for Startups</span>
+
+      <div class="network-board" aria-label="Network Designer families">
+        <div>neural_network</div>
+        <div>quantum_qnn</div>
+        <div>spiderweb_network</div>
+        <div>memory_graph</div>
+        <div>crossmodal_graph</div>
+        <div>logic_decision_network</div>
+        <div>gravity_null_test</div>
+        <div>multiverse_experiments</div>
+        <div>time_physics_experiments</div>
+        <div>custom_network</div>
       </div>
-    </footer>
-  </div>
+    </section>
+
+    <section class="section" aria-labelledby="api-title">
+      <div class="section-heading">
+        <p class="kicker">API groups</p>
+        <h2 id="api-title">Public-representable routes stay grouped and bounded.</h2>
+      </div>
+      <div class="api-grid">
+        <article><h3>Status</h3><code>GET /health</code><code>GET /cerebrum/status</code></article>
+        <article><h3>Runtime</h3><code>POST /cerebrum/encode</code><code>POST /cerebrum/runtime/run</code></article>
+        <article><h3>QNN</h3><code>GET /qnn/candidates</code><code>POST /qnn/smoke</code></article>
+        <article><h3>NeuroBit</h3><code>GET /fnp-qnn/neurobit/status</code><code>POST /fnp-qnn/neurobit/gates/run</code></article>
+        <article><h3>Compatibility</h3><code>POST /commands/{command_name}</code><code>POST /execute-command</code></article>
+        <article><h3>Advanced labs</h3><span>Novak-Anderson, gravity-null, multiverse, time-physics, Nidus, plithogenic.</span></article>
+      </div>
+    </section>
+
+    <section class="section evidence-section" id="evidence" aria-labelledby="evidence-title">
+      <div class="section-heading">
+        <p class="kicker">Evidence dashboard</p>
+        <h2 id="evidence-title">The page must show what can be inspected.</h2>
+      </div>
+      <div class="dashboard-mock">
+        <div class="dash-tabs">
+          <span>Events</span>
+          <span>Pairs</span>
+          <span>QNN Benchmark</span>
+          <span>NeuroBit</span>
+          <span>Network Designer</span>
+          <span>Raw JSON</span>
+        </div>
+        <div class="dash-grid">
+          <div><strong>Runtime</strong><span>healthy</span></div>
+          <div><strong>Backend</strong><span>Torch fallback ready</span></div>
+          <div><strong>Qiskit</strong><span>optional</span></div>
+          <div><strong>Export</strong><span>human review required</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section boundary-section" id="boundary" aria-labelledby="boundary-title">
+      <div class="boundary-copy">
+        <p class="kicker">Synthia / FNP-QNN boundary</p>
+        <h2 id="boundary-title">Traceability support is not authority.</h2>
+        <p>
+          Synthia preserves lexical admission and trace context. FNP-QNN computes
+          bounded simulation evidence after admission. Neither layer proves a
+          detector result, clinical claim, production safety claim, or physical
+          quantum validation.
+        </p>
+      </div>
+      <div class="boundary-list" aria-label="Boundary equations">
+        <span>simulation != detection</span>
+        <span>candidate != proof</span>
+        <span>dL_lex != dF</span>
+        <span>I_lexicon != i_fractal</span>
+        <span>Qiskit optional, not default</span>
+        <span>NeuroBit tunnel noise is not encryption</span>
+        <span>Private CeLeBrUm material excluded</span>
+        <span>Human review required</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <img src="./assets/fnp-qnn-logo.png" alt="" aria-hidden="true" />
+      <strong>FNP-QNN-MVP</strong>
+      <span>Public pre-alpha educational research simulator.</span>
+    </div>
+    <nav aria-label="Footer links">
+      <a href="https://securedme.ca/">SecuredMe</a>
+      <a href="https://securedme.ca/product/education/">Education hub</a>
+      <a href="https://fnpqnn.securedme.ca/">fnpqnn.securedme.ca</a>
+      <a href="mailto:fnpqnn@securedme.ca">fnpqnn@securedme.ca</a>
+      <a href="https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP">Source</a>
+    </nav>
+    <span>SEL-2.0 - Local evidence only - Non-clinical</span>
+  </footer>
+
+  <aside class="utility-dock" aria-label="Page utilities">
+    <button class="utility-button" type="button" data-utility-language>Language: EN</button>
+    <button class="utility-button" type="button" data-utility-theme>Theme: Night</button>
+    <button class="utility-button" type="button" data-utility-access>Access</button>
+    <a class="utility-button support-button" href="https://securedme.ca/pay/">Support SecuredMe</a>
+  </aside>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const languageButton = document.querySelector("[data-utility-language]");
+      const themeButton = document.querySelector("[data-utility-theme]");
+      const accessButton = document.querySelector("[data-utility-access]");
+      const accessProfiles = ["base", "autism-calm", "adhd-sprint", "deep-work"];
+      const accessLabels = {
+        "base": "Access",
+        "autism-calm": "Access: Calm",
+        "adhd-sprint": "Access: Sprint",
+        "deep-work": "Access: Deep"
+      };
+
+      const storedTheme = localStorage.getItem("securedme.fnpqnn.theme") || "night";
+      const storedLang = localStorage.getItem("securedme.fnpqnn.language") || "en";
+      const storedAccess = localStorage.getItem("securedme.fnpqnn.access") || "base";
+
+      function setTheme(theme) {
+        root.dataset.theme = theme;
+        localStorage.setItem("securedme.fnpqnn.theme", theme);
+        themeButton.textContent = theme === "day" ? "Theme: Day" : "Theme: Night";
+      }
+
+      function setLanguage(language) {
+        root.lang = language;
+        localStorage.setItem("securedme.fnpqnn.language", language);
+        languageButton.textContent = language === "fr" ? "Langue: FR" : "Language: EN";
+      }
+
+      function setAccess(profile) {
+        const normalized = accessProfiles.includes(profile) ? profile : "base";
+        root.dataset.accessProfile = normalized;
+        localStorage.setItem("securedme.fnpqnn.access", normalized);
+        accessButton.textContent = accessLabels[normalized];
+      }
+
+      setTheme(storedTheme);
+      setLanguage(storedLang);
+      setAccess(storedAccess);
+
+      languageButton.addEventListener("click", () => setLanguage(root.lang === "fr" ? "en" : "fr"));
+      themeButton.addEventListener("click", () => setTheme(root.dataset.theme === "day" ? "night" : "day"));
+      accessButton.addEventListener("click", () => {
+        const current = accessProfiles.indexOf(root.dataset.accessProfile || "base");
+        setAccess(accessProfiles[(current + 1) % accessProfiles.length]);
+      });
+    })();
+  </script>
 </body>
 </html>

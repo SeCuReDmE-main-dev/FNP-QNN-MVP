@@ -1,0 +1,38 @@
+{
+  "schema": "fnp_qnn.dmqc.binary_alloy_energy_library.v1",
+  "boundary": "educational fixture only; not DFT and not validated material discovery",
+  "records": [
+    {
+      "record_id": "AB_cubic_low_energy",
+      "composition_vector": [0.5, 0.5],
+      "formation_energy": -0.82,
+      "lattice_symmetry_score": 0.92,
+      "defect_density": 0.08,
+      "phase_stability_margin": 0.88
+    },
+    {
+      "record_id": "A2B_tetragonal_metastable",
+      "composition_vector": [0.67, 0.33],
+      "formation_energy": -0.44,
+      "lattice_symmetry_score": 0.74,
+      "defect_density": 0.18,
+      "phase_stability_margin": 0.62
+    },
+    {
+      "record_id": "AB2_hexagonal_suspended",
+      "composition_vector": [0.33, 0.67],
+      "formation_energy": -0.31,
+      "lattice_symmetry_score": 0.68,
+      "defect_density": 0.28,
+      "phase_stability_margin": 0.48
+    },
+    {
+      "record_id": "A_rich_defect_loaded",
+      "composition_vector": [0.82, 0.18],
+      "formation_energy": 0.12,
+      "lattice_symmetry_score": 0.42,
+      "defect_density": 0.64,
+      "phase_stability_margin": 0.22
+    }
+  ]
+}

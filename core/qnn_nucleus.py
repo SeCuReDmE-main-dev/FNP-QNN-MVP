@@ -159,6 +159,12 @@ class QNNNucleus:
         multiverse_experiment_payload: Optional[Dict[str, Any]] = None,
         time_physics_experiment_features: Optional[Sequence[float]] = None,
         time_physics_experiment_payload: Optional[Dict[str, Any]] = None,
+        dmqc_crystal_features: Optional[Sequence[float]] = None,
+        dmqc_crystal_payload: Optional[Dict[str, Any]] = None,
+        crystal_growth_features: Optional[Sequence[float]] = None,
+        crystal_growth_payload: Optional[Dict[str, Any]] = None,
+        crystal_chamber_features: Optional[Sequence[float]] = None,
+        crystal_chamber_payload: Optional[Dict[str, Any]] = None,
         precomputed_plugin_payload: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         raw_events = list(raw_events)
@@ -182,6 +188,9 @@ class QNNNucleus:
         external_features.extend(list(gravity_null_test_features or []))
         external_features.extend(list(multiverse_experiment_features or []))
         external_features.extend(list(time_physics_experiment_features or []))
+        external_features.extend(list(dmqc_crystal_features or []))
+        external_features.extend(list(crystal_growth_features or []))
+        external_features.extend(list(crystal_chamber_features or []))
         plugin_kwargs = {
             "plugin_features": external_features or None,
             "plugin_payload": plugin_payload,
@@ -216,6 +225,9 @@ class QNNNucleus:
                 self._attach_gravity_null_test_payload(result, gravity_null_test_payload)
                 self._attach_multiverse_experiments_payload(result, multiverse_experiment_payload)
                 self._attach_time_physics_experiments_payload(result, time_physics_experiment_payload)
+                self._attach_dmqc_crystal_payload(result, dmqc_crystal_payload)
+                self._attach_crystal_growth_payload(result, crystal_growth_payload)
+                self._attach_crystal_chamber_payload(result, crystal_chamber_payload)
                 return result
             except Exception as exc:  # pragma: no cover - runtime safety path
                 fallback = self.fit_surrogate(
@@ -241,6 +253,9 @@ class QNNNucleus:
                 self._attach_gravity_null_test_payload(fallback, gravity_null_test_payload)
                 self._attach_multiverse_experiments_payload(fallback, multiverse_experiment_payload)
                 self._attach_time_physics_experiments_payload(fallback, time_physics_experiment_payload)
+                self._attach_dmqc_crystal_payload(fallback, dmqc_crystal_payload)
+                self._attach_crystal_growth_payload(fallback, crystal_growth_payload)
+                self._attach_crystal_chamber_payload(fallback, crystal_chamber_payload)
                 return fallback
         result = self.fit_surrogate(
             [raw_events],
@@ -263,6 +278,9 @@ class QNNNucleus:
         self._attach_gravity_null_test_payload(result, gravity_null_test_payload)
         self._attach_multiverse_experiments_payload(result, multiverse_experiment_payload)
         self._attach_time_physics_experiments_payload(result, time_physics_experiment_payload)
+        self._attach_dmqc_crystal_payload(result, dmqc_crystal_payload)
+        self._attach_crystal_growth_payload(result, crystal_growth_payload)
+        self._attach_crystal_chamber_payload(result, crystal_chamber_payload)
         return result
 
     def benchmark(self, samples: Sequence[Sequence[Any]], labels: Sequence[int]) -> List[QNNBenchmarkResult]:
@@ -995,6 +1013,77 @@ class QNNNucleus:
             "hierarchy": time_physics_experiment_payload["hierarchy"],
             "forbidden_claims": time_physics_experiment_payload["forbidden_claims"],
             "research_boundary": time_physics_experiment_payload["research_boundary"],
+        }
+
+    def _attach_dmqc_crystal_payload(
+        self,
+        result: Dict[str, Any],
+        dmqc_crystal_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not dmqc_crystal_payload:
+            return
+        result["dmqc_crystal_profile"] = {
+            "model": dmqc_crystal_payload["model"],
+            "dmqc_definition": dmqc_crystal_payload["dmqc_definition"],
+            "source_ids": dmqc_crystal_payload["source_ids"],
+            "feature_vector": dmqc_crystal_payload["feature_vector"],
+            "feature_dimension": dmqc_crystal_payload["feature_dimension"],
+            "convex_hull_proxy": dmqc_crystal_payload["convex_hull_proxy"],
+            "hierarchy": dmqc_crystal_payload["hierarchy"],
+            "forbidden_claims": dmqc_crystal_payload["forbidden_claims"],
+            "research_boundary": dmqc_crystal_payload["research_boundary"],
+        }
+
+    def _attach_crystal_growth_payload(
+        self,
+        result: Dict[str, Any],
+        crystal_growth_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not crystal_growth_payload:
+            return
+        result["crystal_growth_profile"] = {
+            "model": crystal_growth_payload["model"],
+            "growth_rate": crystal_growth_payload["growth_rate"],
+            "branch_drift": crystal_growth_payload["branch_drift"],
+            "surface_roughness": crystal_growth_payload["surface_roughness"],
+            "defect_density": crystal_growth_payload["defect_density"],
+            "phase_stability_margin": crystal_growth_payload["phase_stability_margin"],
+            "near_chaos_margin": crystal_growth_payload["near_chaos_margin"],
+            "regime": crystal_growth_payload["regime"],
+            "feature_vector": crystal_growth_payload["feature_vector"],
+            "feature_dimension": crystal_growth_payload["feature_dimension"],
+            "hierarchy": crystal_growth_payload["hierarchy"],
+            "research_boundary": crystal_growth_payload["research_boundary"],
+        }
+
+    def _attach_crystal_chamber_payload(
+        self,
+        result: Dict[str, Any],
+        crystal_chamber_payload: Optional[Dict[str, Any]],
+    ) -> None:
+        if not crystal_chamber_payload:
+            return
+        result["crystal_chamber_profile"] = {
+            "model": crystal_chamber_payload["model"],
+            "dmqc_definition": crystal_chamber_payload["dmqc_definition"],
+            "source_ids": crystal_chamber_payload["source_ids"],
+            "Adm": crystal_chamber_payload["Adm"],
+            "classification": crystal_chamber_payload["classification"],
+            "D_crystal": crystal_chamber_payload["D_crystal"],
+            "dC": crystal_chamber_payload["dC"],
+            "i_crystal": crystal_chamber_payload["i_crystal"],
+            "i_growth": crystal_chamber_payload["i_growth"],
+            "i_rate": crystal_chamber_payload["i_rate"],
+            "near_chaos_margin": crystal_chamber_payload["near_chaos_margin"],
+            "crystal_coherence_score": crystal_chamber_payload["crystal_coherence_score"],
+            "i_fractal": crystal_chamber_payload["i_fractal"],
+            "feature_vector": crystal_chamber_payload["feature_vector"],
+            "feature_dimension": crystal_chamber_payload["feature_dimension"],
+            "hierarchy": crystal_chamber_payload["hierarchy"],
+            "crystal_chain": crystal_chamber_payload["crystal_chain"],
+            "fractal_chain": crystal_chamber_payload["fractal_chain"],
+            "forbidden_claims": crystal_chamber_payload["forbidden_claims"],
+            "research_boundary": crystal_chamber_payload["research_boundary"],
         }
 
     def _fractal_carrier_payload(

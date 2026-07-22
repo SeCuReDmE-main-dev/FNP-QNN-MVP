@@ -1,0 +1,21 @@
+{
+  "name": "FNP-QNN Quantum Simulator",
+  "short_name": "FNP-QNN",
+  "description": "Alpha-local research simulator for memory-to-network learning and quantum-neutrosophic simulation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a141f",
+  "theme_color": "#0a141f",
+  "icons": [
+    {
+      "src": "assets/fnp-qnn-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/ascii-logo-7.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

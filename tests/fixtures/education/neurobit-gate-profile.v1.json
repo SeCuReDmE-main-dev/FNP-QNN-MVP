@@ -1,0 +1,13 @@
+{
+  "lab_id": "neurobit-gate-trace",
+  "seed": 11,
+  "state": "awaiting_review",
+  "completed_steps": 4,
+  "total_steps": 5,
+  "trace_labels": [
+    "T/I/F profile",
+    "gate sequence",
+    "operation descriptors"
+  ],
+  "export_status": "pending"
+}
