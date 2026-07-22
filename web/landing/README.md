@@ -11,6 +11,15 @@ web/landing/
 ├── index.html
 ├── fnp-qnn-landing.css
 ├── favicon.svg
+├── manifest.json
+├── assets/
+│   ├── ascii-logo-7.png
+│   ├── banner-small.png
+│   ├── fnp-qnn-logo.png
+│   ├── landing-dark.png
+│   ├── landing-light.png
+│   ├── logo-version-2.png
+│   └── mascot-framed.png
 ├── robots.txt
 └── README.md
 ```
@@ -22,6 +31,8 @@ dist/fnpqnn-public/
 ├── index.html
 ├── fnp-qnn-landing.css
 ├── favicon.svg
+├── manifest.json
+├── assets/
 └── robots.txt
 ```
 
@@ -46,6 +57,8 @@ New-Item -ItemType Directory -Force .\dist\fnpqnn-public
 Copy-Item .\web\landing\index.html .\dist\fnpqnn-public\index.html -Force
 Copy-Item .\web\landing\fnp-qnn-landing.css .\dist\fnpqnn-public\fnp-qnn-landing.css -Force
 Copy-Item .\web\landing\favicon.svg .\dist\fnpqnn-public\favicon.svg -Force
+Copy-Item .\web\landing\manifest.json .\dist\fnpqnn-public\manifest.json -Force
+Copy-Item .\web\landing\assets .\dist\fnpqnn-public\assets -Recurse -Force
 Copy-Item .\web\landing\robots.txt .\dist\fnpqnn-public\robots.txt -Force
 Compress-Archive -Path .\dist\fnpqnn-public\* -DestinationPath .\dist\fnpqnn-public.zip -Force
 Get-FileHash .\dist\fnpqnn-public.zip -Algorithm SHA256
@@ -59,6 +72,8 @@ Get-FileHash .\dist\fnpqnn-public.zip -Algorithm SHA256
 index.html
 fnp-qnn-landing.css
 favicon.svg
+manifest.json
+assets/
 robots.txt
 ```
 
@@ -82,9 +97,12 @@ Then copy only the static public files and set permissions:
 cp dist/fnpqnn-public/index.html "$TARGET/index.html"
 cp dist/fnpqnn-public/fnp-qnn-landing.css "$TARGET/fnp-qnn-landing.css"
 cp dist/fnpqnn-public/favicon.svg "$TARGET/favicon.svg"
+cp dist/fnpqnn-public/manifest.json "$TARGET/manifest.json"
+cp -a dist/fnpqnn-public/assets "$TARGET/assets"
 cp dist/fnpqnn-public/robots.txt "$TARGET/robots.txt"
 chmod 755 "$TARGET"
-chmod 644 "$TARGET/index.html" "$TARGET/fnp-qnn-landing.css" "$TARGET/favicon.svg" "$TARGET/robots.txt"
+chmod 755 "$TARGET/assets"
+chmod 644 "$TARGET/index.html" "$TARGET/fnp-qnn-landing.css" "$TARGET/favicon.svg" "$TARGET/manifest.json" "$TARGET/robots.txt" "$TARGET/assets"/*
 ```
 
 ## Smoke Tests
@@ -95,6 +113,7 @@ Local preview:
 python -m http.server 8765 --directory web/landing
 curl.exe -I http://127.0.0.1:8765/
 curl.exe -I http://127.0.0.1:8765/fnp-qnn-landing.css
+curl.exe -I http://127.0.0.1:8765/manifest.json
 curl.exe -s http://127.0.0.1:8765/ | Select-String "FNP-QNN|fnpqnn.securedme.ca|fnpqnn@securedme.ca|FNP-QNN-MVP|non-clinical"
 ```
 
@@ -105,6 +124,7 @@ curl -I http://fnpqnn.securedme.ca/
 curl -I https://fnpqnn.securedme.ca/
 curl -I https://fnpqnn.securedme.ca/fnp-qnn-landing.css
 curl -I https://fnpqnn.securedme.ca/favicon.svg
+curl -I https://fnpqnn.securedme.ca/manifest.json
 curl -I https://fnpqnn.securedme.ca/robots.txt
 curl -s https://fnpqnn.securedme.ca/ | grep -E "FNP-QNN|fnpqnn@securedme.ca|FNP-QNN-MVP|non-clinical|i_fractal"
 ```

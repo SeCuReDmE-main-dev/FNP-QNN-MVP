@@ -22,6 +22,8 @@ from api.schemas import (
     CloudRAGAdmissionRequest,
     CommandRequest,
     CommandResponse,
+    CrystalChamberRunRequest,
+    DMQCRunRequest,
     EncodeRequest,
     EncryptedRAGEnvelopeRequest,
     GravityNullTestRequest,
@@ -63,6 +65,10 @@ from core import (
     MultiverseExperimentConfig,
     TimePhysicsExperimentConfig,
     anesthesia_sweep_profile,
+    crystal_chamber_admission_profile,
+    crystal_chamber_status,
+    crystal_growth_window_profile,
+    dmqc_status,
     gravity_null_test_status,
     hydra_em_gpcn_orch_profile,
     convergence_profile,
@@ -76,6 +82,7 @@ from core import (
     revolutionary_topology_runtime_profile,
     run_all_multiverse_experiments,
     run_all_time_physics_experiments,
+    run_dmqc_prediction,
     run_gravity_null_test,
     run_multiverse_experiment,
     run_neurobit_gates,
@@ -864,6 +871,29 @@ async def time_physics_experiment_run_all(payload: TimePhysicsExperimentRunAllRe
     }
 
 
+@app.get("/dmqc/status")
+async def dmqc_status_endpoint() -> Dict[str, Any]:
+    status = dmqc_status()
+    status["crystal_chamber"] = crystal_chamber_status()
+    return status
+
+
+@app.post("/dmqc/run")
+async def dmqc_run(payload: DMQCRunRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": run_dmqc_prediction(library=payload.library, candidate=payload.candidate),
+    }
+
+
+@app.post("/dmqc/crystal-chamber/run")
+async def dmqc_crystal_chamber_run(payload: CrystalChamberRunRequest) -> Dict[str, Any]:
+    return {
+        "status": "ok",
+        "profile": crystal_chamber_admission_profile(payload.model_dump(exclude_none=True)),
+    }
+
+
 @app.post("/qnn/smoke")
 async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
     samples = payload.dump_samples()
@@ -915,6 +945,26 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
             _time_physics_config_from_qnn_payload(payload),
             experiment_ids=payload.time_physics_experiment_ids or None,
         )
+    crystal_payload = dict(payload.crystal_payload or {})
+    dmqc_crystal_profile = None
+    if payload.dmqc_crystal_enabled:
+        dmqc_crystal_profile = run_dmqc_prediction(candidate=crystal_payload or None)
+    crystal_growth_profile = None
+    if payload.crystal_growth_enabled:
+        crystal_growth_profile = crystal_growth_window_profile(
+            growth_rate=crystal_payload.get("growth_rate", 0.42),
+            branch_drift=crystal_payload.get("branch_drift", 0.38),
+            surface_roughness=crystal_payload.get("surface_roughness", 0.24),
+            defect_density=crystal_payload.get("defect_density", 0.18),
+            phase_stability_margin=crystal_payload.get("phase_stability_margin", 0.76),
+        )
+    crystal_chamber_profile = None
+    if payload.crystal_chamber_enabled:
+        crystal_chamber_profile = crystal_chamber_admission_profile(crystal_payload)
+        if dmqc_crystal_profile is None:
+            dmqc_crystal_profile = crystal_chamber_profile["dmqc_crystal_profile"]
+        if crystal_growth_profile is None:
+            crystal_growth_profile = crystal_chamber_profile["crystal_growth_profile"]
     result = _json_safe_qnn_result(qnn_nucleus.smoke_run(
         samples[0],
         label=float(labels[0]) if labels else 1.0,
@@ -950,6 +1000,12 @@ async def qnn_smoke(payload: QNNSmokeRequest) -> Dict[str, Any]:
         if time_physics_experiments_profile is None
         else time_physics_experiments_profile["feature_vector"],
         time_physics_experiment_payload=time_physics_experiments_profile,
+        dmqc_crystal_features=None if dmqc_crystal_profile is None else dmqc_crystal_profile["feature_vector"],
+        dmqc_crystal_payload=dmqc_crystal_profile,
+        crystal_growth_features=None if crystal_growth_profile is None else crystal_growth_profile["feature_vector"],
+        crystal_growth_payload=crystal_growth_profile,
+        crystal_chamber_features=None if crystal_chamber_profile is None else crystal_chamber_profile["feature_vector"],
+        crystal_chamber_payload=crystal_chamber_profile,
     ))
     return {
         "status": "ok",

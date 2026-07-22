@@ -42,6 +42,12 @@ def _write_runtime(path: Path, *, p114_action: str = "respond_with_confidence", 
     security = path / "security"
     security.mkdir(parents=True)
     (security / "__init__.py").write_text("RUNTIME_MARKER = True\n", encoding="utf-8")
+    (security / "integrity.py").write_text(
+        """def verify_plugin_integrity(plugin_id):
+    return {"valid": True, "plugin_id": plugin_id, "errors": []}
+""",
+        encoding="utf-8",
+    )
     source = f'''from security import RUNTIME_MARKER
 
 def run_plugin(plugin_id, config):

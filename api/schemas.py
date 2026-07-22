@@ -152,6 +152,10 @@ class RuntimeRunRequest(BaseModel):
     time_physics_decoherence_strength: float = Field(default=0.66, ge=0.0, le=1.0)
     time_physics_cosmological_boundary_pressure: float = Field(default=0.55, ge=0.0, le=1.0)
     time_physics_paradox_pressure: float = Field(default=0.15, ge=0.0, le=1.0)
+    dmqc_crystal_enabled: bool = False
+    crystal_growth_enabled: bool = False
+    crystal_chamber_enabled: bool = False
+    crystal_payload: Dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod
@@ -220,6 +224,7 @@ class RuntimeRunRequest(BaseModel):
         payload.update(self.hydra_em_gpcn_payload())
         payload.update(self.multiverse_experiments_payload())
         payload.update(self.time_physics_experiments_payload())
+        payload.update(self.crystal_payload_fields())
         if self.memories is not None:
             payload["memories"] = [item.model_dump(exclude_none=True) for item in self.memories]
         if self.events is not None:
@@ -310,6 +315,14 @@ class RuntimeRunRequest(BaseModel):
             "time_physics_decoherence_strength": self.time_physics_decoherence_strength,
             "time_physics_cosmological_boundary_pressure": self.time_physics_cosmological_boundary_pressure,
             "time_physics_paradox_pressure": self.time_physics_paradox_pressure,
+        }
+
+    def crystal_payload_fields(self) -> Dict[str, Any]:
+        return {
+            "dmqc_crystal_enabled": self.dmqc_crystal_enabled,
+            "crystal_growth_enabled": self.crystal_growth_enabled,
+            "crystal_chamber_enabled": self.crystal_chamber_enabled,
+            "crystal_payload": dict(self.crystal_payload),
         }
 
     @model_validator(mode="after")
@@ -446,6 +459,10 @@ class QNNSmokeRequest(BaseModel):
     time_physics_decoherence_strength: float = Field(default=0.66, ge=0.0, le=1.0)
     time_physics_cosmological_boundary_pressure: float = Field(default=0.55, ge=0.0, le=1.0)
     time_physics_paradox_pressure: float = Field(default=0.15, ge=0.0, le=1.0)
+    dmqc_crystal_enabled: bool = False
+    crystal_growth_enabled: bool = False
+    crystal_chamber_enabled: bool = False
+    crystal_payload: Dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="before")
     @classmethod
@@ -503,6 +520,38 @@ class QNNSmokeRequest(BaseModel):
         if self.samples is None:
             return None
         return [[event.model_dump(exclude_none=True) for event in sample] for sample in self.samples]
+
+
+class DMQCRunRequest(BaseModel):
+    library: Optional[List[Dict[str, Any]]] = None
+    candidate: Optional[Dict[str, Any]] = None
+
+
+class CrystalChamberRunRequest(BaseModel):
+    composition_vector: List[float] = Field(default_factory=lambda: [0.5, 0.5])
+    formation_energy: float = -0.35
+    lattice_symmetry_score: float = Field(default=0.72, ge=0.0, le=1.0)
+    growth_rate: float = Field(default=0.42, ge=0.0, le=1.0)
+    branch_drift: float = Field(default=0.38, ge=0.0, le=1.0)
+    fractal_dimension_Df: Optional[float] = None
+    surface_roughness: float = Field(default=0.24, ge=0.0, le=1.0)
+    defect_density: float = Field(default=0.18, ge=0.0, le=1.0)
+    phase_stability_margin: float = Field(default=0.76, ge=0.0, le=1.0)
+    fractal_admissible: bool = False
+
+    @field_validator("composition_vector")
+    @classmethod
+    def validate_composition_vector(cls, value: List[float]) -> List[float]:
+        if not value:
+            raise ValueError("composition_vector must not be empty")
+        return [_finite(item, "composition_vector") for item in value]
+
+    @field_validator("formation_energy", "fractal_dimension_Df")
+    @classmethod
+    def validate_crystal_optional_numbers(cls, value: Optional[float], info):
+        if value is None:
+            return value
+        return _finite(value, info.field_name)
 
 
 class PenroseHameroffObjectiveReductionRequest(BaseModel):

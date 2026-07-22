@@ -592,6 +592,80 @@ class QNNSmokeApiTests(unittest.TestCase):
         self.assertTrue(payload["success"])
         self.assertIn("time_physics_experiments_profile", payload["data"]["result"])
 
+    def test_dmqc_status_and_run_endpoints_are_bounded(self):
+        client = TestClient(app)
+
+        status_response = client.get("/dmqc/status")
+        self.assertEqual(status_response.status_code, 200)
+        status_payload = status_response.json()
+        self.assertEqual(status_payload["feature"], "dmqc-crystal-mining")
+        self.assertEqual(status_payload["dmqc_definition"], "Data Mining of Quantum Calculations")
+        self.assertIn("crystal_chamber", status_payload)
+
+        run_response = client.post("/dmqc/run", json={})
+        self.assertEqual(run_response.status_code, 200)
+        profile = run_response.json()["profile"]
+        self.assertEqual(profile["feature_dimension"], len(profile["feature_vector"]))
+        self.assertIn("not DFT", profile["forbidden_claims"])
+
+    def test_crystal_chamber_endpoint_separates_i_crystal_and_i_fractal(self):
+        client = TestClient(app)
+
+        response = client.post(
+            "/dmqc/crystal-chamber/run",
+            json={
+                "growth_rate": 0.9,
+                "branch_drift": 0.75,
+                "surface_roughness": 0.65,
+                "defect_density": 0.62,
+                "phase_stability_margin": 0.38,
+                "fractal_dimension_Df": 1.5,
+                "fractal_admissible": True,
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        profile = response.json()["profile"]
+        self.assertEqual(profile["feature_dimension"], len(profile["feature_vector"]))
+        self.assertEqual(profile["fractal_carrier"]["D_f_hat"], 0.5)
+        self.assertIn(profile["Adm"], {"admitted", "suspended", "rejected"})
+        self.assertIn("i_crystal is not automatically i_fractal", profile["forbidden_claims"])
+
+    def test_qnn_smoke_accepts_crystal_chamber_opt_in(self):
+        client = TestClient(app)
+
+        baseline = client.post("/qnn/smoke", json={"epochs": 2, "test_size": 0.0})
+        self.assertEqual(baseline.status_code, 200)
+        baseline_dim = baseline.json()["result"]["feature_dimension"]
+
+        response = client.post(
+            "/qnn/smoke",
+            json={
+                "epochs": 2,
+                "test_size": 0.0,
+                "dmqc_crystal_enabled": True,
+                "crystal_growth_enabled": True,
+                "crystal_chamber_enabled": True,
+                "crystal_payload": {
+                    "composition_vector": [0.5, 0.5],
+                    "formation_energy": -0.35,
+                    "lattice_symmetry_score": 0.75,
+                    "growth_rate": 0.55,
+                    "branch_drift": 0.45,
+                    "surface_roughness": 0.3,
+                    "defect_density": 0.2,
+                    "phase_stability_margin": 0.7,
+                },
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = response.json()["result"]
+        self.assertGreater(result["feature_dimension"], baseline_dim)
+        self.assertIn("dmqc_crystal_profile", result)
+        self.assertIn("crystal_growth_profile", result)
+        self.assertIn("crystal_chamber_profile", result)
+        self.assertIsNone(result["crystal_chamber_profile"]["i_fractal"])
+
 
 if __name__ == "__main__":
     unittest.main()
