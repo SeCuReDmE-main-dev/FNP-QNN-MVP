@@ -17,7 +17,7 @@
 [![Issues](https://img.shields.io/github/issues/SeCuReDmE-main-dev/FNP-QNN-MVP?color=002030)](https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/issues)
 [![Milestones](https://img.shields.io/badge/milestones-M0--M7-FF6A00)](https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/milestones)
 [![Project Board](https://img.shields.io/badge/project-kanban-006BFF)](https://github.com/users/SeCuReDmE-main-dev/projects/3)
-[![Branch](https://img.shields.io/badge/branch-FNP__QNN-1E293B)](https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/tree/FNP_QNN)
+[![Branch](https://img.shields.io/badge/branch-main-1E293B)](https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/tree/main)
 <!-- SECUREDME-SUITE-BADGES:END -->
 
 <!-- SECUREDME-STARTUP-SUPPORT:START -->

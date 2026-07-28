@@ -1,23 +1,36 @@
 # Security Policy
 
-## SecuredMe Education Governance Alignment
+## Supported Versions
 
-- Current phase: pre-alpha / in development.
-- Repository license: Secured Educational License 2.0 (SEL-2.0), local metadata reference LicenseRef-SEL-2.0.
-- Official AI-assisted classroom routes: Codex/OpenAI and Antigravity/Gemini only.
-- Do not add Ollama Cloud, uncensored local AI, raw-token student flows, or unknown agent providers as official school routes.
-- Preserve human-review boundaries; do not claim production, clinical, regulatory, enforcement, safety-critical, or autonomous authority readiness.
-- Private modified copies, broken forks, and unreviewed rewrites are not a maintainer support obligation.
+FNP-QNN Local Research Simulator is pre-alpha. There are no production-supported versions yet. Security fixes target the current main branch unless a maintainer explicitly publishes another supported line.
 
+## Scope
 
-This project is in alpha-local research mode.
+Security-sensitive areas include non-clinical educational simulation, research boundaries, Synthia admission, and gateway integration. Reports should focus on real behavior in this repository or on its documented gateway boundary.
 
-- Do not expose the API to the public internet.
-- Do not use it for clinical, diagnostic, therapeutic, safety, or emergency decisions.
-- The compatibility `/execute-command` route accepts only internal simulator commands and does not execute shell commands.
-- Report security issues privately to the repository owner while the no-unsolicited-contribution notice remains active.
+## Responsible Disclosure
 
-Official AI-assisted classroom routes are Codex/OpenAI and Antigravity/Gemini
-only. Do not add Ollama Cloud, generic uncensored local AI, unknown agent
-providers, attack workflows, bypass workflows, or criminal automation as
-official school behavior.
+Report security issues privately to the maintainer before public disclosure. If GitHub Security Advisories are enabled, use that channel first. If not, use a private maintainer channel and include enough detail to reproduce without exposing secrets or personal data.
+
+Useful report content:
+
+- affected file, route, module, command, or workflow;
+- reproduction steps;
+- expected and observed behavior;
+- impact and affected users;
+- whether credentials, personal information, student data, private evidence, or operational details were exposed;
+- proposed fix, if known.
+
+## Secret Boundary
+
+Never commit or disclose API keys, OAuth tokens, cookies, browser sessions, .env values, passwords, cPanel details, payment credentials, private corpora, raw student records, production logs, or unpublished research material.
+
+The shared SecuredMe gateway may route configured audit, observability, and assistant handoff metadata. This repository must not expose gateway secrets, provider tokens, or private operator state in README files, tests, logs, exceptions, screenshots, or issue reports.
+
+## AI And Human Review Boundary
+
+Official school AI routes are Codex/OpenAI and Antigravity/Gemini only. Model output must remain advisory and reviewable. Do not convert this tool into autonomous authority, enforcement, diagnosis, grading, legal decision-making, or unsupervised production safety infrastructure.
+
+## Public Issues
+
+Do not open public issues containing exploit payloads, live credentials, personal data, private student information, customer records, camera/audio samples, payment secrets, or enough operational detail to compromise a deployment.
