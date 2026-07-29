@@ -44,6 +44,8 @@
 
 <!-- FNP-QNN-EXISTING-BADGES:END -->
 
+> **Maintainer intake during active finishing week.** This repository is maintained directly on `main` by the SecuredMe maintainer. Public issues are open for bug reports, documentation corrections, security-safe observations, and reproducible feedback, but opening an issue does not promise a response or a delivery date. Pull requests are not accepted during the active code-finishing week; use issues only until this notice is replaced.
+
 
 
 ## School Authentication And Secret Boundary
@@ -51,7 +53,7 @@ This repository is one of the two large SecuredMe school systems where a local `
 
 The reason for excluding generic local AI routes from official school mode is student and teacher safety: education accounts, provider-side account controls, browser login, and governed AI refusal behavior are safer than unguided local model endpoints for classroom cybersecurity and algorithm-building tools.
 
-> **Development status.** This school tool is currently tagged **pre-alpha / in development**. External PRs are not evaluated for merge until the maintained tool reaches a stable, fully functional 100% classroom release after the pre-alpha phase. Issues and forks remain allowed, but official PR review is paused until that stability gate is met.
+> **Development status.** This school tool is currently tagged **pre-alpha / in development**. Public issues remain open for intake, but no response or delivery date is promised. Pull requests are paused during the active code-finishing week.
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20logo%208.png)
 
@@ -1789,7 +1791,7 @@ Start with:
 - The NeuroBit tunnel-noise demo is not encryption and not a security guarantee.
 - CeLeBrUm/private evidence material is not part of the public demo layer.
 
-  {{ pre-alpha educational research simulator: contributions are open through a maintainer-reviewed education pilot. Please read CONTRIBUTING.md before opening issues or pull requests. Unscoped or incomplete proposals may be closed. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
+  {{ pre-alpha educational research simulator: public issue intake is open for reproducible reports, documentation corrections, and safety-safe observations without any promised response or delivery date. Pull requests are not accepted during the active code-finishing week. Student school-project proposals must use the 12-section issue format and pass safety, eligibility, and scope review before any guided implementation session. }}
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20full%20logo.png)
 
