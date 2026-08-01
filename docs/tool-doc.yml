@@ -1,0 +1,38 @@
+schema: securedme.tool-doc.v2
+slug: fnp-qnn
+title: FNP-QNN
+version: 1.3.0a0
+status: public-preview
+license: LicenseRef-SEL-2.0
+summary: A governed local simulator for repeatable mathematical and neural-network
+  experiments.
+identity:
+  logo: web/landing/assets/fnp-qnn-logo.png
+  family: FNP-QNN
+runtime:
+  type: local-app
+  availability: verified
+  public_url: https://fnpqnn.securedme.ca
+source:
+  repository: https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP
+  issues: https://github.com/SeCuReDmE-main-dev/FNP-QNN-MVP/issues
+documentation:
+  public_root: docs/public
+  source_language: en
+  languages:
+  - en
+  - fr
+  - es
+commands:
+  install:
+  - python -m venv .venv
+  - .venv\Scripts\python -m pip install -e .
+  start:
+  - .venv\Scripts\fnp-qnn --help
+  - .venv\Scripts\fnp-qnn-tui
+  test:
+  - .venv\Scripts\python -m pytest
+boundaries:
+  authority: Simulation, surrogate output, and numerical agreement do not constitute
+    physical detection or experimental validation.
+  human_review_required: true
