@@ -16,6 +16,7 @@ from .cloud_rag_bridge import (
 )
 from .cerebrum_runtime_bridge import CerebrumMemoryEvent, CerebrumRuntimeBridge, CerebrumRuntimeState, CrossModalPair
 from .cpai_mesh import CPAIMeshState, cpai_mesh_profile
+from .cpai_http import CodeProjectMeshClient
 from .lvfm_runtime_graph import (
     LVFMRuntimeGraph,
     LVFMDecision,
@@ -215,6 +216,7 @@ __all__ = [
     "CerebrumRuntimeState",
     "CerebrumRuntimeBridge",
     "CPAIMeshState",
+    "CodeProjectMeshClient",
     "cpai_mesh_profile",
     "RegisterBit",
     "RegisterKey",

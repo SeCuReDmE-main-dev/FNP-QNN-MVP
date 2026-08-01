@@ -47,6 +47,7 @@ from core.chamber_lab import ChamberLabError, build_chamber_scene, chamber_lab_s
 from core import (
     CerebrumAdapter,
     CerebrumRuntimeBridge,
+    CodeProjectMeshClient,
     FfeDPluginBridge,
     LifeScienceObservationPort,
     LVFMGateLedger,
@@ -102,6 +103,8 @@ app = FastAPI(
     description="Typed, non-clinical local research surface for Cerebrum-style runtime events and QNN candidates.",
     version="1.3.0-alpha-local",
 )
+
+cpai_client = CodeProjectMeshClient()
 
 app.add_middleware(
     CORSMiddleware,
@@ -591,6 +594,18 @@ async def health_check() -> Dict[str, Any]:
     }
     response["persistence"] = _persist_runtime_state(STATE_KEYS["health"], response)
     return response
+
+
+@app.get("/cpai/status")
+def codeproject_status() -> Dict[str, Any]:
+    """Read the embedded FNP-QNN CodeProject.AI node over bounded HTTP."""
+    return cpai_client.health()
+
+
+@app.get("/cpai/mesh")
+def codeproject_mesh_status() -> Dict[str, Any]:
+    """Return the real mesh reachability state without raw server payloads."""
+    return cpai_client.mesh_status()
 
 
 @app.get("/cerebrum/status")
