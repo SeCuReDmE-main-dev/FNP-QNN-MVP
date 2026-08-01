@@ -256,37 +256,155 @@ h3 {
 
 .hero-panel {
   position: relative;
-  padding: 10px;
+  padding: 16px;
   border: 1px solid rgba(42, 200, 255, 0.32);
-  border-radius: 10px;
-  background: rgba(7, 16, 37, 0.72);
-  box-shadow: var(--shadow);
+  border-radius: 12px;
+  background: rgba(7, 16, 37, 0.85);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.08);
+  backdrop-filter: blur(12px);
 }
 
-.hero-panel img {
-  width: 100%;
+.stitch-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stitch-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+  font-size: 0.8rem;
+}
+
+.stitch-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot-active {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyan, #00f0ff);
+  box-shadow: 0 0 8px #00f0ff;
+}
+
+.status-label {
+  color: var(--cyan, #00f0ff);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.stitch-title {
+  flex: 1 1 180px;
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.stitch-badge-preview {
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: #00f0ff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.stitch-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .stitch-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stitch-title {
+    order: 3;
+    flex-basis: 100%;
+    text-align: left;
+  }
+}
+
+.stitch-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: rgba(13, 27, 48, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 6px;
+}
+
+.metric-key {
+  color: #8b949e;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-val {
+  color: #f0f6fc;
+  font-size: clamp(0.72rem, 1.2vw, 0.88rem);
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+}
+
+.metric-val.status-accent {
+  color: #00f0ff;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
+}
+
+.stitch-canvas-container {
+  width: 100%;
+  border-radius: 8px;
+  background: radial-gradient(circle at center, rgba(12, 28, 52, 0.8) 0%, rgba(5, 12, 24, 0.95) 100%);
+  border: 1px solid rgba(0, 240, 255, 0.18);
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.stitch-graph-svg {
+  width: 100%;
+  height: auto;
+  max-height: 190px;
 }
 
 .panel-chips {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 16px;
+  bottom: 14px;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
-  max-width: min(520px, calc(100% - 40px));
+  max-width: min(520px, calc(100% - 32px));
 }
 
 .panel-chips span {
-  padding: 7px 10px;
-  color: var(--paper);
-  background: rgba(7, 16, 37, 0.88);
+  padding: 5px 10px;
+  color: var(--paper, #f0f6fc);
+  background: rgba(7, 16, 37, 0.92);
   border: 1px solid rgba(42, 200, 255, 0.45);
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .notice-strip,
@@ -502,9 +620,19 @@ pre {
 :root[data-theme="day"] .boundary-section,
 :root[data-theme="day"] .flow li,
 :root[data-theme="day"] .site-footer,
-:root[data-theme="day"] .education-grid article {
+:root[data-theme="day"] .education-grid article,
+:root[data-theme="day"] .stitch-panel {
   color: #071025;
   background: rgba(255, 255, 255, 0.88);
+}
+
+:root[data-theme="day"] .stitch-metric-card {
+  background: rgba(240, 244, 248, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="day"] .stitch-title {
+  color: #071025;
 }
 
 :root[data-theme="day"] .hero-body,
