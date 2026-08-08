@@ -23,7 +23,7 @@ and `/cpai/mesh`, backed by the repository-local node on port `32172`. The
 scientific engine keeps routing decisions side-effect free; actual network
 health is obtained only through this bounded connector or the shared Gateway.
 
-[![SecuredMe Education Suite public calendar](https://img.shields.io/badge/SecuredMe%20Education%20Suite-public%20calendar%20%7C%20pre--alpha%20through%20Aug%208%202026-5484ED?style=for-the-badge&logo=googlecalendar&logoColor=white)](https://calendrier.securedme.ca)
+[![SecuredMe Education Suite public calendar](https://img.shields.io/badge/SecuredMe%20Education%20Suite-public%20calendar%20%7C%20pre--alpha%20%7C%20active%20public%20development-5484ED?style=for-the-badge&logo=googlecalendar&logoColor=white)](https://calendrier.securedme.ca)
 
 **Attribution:** Jean-Sebastien Beaulieu · [ORCID 0009-0007-2904-0443](https://orcid.org/0009-0007-2904-0443) · [SecuredMe](https://securedme.ca) · [FNP-QNN](https://fnp-qnn.securedme.ca)
 
@@ -67,7 +67,7 @@ This repository is one of the two large SecuredMe school systems where a local `
 
 The reason for excluding generic local AI routes from official school mode is student and teacher safety: education accounts, provider-side account controls, browser login, and governed AI refusal behavior are safer than unguided local model endpoints for classroom cybersecurity and algorithm-building tools.
 
-> **Development status.** This school tool is currently tagged **pre-alpha / in development**. Public issues remain open for intake, but no response or delivery date is promised. Pull requests are paused during the active code-finishing week.
+> **Development status.** This school tool is currently **pre-alpha — active public development**. Public issues remain open for intake, but no response or delivery date is promised. Pull requests are paused during active development.
 
   ![FNP-QNN Logo](./assets/logo/ASCII%20logo%208.png)
 
