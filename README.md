@@ -1,3 +1,9 @@
+<!-- SECUREDME-ZENODO:START -->
+<p align="center">
+  <a href="https://zenodo.org/badge/latestdoi/1054335348"><img alt="DOI" src="https://zenodo.org/badge/1054335348.svg" /></a>
+</p>
+<!-- SECUREDME-ZENODO:END -->
+
 > [!IMPORTANT]
 > **Book II evidence boundary (2026-07-10).** FNP-QNN is an educational and
 > research simulator operating only after Synthia admission. The verified
