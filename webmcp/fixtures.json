@@ -1,0 +1,116 @@
+{
+  "tools": {
+    "fnp_inspect_health": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "completed"
+    },
+    "fnp_inspect_cerebrum_status": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "completed"
+    },
+    "fnp_encode_observations": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "staged"
+    },
+    "fnp_inspect_runtime_status": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "completed"
+    },
+    "fnp_stage_runtime_ingest": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "staged"
+    },
+    "fnp_stage_runtime_pairs": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "staged"
+    },
+    "fnp_stage_runtime_run": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "staged"
+    },
+    "fnp_inspect_latest_runtime_state": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "completed"
+    },
+    "fnp_list_qnn_candidates": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "completed"
+    },
+    "fnp_preview_neurobit_gates": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "staged"
+    },
+    "securedme_companion_context": {
+      "validInput": {},
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "completed"
+    },
+    "securedme_qbit_plan_handoff": {
+      "validInput": {
+        "mission_ref": "x"
+      },
+      "invalidInput": {
+        "__invalid": true
+      },
+      "expectedStatus": "staged"
+    }
+  },
+  "journeys": [
+    [
+      "fnp_inspect_health",
+      "fnp_inspect_cerebrum_status"
+    ],
+    [
+      "fnp_encode_observations",
+      "fnp_inspect_runtime_status"
+    ],
+    [
+      "fnp_stage_runtime_ingest",
+      "fnp_stage_runtime_pairs"
+    ],
+    [
+      "fnp_stage_runtime_run",
+      "fnp_inspect_latest_runtime_state"
+    ],
+    [
+      "fnp_list_qnn_candidates",
+      "fnp_preview_neurobit_gates"
+    ],
+    [
+      "securedme_companion_context",
+      "securedme_qbit_plan_handoff"
+    ]
+  ]
+}

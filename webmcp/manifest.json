@@ -1,0 +1,745 @@
+{
+  "schema": "securedme.webmcp.v1",
+  "manifestVersion": "1.0.0",
+  "product": {
+    "slug": "fnp-qnn",
+    "name": "FNP-QNN MVP",
+    "status": "public-pre-alpha",
+    "canonicalStateOwner": "algoquest",
+    "applicationStateOwner": "fnp-qnn",
+    "pagePatterns": [
+      "https://fnpqnn.securedme.ca/",
+      "http://localhost:8000/dashboard"
+    ],
+    "theme": {
+      "slug": "fnp-qnn",
+      "source": "securedme-site/assets/landing/secureme.ca-product/education/FNP-QNN-MVP/desing/stitch_fnp_qnn_research_simulator_design_system/stitch_fnp_qnn_research_simulator_design_system/desing.md",
+      "sourceStatus": "verified-product-stitch",
+      "assets": {
+        "dark": "landing dark.png",
+        "light": "landing light.png",
+        "logo": "FNP-QNN logo.png"
+      },
+      "tokens": {
+        "background": "#061026",
+        "surface": "#101b35",
+        "primary": "#23b8ff",
+        "secondary": "#6f42ff",
+        "accent": "#d8a548",
+        "text": "#f7fbff",
+        "muted": "#8fa0bd",
+        "focus": "#23d5ff"
+      },
+      "typography": {
+        "display": "system-ui, sans-serif",
+        "body": "system-ui, sans-serif",
+        "code": "monospace"
+      },
+      "fallback": "High-contrast system fonts, visible focus, and text-first simulator states."
+    }
+  },
+  "boundaries": {
+    "authority": "Local non-clinical educational research simulation only.",
+    "secrets": "Provider secrets, private CeLeBrUm corpus and raw learner records are forbidden.",
+    "externalWrites": "No shell, E2B, provisioning or browser automation is exposed; simulations remain staged local evidence.",
+    "heroProgression": "AlgoQuest alone owns Hero Book progression and evidence admission."
+  },
+  "tools": [
+    {
+      "name": "fnp_inspect_health",
+      "title": "Fnp Inspect Health",
+      "description": "Inspect the sanitized local non-clinical simulator health.",
+      "mode": "READ",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_inspect_health"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "GET",
+        "path": "/health"
+      }
+    },
+    {
+      "name": "fnp_inspect_cerebrum_status",
+      "title": "Fnp Inspect Cerebrum Status",
+      "description": "Inspect the deterministic demo observation bundle.",
+      "mode": "READ",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_inspect_cerebrum_status"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "GET",
+        "path": "/cerebrum/status"
+      }
+    },
+    {
+      "name": "fnp_encode_observations",
+      "title": "Fnp Encode Observations",
+      "description": "Encode bounded observation feature vectors.",
+      "mode": "STAGE",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "observations": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "type": "object",
+              "properties": {
+                "modality": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "value": {},
+                "timestamp": {
+                  "type": "number"
+                },
+                "starting_time": {
+                  "type": "number"
+                },
+                "ending_time": {
+                  "type": "number"
+                },
+                "end_time": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "source": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "weight": {
+                  "type": "number"
+                },
+                "payload_ref": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_encode_observations"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "POST",
+        "path": "/cerebrum/encode"
+      }
+    },
+    {
+      "name": "fnp_inspect_runtime_status",
+      "title": "Fnp Inspect Runtime Status",
+      "description": "Inspect the local Cerebrum runtime and candidate backend status.",
+      "mode": "READ",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_inspect_runtime_status"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "GET",
+        "path": "/cerebrum/runtime/status"
+      }
+    },
+    {
+      "name": "fnp_stage_runtime_ingest",
+      "title": "Fnp Stage Runtime Ingest",
+      "description": "Stage bounded runtime events and crossmodal pairs.",
+      "mode": "STAGE",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "memories": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "type": "object",
+              "properties": {
+                "modality": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "value": {},
+                "timestamp": {
+                  "type": "number"
+                },
+                "starting_time": {
+                  "type": "number"
+                },
+                "ending_time": {
+                  "type": "number"
+                },
+                "end_time": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "source": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "weight": {
+                  "type": "number"
+                },
+                "payload_ref": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "run_qnn": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_stage_runtime_ingest"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "POST",
+        "path": "/cerebrum/runtime/ingest"
+      }
+    },
+    {
+      "name": "fnp_stage_runtime_pairs",
+      "title": "Fnp Stage Runtime Pairs",
+      "description": "Stage the runtime crossmodal pair projection.",
+      "mode": "STAGE",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "memories": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "type": "object",
+              "properties": {
+                "modality": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "value": {},
+                "timestamp": {
+                  "type": "number"
+                },
+                "starting_time": {
+                  "type": "number"
+                },
+                "ending_time": {
+                  "type": "number"
+                },
+                "end_time": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "source": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "weight": {
+                  "type": "number"
+                },
+                "payload_ref": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "run_qnn": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_stage_runtime_pairs"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "POST",
+        "path": "/cerebrum/runtime/pairs"
+      }
+    },
+    {
+      "name": "fnp_stage_runtime_run",
+      "title": "Fnp Stage Runtime Run",
+      "description": "Run a local deterministic research simulation candidate; never a clinical inference.",
+      "mode": "STAGE",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "memories": {
+            "type": "array",
+            "maxItems": 128,
+            "items": {
+              "type": "object",
+              "properties": {
+                "modality": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "value": {},
+                "timestamp": {
+                  "type": "number"
+                },
+                "starting_time": {
+                  "type": "number"
+                },
+                "ending_time": {
+                  "type": "number"
+                },
+                "end_time": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "source": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "weight": {
+                  "type": "number"
+                },
+                "payload_ref": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "run_qnn": {
+            "type": "boolean"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_stage_runtime_run"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "POST",
+        "path": "/cerebrum/runtime/run"
+      }
+    },
+    {
+      "name": "fnp_inspect_latest_runtime_state",
+      "title": "Fnp Inspect Latest Runtime State",
+      "description": "Inspect the latest sanitized local runtime state receipt.",
+      "mode": "READ",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_inspect_latest_runtime_state"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "GET",
+        "path": "/cerebrum/runtime/state/latest"
+      }
+    },
+    {
+      "name": "fnp_list_qnn_candidates",
+      "title": "Fnp List Qnn Candidates",
+      "description": "List available and unavailable QNN candidate lanes honestly.",
+      "mode": "READ",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_list_qnn_candidates"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "GET",
+        "path": "/qnn/candidates"
+      }
+    },
+    {
+      "name": "fnp_preview_neurobit_gates",
+      "title": "Fnp Preview Neurobit Gates",
+      "description": "Preview deterministic NeuroBit gate behavior as educational simulation.",
+      "mode": "STAGE",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "truth": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "indeterminacy": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "falsity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "n_qubits": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "fnp_preview_neurobit_gates"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "http",
+        "method": "POST",
+        "path": "/fnp-qnn/neurobit/gates/run"
+      }
+    },
+    {
+      "name": "securedme_companion_context",
+      "title": "Securedme Companion Context",
+      "description": "Read a sanitized Hero Book projection while AlgoQuest retains authority.",
+      "mode": "READ",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "securedme_companion_context"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "local",
+        "operation": "Gateway_session_projection"
+      }
+    },
+    {
+      "name": "securedme_qbit_plan_handoff",
+      "title": "Securedme Qbit Plan Handoff",
+      "description": "Prepare a Qbit return proposal without changing progression.",
+      "mode": "STAGE",
+      "availability": "available",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mission_ref": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "artifact_refs": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "maxLength": 160
+            }
+          }
+        },
+        "required": [
+          "mission_ref"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "status",
+          "tool",
+          "data",
+          "secret_values_exposed"
+        ],
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "tool": {
+            "const": "securedme_qbit_plan_handoff"
+          },
+          "data": {},
+          "secret_values_exposed": {
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "handler": {
+        "kind": "local",
+        "operation": "local_proposal_only"
+      }
+    }
+  ]
+}

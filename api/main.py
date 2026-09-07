@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 import os
 import sys
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Sequence
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -95,6 +96,8 @@ from core import (
     time_physics_experiments_status,
     triplet_quality_profile,
 )
+from api.webmcp import PRODUCT_SLUG as WEBMCP_PRODUCT_SLUG
+from api.webmcp import manifest as webmcp_manifest, tool as webmcp_tool
 from core.cerebrum_adapter import MODALITIES
 from core.qlc_runtime_normalizer import normalize_qlc_runtime_payload
 
@@ -103,6 +106,7 @@ app = FastAPI(
     description="Typed, non-clinical local research surface for Cerebrum-style runtime events and QNN candidates.",
     version="1.3.0-alpha-local",
 )
+app.state.securedme_webmcp_authorizer = None
 
 cpai_client = CodeProjectMeshClient()
 
@@ -134,7 +138,7 @@ class DashboardSecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 class APIKeyMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        if request.url.path.startswith("/dashboard") or request.url.path in {"/health", "/", "/docs", "/openapi.json"}:
+        if request.url.path.startswith("/dashboard") or request.url.path in {"/health", "/", "/docs", "/openapi.json", "/webmcp/manifest"}:
             return await call_next(request)
 
         api_key = os.environ.get("FNP_QNN_API_KEY")
@@ -1646,6 +1650,117 @@ def _command_response(command_name: str, request: Optional[CommandRequest] = Non
             data=result,
         )
     raise HTTPException(status_code=404, detail=f"Command '{command_name}' is not available in alpha-local mode")
+
+
+@app.get("/webmcp/manifest")
+async def securedme_webmcp_manifest() -> Dict[str, Any]:
+    """Public discovery; invocation still requires a trusted Gateway session."""
+
+    return webmcp_manifest()
+
+
+def _validate_webmcp_arguments(descriptor: Dict[str, Any], arguments: Any) -> None:
+    if not isinstance(arguments, dict):
+        raise ValueError("arguments must be an object")
+    schema = descriptor["inputSchema"]
+    properties = schema.get("properties", {})
+    unknown = set(arguments) - set(properties)
+    if unknown:
+        raise ValueError("unknown arguments: " + ", ".join(sorted(unknown)))
+    missing = [name for name in schema.get("required", []) if name not in arguments]
+    if missing:
+        raise ValueError("missing arguments: " + ", ".join(missing))
+    _reject_webmcp_secret_fields(arguments)
+
+
+def _reject_webmcp_secret_fields(value: Any) -> None:
+    if isinstance(value, dict):
+        blocked = ("secret", "password", "cookie", "authorization", "env", "api_key", "client_secret", "provider_token")
+        if any(any(marker in str(key).lower() for marker in blocked) for key in value):
+            raise ValueError("secret-bearing fields are forbidden")
+        for item in value.values():
+            _reject_webmcp_secret_fields(item)
+    elif isinstance(value, list):
+        for item in value:
+            _reject_webmcp_secret_fields(item)
+
+
+def _sanitize_webmcp(value: Any, depth: int = 0) -> Any:
+    if depth > 8:
+        return "<depth-limited>"
+    if isinstance(value, dict):
+        blocked = ("secret", "password", "cookie", "authorization", "env", "private", "raw_patient", "corpus")
+        return {str(key): _sanitize_webmcp(item, depth + 1) for key, item in value.items() if not any(marker in str(key).lower() for marker in blocked)}
+    if isinstance(value, list):
+        return [_sanitize_webmcp(item, depth + 1) for item in value[:500]]
+    if isinstance(value, str):
+        return value[:20000]
+    return value
+
+
+async def _dispatch_webmcp(name: str, arguments: Dict[str, Any], session: Dict[str, Any]) -> Any:
+    if name == "fnp_inspect_health":
+        runtime = cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus)
+        return {"status": "healthy", "mode": "alpha-local-research", "clinical_use": False, "qnn_backend": runtime["qnn_backend"], "state_store": _state_store_status()}
+    if name == "fnp_inspect_cerebrum_status":
+        return await cerebrum_status()
+    if name == "fnp_encode_observations":
+        return await cerebrum_encode(EncodeRequest.model_validate(arguments))
+    if name == "fnp_inspect_runtime_status":
+        return {**cerebrum_runtime_bridge.status(qnn_nucleus=qnn_nucleus), "state_store": _state_store_status()}
+    if name == "fnp_stage_runtime_ingest":
+        return await cerebrum_runtime_ingest(RuntimeRunRequest.model_validate(arguments))
+    if name == "fnp_stage_runtime_pairs":
+        return await cerebrum_runtime_pairs(RuntimeRunRequest.model_validate(arguments))
+    if name == "fnp_stage_runtime_run":
+        return await cerebrum_runtime_run(RuntimeRunRequest.model_validate(arguments))
+    if name == "fnp_inspect_latest_runtime_state":
+        return await cerebrum_runtime_state_latest()
+    if name == "fnp_list_qnn_candidates":
+        return await qnn_candidates()
+    if name == "fnp_preview_neurobit_gates":
+        return await neurobit_gates_run(NeuroBitProfileRequest.model_validate(arguments))
+    if name == "securedme_companion_context":
+        return {"schema": "HeroBookPanelState.projection.v1", "canonical_state_owner": "algoquest", "hero_context": session.get("hero_context", {}), "revision": session.get("hero_revision"), "specialist": "fnp-qnn", "raw_learner_record_exposed": False}
+    if name == "securedme_qbit_plan_handoff":
+        return {"schema": "securedme.qbit.handoff-plan.v1", "status": "staged", "mission_ref": arguments["mission_ref"], "artifact_refs": arguments.get("artifact_refs", []), "target": "algoquest", "progression_modified": False}
+    raise LookupError("registered tool has no real handler")
+
+
+@app.post("/webmcp/invoke")
+async def securedme_webmcp_invoke(request: Request, payload: Dict[str, Any]) -> Dict[str, Any]:
+    authorizer = getattr(request.app.state, "securedme_webmcp_authorizer", None)
+    if not callable(authorizer):
+        raise HTTPException(status_code=503, detail={"error_code": "GATEWAY_SESSION_REQUIRED", "secret_values_exposed": False})
+    try:
+        session = authorizer(request)
+        if hasattr(session, "__await__"):
+            session = await session
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail={"error_code": "UNAUTHORIZED", "secret_values_exposed": False}) from exc
+    if not isinstance(session, dict) or session.get("schema") != "securedme.education.session.v2":
+        raise HTTPException(status_code=401, detail={"error_code": "UNAUTHORIZED", "secret_values_exposed": False})
+    if WEBMCP_PRODUCT_SLUG not in session.get("allowed_tools", []) or session.get("consent_scope") not in {"tool", "suite"}:
+        raise HTTPException(status_code=403, detail={"error_code": "FORBIDDEN", "secret_values_exposed": False})
+    try:
+        expires = datetime.fromisoformat(str(session["expires_at"]).replace("Z", "+00:00"))
+        if expires <= datetime.now(timezone.utc):
+            raise ValueError("expired")
+    except Exception as exc:
+        raise HTTPException(status_code=401, detail={"error_code": "SESSION_EXPIRED", "secret_values_exposed": False}) from exc
+    name = str(payload.get("name") or "")
+    descriptor = webmcp_tool(name)
+    if descriptor is None:
+        raise HTTPException(status_code=404, detail={"error_code": "TOOL_UNAVAILABLE", "secret_values_exposed": False})
+    arguments = payload.get("arguments") or {}
+    try:
+        _validate_webmcp_arguments(descriptor, arguments)
+        result = await _dispatch_webmcp(name, arguments, session)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail={"error_code": "INVALID_ARGUMENTS", "message": str(exc), "secret_values_exposed": False}) from exc
+    except LookupError as exc:
+        raise HTTPException(status_code=503, detail={"error_code": "TOOL_UNAVAILABLE", "secret_values_exposed": False}) from exc
+    return {"status": "success", "tool": name, "data": _sanitize_webmcp(result), "secret_values_exposed": False}
 
 
 @app.post("/commands/{command_name}", response_model=CommandResponse)
